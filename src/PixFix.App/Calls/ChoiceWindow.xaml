@@ -2,13 +2,15 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Width="460" SizeToContent="Height" MaxHeight="600"
+        Background="{DynamicResource AppWindowBackground}"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize">
     <DockPanel Margin="14">
         <TextBlock x:Name="Prompt" DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,8" />
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="OK" Width="90" IsDefault="True" Click="OnOk" />
-            <Button Content="Abbrechen" Width="90" Margin="8,0,0,0" IsCancel="True" />
+            <Button Content="OK" MinWidth="96" Padding="12,5" IsDefault="True" Click="OnOk" />
+            <Button Content="Abbrechen" MinWidth="96" Padding="12,5" Margin="8,0,0,0" IsCancel="True" />
         </StackPanel>
-        <ListBox x:Name="Options" MinHeight="120" MaxHeight="420" DisplayMemberPath="Label" MouseDoubleClick="OnOk" />
+        <ListBox x:Name="Options" MinHeight="120" MaxHeight="420" DisplayMemberPath="Label" MouseDoubleClick="OnOk"
+                 Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" />
     </DockPanel>
 </Window>

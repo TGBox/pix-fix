@@ -33,12 +33,15 @@ public sealed class TrashListWindow : Window
         MinHeight = 260;
         ShowInTaskbar = false;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        SetResourceReference(BackgroundProperty, "AppWindowBackground");
 
         var view = new GridView();
         view.Columns.Add(new GridViewColumn { Header = "Gelöscht", Width = 130, DisplayMemberBinding = new Binding(nameof(TrashRow.Deleted)) });
         view.Columns.Add(new GridViewColumn { Header = headers.First, Width = 300, DisplayMemberBinding = new Binding(nameof(TrashRow.First)) });
         view.Columns.Add(new GridViewColumn { Header = headers.Second, Width = 200, DisplayMemberBinding = new Binding(nameof(TrashRow.Second)) });
-        list = new ListView { View = view, SelectionMode = SelectionMode.Extended };
+        list = new ListView { View = view, SelectionMode = SelectionMode.Extended, BorderThickness = new Thickness(1) };
+        list.SetResourceReference(BackgroundProperty, "AppSurfaceBackground");
+        list.SetResourceReference(BorderBrushProperty, "AppBorderBrush");
         list.MouseDoubleClick += (_, _) => Restore();
 
         var restoreButton = new Button { Content = "_Wiederherstellen", Padding = new Thickness(10, 2, 10, 2), Margin = new Thickness(0, 0, 6, 0), IsDefault = true };
@@ -52,7 +55,8 @@ public sealed class TrashListWindow : Window
         buttons.Children.Add(close);
 
         var panel = new DockPanel { Margin = new Thickness(12) };
-        var hintText = new TextBlock { Text = hint, TextWrapping = TextWrapping.Wrap, Foreground = System.Windows.Media.Brushes.Gray, Margin = new Thickness(0, 0, 0, 8) };
+        var hintText = new TextBlock { Text = hint, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) };
+        hintText.SetResourceReference(TextBlock.ForegroundProperty, "TextFillColorSecondaryBrush");
         DockPanel.SetDock(hintText, Dock.Top);
         DockPanel.SetDock(buttons, Dock.Bottom);
         panel.Children.Add(hintText);

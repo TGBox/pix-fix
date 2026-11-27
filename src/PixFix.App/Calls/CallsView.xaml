@@ -12,21 +12,25 @@
         <Style x:Key="FieldLabel" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,4,6,0" />
             <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Foreground" Value="#555" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
         </Style>
-        <Style TargetType="TextBox">
+        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Margin" Value="0,4,10,0" />
             <Setter Property="Padding" Value="3,2" />
         </Style>
-        <Style x:Key="Tool" TargetType="Button">
+        <Style x:Key="Tool" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
             <Setter Property="Padding" Value="8,2" />
             <Setter Property="Margin" Value="0,0,4,4" />
         </Style>
-        <Style TargetType="RichTextBox">
+        <Style TargetType="RichTextBox" BasedOn="{StaticResource {x:Type RichTextBox}}">
             <Setter Property="AcceptsTab" Value="True" />
             <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
             <Setter Property="MinHeight" Value="110" />
             <Setter Property="Padding" Value="2" />
+            <Setter Property="Background" Value="{DynamicResource AppSurfaceBackground}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AppBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
     </UserControl.Resources>
     <Grid>
@@ -51,8 +55,9 @@
                         ToolTip="TeamViewer öffnen bzw. in den Vordergrund holen" />
             </StackPanel>
             <CheckBox DockPanel.Dock="Top" Content="Erledigte anzeigen" IsChecked="{Binding ShowDone}" Margin="0,0,0,6" />
-            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="Gray" TextWrapping="Wrap" Margin="0,6,0,0" />
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
             <ListBox x:Name="CallList" ItemsSource="{Binding CallList}" SelectedItem="{Binding SelectedCall}"
+                     Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
                      HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.InputBindings>
                     <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" />
@@ -61,11 +66,11 @@
                     <DataTemplate>
                         <StackPanel Margin="2,4">
                             <DockPanel>
-                                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusText}" Foreground="#2a6fb0" FontSize="11" />
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusText}" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" FontSize="11" />
                                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
                             </DockPanel>
-                            <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" Foreground="#444" />
-                            <TextBlock Text="{Binding ReminderText}" Foreground="#b06a00" FontSize="11">
+                            <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="{Binding ReminderText}" Foreground="{DynamicResource SystemFillColorCautionBrush}" FontSize="11">
                                 <TextBlock.Style>
                                     <Style TargetType="TextBlock">
                                         <Style.Triggers>
@@ -85,7 +90,7 @@
         <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="calls.splitter" />
 
         <!-- Anrufkarte -->
-        <TextBlock Grid.Column="2" Margin="12" Foreground="Gray" Text="Kein Anruf ausgewählt. Mit „+ Neuer Anruf“ eine Anrufkarte anlegen.">
+        <TextBlock Grid.Column="2" Margin="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Kein Anruf ausgewählt. Mit „+ Neuer Anruf“ eine Anrufkarte anlegen.">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -100,7 +105,7 @@
         <ScrollViewer Grid.Column="2" Margin="8,0,0,0" VerticalScrollBarVisibility="Auto"
                       IsEnabled="{Binding SelectedCall, Converter={StaticResource NotNull}}">
             <ScrollViewer.Style>
-                <Style TargetType="ScrollViewer">
+                <Style TargetType="ScrollViewer" BasedOn="{StaticResource {x:Type ScrollViewer}}">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding SelectedCall}" Value="{x:Null}">
                             <Setter Property="Visibility" Value="Hidden" />
@@ -184,20 +189,20 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Content="Er_innerung ändern …" Command="{Binding EditReminderCommand}" Padding="8,1" Margin="0,4,8,0" />
-                    <TextBlock Text="{Binding SelectedCall.ReminderText}" Foreground="#b06a00" VerticalAlignment="Center" Margin="0,4,0,0" />
+                    <Button Content="Er_innerung ändern …" Command="{Binding EditReminderCommand}" Padding="8,3" Margin="0,4,8,0" />
+                    <TextBlock Text="{Binding SelectedCall.ReminderText}" Foreground="{DynamicResource SystemFillColorCautionBrush}" VerticalAlignment="Center" Margin="0,4,0,0" />
                 </DockPanel>
 
                 <!-- Abrechnung -->
                 <DockPanel Margin="0,6,0,0" DataContext="{Binding SelectedCall}">
-                    <CheckBox Content="Kostenpflichtig" IsChecked="{Binding IsBillable}" Width="120" VerticalAlignment="Center" Margin="0,4,0,0" />
+                    <CheckBox Content="Kostenpflichtig" IsChecked="{Binding IsBillable}" MinWidth="132" VerticalAlignment="Center" Margin="0,4,10,0" />
                     <TextBlock Text="von" Style="{StaticResource FieldLabel}" />
-                    <TextBox Width="60" Text="{Binding BillingStartText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
-                    <Button Content="Jetzt" Padding="6,0" Margin="0,4,10,0"
+                    <TextBox Width="64" Text="{Binding BillingStartText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
+                    <Button Content="Jetzt" Padding="8,3" Margin="0,4,10,0"
                             Command="{Binding DataContext.BillingStartNowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                     <TextBlock Text="bis" Style="{StaticResource FieldLabel}" />
-                    <TextBox Width="60" Text="{Binding BillingEndText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
-                    <Button Content="Jetzt" Padding="6,0" Margin="0,4,10,0"
+                    <TextBox Width="64" Text="{Binding BillingEndText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
+                    <Button Content="Jetzt" Padding="8,3" Margin="0,4,10,0"
                             Command="{Binding DataContext.BillingEndNowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                     <TextBlock Text="{Binding Duration}" VerticalAlignment="Center" Margin="0,4,0,0" FontWeight="SemiBold" />
                 </DockPanel>
@@ -206,13 +211,13 @@
                 <TextBox Text="{Binding SelectedCall.Notes, UpdateSourceTrigger=LostFocus}" Margin="0,2,0,0" />
 
                 <DockPanel Margin="0,10,0,2">
-                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,1" Click="OnReasonTemplates" />
+                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,3" Click="OnReasonTemplates" />
                     <TextBlock Text="Warum wird angerufen?" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </DockPanel>
                 <RichTextBox x:Name="ReasonBox" MinHeight="140" TextChanged="OnTextChanged" LostKeyboardFocus="OnTextLostFocus" />
 
                 <DockPanel Margin="0,10,0,2">
-                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,1" Click="OnSolutionTemplates" />
+                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,3" Click="OnSolutionTemplates" />
                     <TextBlock Text="Lösung / Was wurde gemacht?" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </DockPanel>
                 <RichTextBox x:Name="SolutionBox" MinHeight="140" TextChanged="OnTextChanged" LostKeyboardFocus="OnTextLostFocus" />

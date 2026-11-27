@@ -6,7 +6,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <Version>0.1.0</Version>
+    <Version>1.0.0</Version>
     <Company>Carasent</Company>
     <Product>PixFix</Product>
     <NeutralLanguage>de-DE</NeutralLanguage>

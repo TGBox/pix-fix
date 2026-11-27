@@ -75,7 +75,10 @@ public static class FlowDocumentStore
         string xaml;
         try
         {
-            xaml = XamlWriter.Save(document);
+            using (FlowDocumentThemeHelper.SuspendThemeAdaptation(document))
+            {
+                xaml = XamlWriter.Save(document);
+            }
         }
         finally
         {

@@ -3,12 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Abschnitte – Wissensdatenbank"
         Width="520" Height="420"
+        Background="{DynamicResource AppWindowBackground}"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
     <DockPanel Margin="12">
-        <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" TextWrapping="Wrap" Foreground="Gray"
+        <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Text="Reihenfolge und Namen der Abschnitte. Löschen geht nur bei leeren Abschnitten – Einträge vorher in einen anderen Abschnitt verschieben." />
-        <TextBlock x:Name="Error" DockPanel.Dock="Bottom" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,8,0,0" />
+        <TextBlock x:Name="Error" DockPanel.Dock="Bottom" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" Margin="0,8,0,0" />
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
             <TextBox x:Name="NameBox" Width="220" VerticalContentAlignment="Center" ToolTip="Neuer Name für den markierten Abschnitt" />
             <Button Content="Umbenennen" Padding="10,2" Margin="6,0,0,0" Click="OnRename" IsDefault="True" />
@@ -19,7 +20,8 @@
             <Button Content="↓ Nach unten" Padding="8,2" Margin="0,4,0,0" Click="OnMoveDown" />
             <Button Content="Löschen" Padding="8,2" Margin="0,16,0,0" Click="OnDelete" />
         </StackPanel>
-        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged">
+        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged"
+                  Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Abschnitt" Width="260" DisplayMemberBinding="{Binding Name}" />

@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Threading;
 using PixFix.App.Common;
+using PixFix.App.Editing;
 using PixFix.Core.Templates;
 
 namespace PixFix.App.Calls;
@@ -42,6 +43,8 @@ public partial class CallsView : UserControl, IShortcutTarget
         viewModel.PropertyChanged += OnViewModelChanged;
         viewModel.AppendTextRequested += OnAppendText;
         viewModel.TrashRequested += OnTrashRequested;
+        ThemeService.ThemeChanged -= OnThemeChanged;
+        ThemeService.ThemeChanged += OnThemeChanged;
         window = Window.GetWindow(this);
         if (window is not null)
         {
@@ -49,10 +52,12 @@ public partial class CallsView : UserControl, IShortcutTarget
         }
 
         ShowTexts(viewModel.SelectedCall);
+        RefreshDocumentThemes();
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        ThemeService.ThemeChanged -= OnThemeChanged;
         FlushTexts();
         if (viewModel is not null)
         {
@@ -126,6 +131,7 @@ public partial class CallsView : UserControl, IShortcutTarget
             {
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(rtf));
                 new TextRange(document.ContentStart, document.ContentEnd).Load(stream, DataFormats.Rtf);
+                FlowDocumentThemeHelper.ApplyTheme(document, ThemeService.IsDark);
                 return;
             }
             catch (ArgumentException)
@@ -135,11 +141,36 @@ public partial class CallsView : UserControl, IShortcutTarget
         }
 
         new TextRange(document.ContentStart, document.ContentEnd).Text = text ?? string.Empty;
+        FlowDocumentThemeHelper.ApplyTheme(document, ThemeService.IsDark);
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e) => RefreshDocumentThemes();
+
+    private void RefreshDocumentThemes()
+    {
+        var wasLoading = loading;
+        loading = true;
+        try
+        {
+            if (ReasonBox.Document is not null)
+            {
+                FlowDocumentThemeHelper.ApplyTheme(ReasonBox.Document, ThemeService.IsDark);
+            }
+
+            if (SolutionBox.Document is not null)
+            {
+                FlowDocumentThemeHelper.ApplyTheme(SolutionBox.Document, ThemeService.IsDark);
+            }
+        }
+        finally
+        {
+            loading = wasLoading;
+        }
     }
 
     private void OnTextChanged(object sender, TextChangedEventArgs e)
     {
-        if (!loading && current is not null)
+        if (!loading && !FlowDocumentThemeHelper.IsMutatingTheme && current is not null)
         {
             saveTimer.Stop();
             saveTimer.Start();
@@ -162,7 +193,7 @@ public partial class CallsView : UserControl, IShortcutTarget
         current.UpdateTexts(reasonText, reasonRtf, solutionText, solutionRtf);
     }
 
-    private static (string Text, string Rtf) Read(RichTextBox box)
+    private (string Text, string Rtf) Read(RichTextBox box)
     {
         var range = new TextRange(box.Document.ContentStart, box.Document.ContentEnd);
         var text = range.Text.TrimEnd('\r', '\n');
@@ -171,9 +202,35 @@ public partial class CallsView : UserControl, IShortcutTarget
             return (string.Empty, string.Empty);
         }
 
-        using var stream = new MemoryStream();
-        range.Save(stream, DataFormats.Rtf);
-        return (text, Encoding.UTF8.GetString(stream.ToArray()));
+        // Prevent Dark Mode's inherited white theme foreground from being serialized into stored RTF.
+        using (FlowDocumentThemeHelper.SuspendThemeAdaptation(box.Document))
+        {
+            var hadLocalForeground =
+                box.Document.ReadLocalValue(TextElement.ForegroundProperty) != DependencyProperty.UnsetValue;
+            var wasLoading = loading;
+            using var stream = new MemoryStream();
+            try
+            {
+                if (!hadLocalForeground)
+                {
+                    loading = true;
+                    box.Document.Foreground = System.Windows.Media.Brushes.Black;
+                }
+
+                range.Save(stream, DataFormats.Rtf);
+            }
+            finally
+            {
+                if (!hadLocalForeground)
+                {
+                    box.Document.ClearValue(TextElement.ForegroundProperty);
+                }
+
+                loading = wasLoading;
+            }
+
+            return (text, Encoding.UTF8.GetString(stream.ToArray()));
+        }
     }
 
     private void OnAppendText(object? sender, (bool Reason, string Text) e)

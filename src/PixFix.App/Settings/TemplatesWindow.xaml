@@ -4,18 +4,19 @@
         xmlns:common="clr-namespace:PixFix.App.Common"
         Title="PixFix – Vorlagen und Schnelltexte" Width="980" Height="640" MinWidth="720" MinHeight="420"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource AppWindowBackground}"
         common:LayoutMemory.Key="templates">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="Visible" />
-        <Style x:Key="ListButton" TargetType="Button">
-            <Setter Property="Padding" Value="8,1" />
+        <Style x:Key="ListButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Padding" Value="8,3" />
             <Setter Property="Margin" Value="0,0,4,0" />
         </Style>
         <Style x:Key="Label" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,8,0,2" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style x:Key="Multi" TargetType="TextBox">
+        <Style x:Key="Multi" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="AcceptsReturn" Value="True" />
             <Setter Property="AcceptsTab" Value="True" />
             <Setter Property="TextWrapping" Value="Wrap" />
@@ -41,7 +42,8 @@
                             <Button Content="↑" Command="{Binding MoveTemplateUpCommand}" Style="{StaticResource ListButton}" ToolTip="Nach oben" />
                             <Button Content="↓" Command="{Binding MoveTemplateDownCommand}" Style="{StaticResource ListButton}" ToolTip="Nach unten" />
                         </StackPanel>
-                        <ListBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}" DisplayMemberPath="Name" Margin="0,6,0,0" />
+                        <ListBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}" DisplayMemberPath="Name" Margin="0,6,0,0"
+                                 Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" />
                     </DockPanel>
                     <DockPanel Grid.Column="1" DataContext="{Binding SelectedTemplate}">
                         <DockPanel.Style>
@@ -61,7 +63,7 @@
                             <TextBox Text="{Binding Subject, UpdateSourceTrigger=PropertyChanged, Delay=500}" Padding="3,2" />
                         </StackPanel>
                         <TextBlock DockPanel.Dock="Top" Text="Text" Style="{StaticResource Label}" />
-                        <TextBlock DockPanel.Dock="Bottom" Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap"
+                        <TextBlock DockPanel.Dock="Bottom" Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                    Text="{Binding DataContext.SelectedKind.Hint, RelativeSource={RelativeSource AncestorType=Window}}" />
                         <TextBox Text="{Binding Body, UpdateSourceTrigger=PropertyChanged, Delay=500}" Style="{StaticResource Multi}" />
                     </DockPanel>
@@ -82,7 +84,8 @@
                             <Button Content="↑" Command="{Binding MoveQuickTextUpCommand}" Style="{StaticResource ListButton}" ToolTip="Nach oben" />
                             <Button Content="↓" Command="{Binding MoveQuickTextDownCommand}" Style="{StaticResource ListButton}" ToolTip="Nach unten" />
                         </StackPanel>
-                        <ListBox ItemsSource="{Binding QuickTexts}" SelectedItem="{Binding SelectedQuickText}" DisplayMemberPath="Name" />
+                        <ListBox ItemsSource="{Binding QuickTexts}" SelectedItem="{Binding SelectedQuickText}" DisplayMemberPath="Name"
+                                 Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" />
                     </DockPanel>
                     <StackPanel Grid.Column="1" DataContext="{Binding SelectedQuickText}">
                         <StackPanel.Style>
@@ -112,7 +115,7 @@
             <!-- Fax-Dokumente -->
             <TabItem Header="Fax-Dokumente">
                 <DockPanel Margin="8">
-                    <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,8"
+                    <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,8"
                                Text="Beim Klick auf „Fax“ im Anruf wählst du eines dieser Dokumente aus; PixFix öffnet eine Kopie mit dem zugeordneten Programm (z. B. Word). Die Originale bleiben unverändert in der PixFix-Ablage und gehören zur Sicherung." />
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
                         <Button Content="+ Hinzufügen …" Command="{Binding AddFaxCommand}" Style="{StaticResource ListButton}" />
@@ -126,6 +129,7 @@
                         <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" Padding="3,2" />
                     </DockPanel>
                     <ListBox ItemsSource="{Binding FaxDocuments}" SelectedItem="{Binding SelectedFax}" DisplayMemberPath="Name"
+                             Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
                              AllowDrop="True" DragOver="OnFaxDragOver" Drop="OnFaxDrop"
                              ToolTip="Dokumente auch per Drag &amp; Drop aus dem Explorer hinzufügen" />
                 </DockPanel>

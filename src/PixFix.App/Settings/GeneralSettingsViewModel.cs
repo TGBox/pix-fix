@@ -1,11 +1,31 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using PixFix.App.Common;
 using PixFix.Infrastructure.Settings;
 
 namespace PixFix.App.Settings;
 
 /// <summary>Reiter „Allgemein“: Verhalten beim Schließen und systemweites Tastenkürzel.</summary>
-public sealed class GeneralSettingsViewModel(SettingsRepository settings) : ObservableObject
+public sealed class GeneralSettingsViewModel(SettingsRepository settings, ThemeService themeService) : ObservableObject
 {
+    public IReadOnlyList<ThemeOption> Themes => ThemeService.Options;
+
+    public ThemeOption SelectedTheme
+    {
+        get
+        {
+            var currentKey = themeService.CurrentKey;
+            return Themes.FirstOrDefault(option => option.Key == currentKey) ?? Themes[0];
+        }
+        set
+        {
+            if (value is not null && value.Key != themeService.CurrentKey)
+            {
+                themeService.SetTheme(value.Key);
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public bool CloseToTray
     {
         get => settings.GetFlag(SettingKeys.CloseToTray, true);
@@ -43,4 +63,13 @@ public sealed class GeneralSettingsViewModel(SettingsRepository settings) : Obse
         new("Strg+V", "Screenshot einfügen (Editor, Bildsuche)"),
         new("Esc", "Suche leeren"),
     ];
+
+    /// <summary>Applies persisted theme and refreshes UI properties after backup restore or import.</summary>
+    public void Reload()
+    {
+        themeService.ApplySaved();
+        OnPropertyChanged(nameof(SelectedTheme));
+        OnPropertyChanged(nameof(CloseToTray));
+        OnPropertyChanged(nameof(GlobalHotkey));
+    }
 }

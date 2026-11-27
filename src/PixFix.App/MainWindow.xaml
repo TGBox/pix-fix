@@ -13,6 +13,7 @@
         Height="850"
         MinWidth="900"
         MinHeight="500"
+        Background="{DynamicResource AppWindowBackground}"
         WindowStartupLocation="CenterScreen"
         common:LayoutMemory.Key="main">
     <Window.InputBindings>
@@ -50,64 +51,169 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="180" MinWidth="140" />
+            <ColumnDefinition x:Name="SidebarColumn" Width="190" MinWidth="150" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0">
-            <TextBlock DockPanel.Dock="Bottom" Margin="8" Foreground="Gray" FontSize="11" TextWrapping="Wrap"
-                       Text="{Binding DataDirectory, StringFormat='Daten: {0}'}" />
-            <!-- TI-Status immer sichtbar; blinkt rot bei einer neuen Störung, Klick öffnet den Monitor -->
-            <Button DockPanel.Dock="Bottom" Margin="8,0,8,0" Padding="8,6" Cursor="Hand" HorizontalContentAlignment="Left"
-                    Command="{Binding ShowTiCommand}" ToolTip="{Binding Ti.Headline}"
-                    Visibility="{Binding Ti.IsEnabled, Converter={StaticResource Visible}}"
-                    Background="{Binding Ti.State, Converter={StaticResource TiBrush}}" BorderThickness="0">
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Ti.IsBlinking}" Value="True">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard x:Name="TiBlink">
-                                        <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                            <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.35" Duration="0:0:0.55" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                                <DataTrigger.ExitActions>
-                                    <StopStoryboard BeginStoryboardName="TiBlink" />
-                                </DataTrigger.ExitActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter />
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-                <StackPanel>
-                    <TextBlock Text="TI-Monitor" Foreground="White" FontWeight="Bold" />
-                    <TextBlock Text="{Binding Ti.Headline}" Foreground="White" FontSize="10" TextWrapping="Wrap" />
-                </StackPanel>
-            </Button>
-            <ListBox ItemsSource="{Binding Sections}"
-                     SelectedItem="{Binding SelectedSection}"
-                     DisplayMemberPath="Title"
-                     BorderThickness="0"
-                     Padding="4" />
-        </DockPanel>
+        <Border Grid.Column="0"
+                Background="{DynamicResource AppSidebarBackground}"
+                BorderBrush="{DynamicResource AppDividerBrush}"
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="6,8,6,4">
+                    <Button DockPanel.Dock="Left"
+                            Command="{Binding ToggleSidebarCommand}"
+                            MinWidth="36"
+                            Padding="8,6"
+                            Background="Transparent"
+                            BorderThickness="0">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                <Setter Property="ToolTip" Value="Seitenleiste einklappen" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                        <Setter Property="ToolTip" Value="Seitenleiste ausklappen" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets" FontSize="15" />
+                    </Button>
+                    <TextBlock Text="Navigation"
+                               VerticalAlignment="Center"
+                               Margin="8,0,0,0"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </DockPanel>
+                <TextBlock DockPanel.Dock="Bottom" Margin="8" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11" TextWrapping="Wrap"
+                           Text="{Binding DataDirectory, StringFormat='Daten: {0}'}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <!-- TI-Status immer sichtbar; blinkt rot bei einer neuen Störung, Klick öffnet den Monitor -->
+                <Button DockPanel.Dock="Bottom" Padding="8,6" Cursor="Hand" HorizontalContentAlignment="Stretch"
+                        Command="{Binding ShowTiCommand}" ToolTip="{Binding Ti.Headline}"
+                        Visibility="{Binding Ti.IsEnabled, Converter={StaticResource Visible}}"
+                        Background="{Binding Ti.State, Converter={StaticResource TiBrush}}" BorderThickness="0">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Margin" Value="8,0,8,6" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                    <Setter Property="Margin" Value="6,0,6,8" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Ti.IsBlinking}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard x:Name="TiBlink">
+                                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.35" Duration="0:0:0.55" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                    <DataTrigger.ExitActions>
+                                        <StopStoryboard BeginStoryboardName="TiBlink" />
+                                    </DataTrigger.ExitActions>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter />
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Grid>
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="TI-Monitor" Foreground="White" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Ti.Headline}" Foreground="White" FontSize="10" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <TextBlock Text="TI" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </Button>
+                <ListBox ItemsSource="{Binding Sections}"
+                         SelectedItem="{Binding SelectedSection}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="4"
+                         HorizontalContentAlignment="Stretch"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                            <Setter Property="Padding" Value="6,6" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="2,1" ToolTip="{Binding Title}">
+                                <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                           Width="22" TextAlignment="Center" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding Title}" Margin="10,0,0,0" VerticalAlignment="Center"
+                                           TextTrimming="CharacterEllipsis">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataContext.IsSidebarCollapsed, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
 
-        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="main.splitter" />
+        <GridSplitter x:Name="MainSplitter" Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="main.splitter" />
 
         <Grid Grid.Column="2" Margin="16">
             <ContentControl x:Name="SectionHost" Content="{Binding SelectedSection.Content}" Focusable="False" />
             <!-- Nach dem Löschen: „Rückgängig“ (12 Sekunden) -->
             <Border DataContext="{Binding Undo}" Visibility="{Binding IsVisible, Converter={StaticResource Visible}}"
                     HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4" Padding="14,8"
-                    Background="#323A45" CornerRadius="6" Panel.ZIndex="10">
+                    Background="#323A45" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Panel.ZIndex="10">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{Binding Text}" Foreground="White" VerticalAlignment="Center" MaxWidth="520" TextTrimming="CharacterEllipsis" />
                     <Button Content="Rückgängig" Command="{Binding UndoCommand}" Margin="16,0,0,0" Padding="10,2" FontWeight="SemiBold" />

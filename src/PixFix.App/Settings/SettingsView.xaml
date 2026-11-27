@@ -5,15 +5,23 @@
         <TabItem Header="Allgemein">
             <DockPanel DataContext="{Binding General}" Margin="8">
                 <StackPanel DockPanel.Dock="Top" MaxWidth="820" HorizontalAlignment="Left">
+                    <TextBlock Text="Darstellung" FontSize="16" FontWeight="SemiBold" />
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Text="Farbschema" Width="180" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}"
+                                  DisplayMemberPath="Label" Width="220" HorizontalAlignment="Left" />
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                               Text="Wechselt sofort zwischen hellem und dunklem Design oder übernimmt die Windows-Einstellung." />
                     <CheckBox Content="Beim Schließen im Infobereich weiterlaufen" IsChecked="{Binding CloseToTray}" FontWeight="SemiBold" />
-                    <TextBlock Margin="20,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Margin="20,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Rückruf-Erinnerungen, TI-Monitor und automatische Sicherung bleiben aktiv. Beenden über das PixFix-Symbol im Infobereich (rechte Maustaste → PixFix beenden)." />
                     <CheckBox Content="Systemweites Tastenkürzel Strg+Alt+P für die Bildsuche" IsChecked="{Binding GlobalHotkey}" Margin="0,12,0,0" FontWeight="SemiBold" />
-                    <TextBlock Margin="20,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Margin="20,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Screenshot machen (Windows+Umschalt+S), Strg+Alt+P drücken – PixFix sucht sofort nach passenden Einträgen. Änderung wirkt nach dem nächsten Start." />
                     <TextBlock Text="Tastenkürzel" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,6" />
                 </StackPanel>
-                <ListView ItemsSource="{Binding Shortcuts}" BorderThickness="1" BorderBrush="#DDE3EC">
+                <ListView ItemsSource="{Binding Shortcuts}" Background="{DynamicResource AppSurfaceBackground}" BorderThickness="1" BorderBrush="{DynamicResource AppBorderBrush}">
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Taste" Width="220" DisplayMemberBinding="{Binding Key}" />
@@ -31,7 +39,7 @@
                         <TextBlock Text="Nummern wählen über" Width="180" VerticalAlignment="Center" />
                         <ComboBox ItemsSource="{Binding DialMethods}" SelectedItem="{Binding DialMethod}" Width="300" HorizontalAlignment="Left" />
                     </DockPanel>
-                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="„Windows-Standard (tel:)“ öffnet die Nummer im zugeordneten Telefonieprogramm (z. B. Unify Phone). Auflegen läuft unabhängig davon immer über TAPI." />
 
                     <TextBlock Text="E-Mail" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,0" />
@@ -39,7 +47,7 @@
                         <TextBlock Text="E-Mail-Programm" Width="180" VerticalAlignment="Center" />
                         <ComboBox ItemsSource="{Binding MailPrograms}" SelectedItem="{Binding MailProgram}" Width="300" HorizontalAlignment="Left" />
                     </DockPanel>
-                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="„Outlook Classic“ öffnet einen Entwurf in Outlook Desktop; „Windows-Standard“ nutzt mailto:." />
 
                     <TextBlock Text="Rechnungs-Mail (kostenpflichtiger Support)" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,0" />
@@ -56,7 +64,7 @@
                         <TextBox Text="{Binding BillingMailBody, UpdateSourceTrigger=LostFocus}" Height="140" Padding="3"
                                  AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
                     </DockPanel>
-                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Platzhalter: {LNUM}, {ID}, {WARUM}, {LOESUNG}, {EMAIL}, {FAX}. Die Mail öffnet sich über den Button „Rechnungs-Mail“ und wenn du einen kostenpflichtigen Anruf auf „Erledigt“ setzt und sie noch nicht versendet wurde." />
 
                     <TextBlock Text="Vorlagen" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,0" />
@@ -76,11 +84,11 @@
                         <Button DockPanel.Dock="Right" Content="Ändern …" Command="{Binding ChangeFolderCommand}" Padding="10,2" Margin="8,0,0,0" />
                         <TextBox Text="{Binding BackupFolder, Mode=OneWay}" IsReadOnly="True" Padding="3,2" />
                     </DockPanel>
-                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Hier landen die automatischen Sicherungen, „Jetzt sichern“ und die Sicherung vor jeder Wiederherstellung. Ein OneDrive-Ordner schützt zusätzlich vor einem Rechnerausfall." />
 
                     <CheckBox Content="Automatisch sichern" IsChecked="{Binding AutoBackupEnabled}" Margin="0,14,0,0" FontWeight="SemiBold" />
-                    <TextBlock Margin="20,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Margin="20,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Eine Sicherung pro Tag (AUTO-Datum.pixfix), höchstens alle 4 Stunden aktualisiert und nur, wenn du PixFix gerade nicht benutzt. Tagessicherungen werden 7 Tage aufbewahrt." />
                     <TextBlock Margin="20,4,0,0" Text="{Binding LastAutoBackupText}" TextWrapping="Wrap" />
 
@@ -90,15 +98,14 @@
                         <Button Content="Sicherung prüfen …" Command="{Binding VerifyCommand}" Padding="12,4" Margin="0,0,6,6" />
                         <Button Content="Sicherung wiederherstellen …" Command="{Binding RestoreCommand}" Padding="12,4" Margin="0,0,6,6" />
                     </WrapPanel>
-                    <TextBlock Foreground="Gray" TextWrapping="Wrap"
+                    <TextBlock Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Wiederherstellen liest PixFix-Sicherungen und Sicherungen aus PixFix 69 (Format 2.1 und 3.0). Die Sicherung wird vorher vollständig geprüft; erst danach werden die Daten ausgetauscht." />
-                    <DockPanel Margin="0,12,0,0" Height="22">
-                        <Button DockPanel.Dock="Right" Content="Abbrechen" Command="{Binding CancelCommand}" Padding="10,0" Margin="8,0,0,0"
+                    <DockPanel Margin="0,12,0,0" MinHeight="28">
+                        <Button DockPanel.Dock="Right" Content="Abbrechen" Command="{Binding CancelCommand}" Padding="10,3" Margin="8,0,0,0"
                                 ToolTip="Abbrechen, solange die Daten noch nicht ausgetauscht werden" />
-                        <Grid>
-                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
-                            <TextBlock Text="{Binding ProgressPercent, StringFormat='{}{0} %'}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Grid>
+                        <TextBlock DockPanel.Dock="Right" Text="{Binding ProgressPercent, StringFormat='{}{0} %'}"
+                                   MinWidth="44" TextAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="SemiBold" />
+                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" VerticalAlignment="Center" />
                     </DockPanel>
                     <TextBlock Text="{Binding Status}" Margin="0,6,0,0" TextWrapping="Wrap" />
                 </StackPanel>
@@ -113,7 +120,7 @@
                           IsEnabled="{Binding IsEnabled}" />
                 <CheckBox Content="Bei neuer Störung das TI-Symbol rot blinken lassen" IsChecked="{Binding Blink}" Margin="0,10,0,0"
                           IsEnabled="{Binding IsEnabled}" />
-                <TextBlock Margin="0,14,0,0" Foreground="Gray" TextWrapping="Wrap"
+                <TextBlock Margin="0,14,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                            Text="Der TI-Monitor fragt die gematik-Quellen TI-Status (aktive Einschränkungen) und TI-Lagebild (E-Rezept, ePA, KIM, VSDM, TI-Anschluss …) ab. Grün = keine aktive Störung, Rot = aktive Störung, Orange = eine Abfrage war nicht vollständig. Abfragefehler bleiben im Monitor und stören PixFix nicht." />
             </StackPanel>
         </TabItem>
@@ -128,14 +135,11 @@
                                 Command="{Binding ImportCommand}"
                                 HorizontalAlignment="Left"
                                 Padding="12,4" />
-                        <DockPanel Margin="0,12,0,0" Height="22">
-                            <Button DockPanel.Dock="Right" Content="Abbrechen" Command="{Binding CancelCommand}" Padding="10,0" Margin="8,0,0,0" />
-                            <Grid>
-                                <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
-                                <TextBlock Text="{Binding ProgressPercent, StringFormat='{}{0} %'}"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center" />
-                            </Grid>
+                        <DockPanel Margin="0,12,0,0" MinHeight="28">
+                            <Button DockPanel.Dock="Right" Content="Abbrechen" Command="{Binding CancelCommand}" Padding="10,3" Margin="8,0,0,0" />
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding ProgressPercent, StringFormat='{}{0} %'}"
+                                       MinWidth="44" TextAlignment="Right" VerticalAlignment="Center" Margin="10,0,0,0" FontWeight="SemiBold" />
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" VerticalAlignment="Center" />
                         </DockPanel>
                         <TextBlock Text="{Binding Status}" Margin="0,6,0,0" TextWrapping="Wrap" />
                     </StackPanel>

@@ -8,22 +8,34 @@ using PixFix.App.Settings;
 using PixFix.App.Ti;
 using PixFix.App.Workspaces;
 using PixFix.Infrastructure;
+using PixFix.Infrastructure.Settings;
 
 namespace PixFix.App;
 
 /// <summary>Eintrag der linken Navigation. <paramref name="Content"/> ist das ViewModel des Bereichs (oder null = noch nicht umgesetzt).</summary>
-public sealed record NavigationSection(string Title, string Description, object? Content);
+public sealed record NavigationSection(string Icon, string Title, string Description, object? Content);
 
 public sealed class MainViewModel : ObservableObject
 {
+    private readonly SettingsRepository settingsRepository;
     private NavigationSection? selectedSection;
 
-    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, WorkspacesViewModel workspaces, CallsViewModel calls, TiMonitorViewModel ti, SettingsViewModel settings, UndoService undo)
+    public MainViewModel(
+        AppPaths paths,
+        KnowledgeViewModel knowledge,
+        WorkspacesViewModel workspaces,
+        CallsViewModel calls,
+        TiMonitorViewModel ti,
+        SettingsViewModel settings,
+        SettingsRepository settingsRepository,
+        UndoService undo)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(knowledge);
         ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(settingsRepository);
         DataDirectory = paths.DataDirectory;
+        this.settingsRepository = settingsRepository;
 
         // Nach Import oder Wiederherstellung zeigen alle Bereiche sofort den neuen Datenbestand.
         ArgumentNullException.ThrowIfNull(workspaces);
@@ -38,6 +50,8 @@ public sealed class MainViewModel : ObservableObject
             calls.Reload();
             settings.Calls.Reload();
             settings.Backup.Refresh();
+            settings.General.Reload();
+            OnPropertyChanged(nameof(IsSidebarCollapsed));
         };
 
         // Bearbeitete Eintragsvorlagen sofort in der Wissensdatenbank anbieten.
@@ -45,13 +59,14 @@ public sealed class MainViewModel : ObservableObject
 
         Sections =
         [
-            new("Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
-            new("Schreibbereiche", "Notizen, Anleitungen, Werkzeuge und PDF-Anhänge.", workspaces),
-            new("Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
-            new("TI-Monitor", "Störungen der Telematikinfrastruktur (gematik).", ti),
-            new("Einstellungen", "Anrufe, Vorlagen, Sicherung, Import aus PixFix 69.", settings),
+            new("\uE82D", "Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
+            new("\uE70F", "Schreibbereiche", "Notizen, Anleitungen, Werkzeuge und PDF-Anhänge.", workspaces),
+            new("\uE717", "Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
+            new("\uE95E", "TI-Monitor", "Störungen der Telematikinfrastruktur (gematik).", ti),
+            new("\uE713", "Einstellungen", "Anrufe, Vorlagen, Sicherung, Import aus PixFix 69.", settings),
         ];
         selectedSection = Sections[0];
+        ToggleSidebarCommand = new RelayCommand(() => IsSidebarCollapsed = !IsSidebarCollapsed);
 
         // „OK“ in einer Rückruf-Erinnerung springt zu den Anrufen.
         calls.ShowCallsRequested += (_, _) => SelectedSection = Sections[2];
@@ -93,6 +108,18 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand ShowTiCommand { get; }
 
     public RelayCommand<string> ShowSectionCommand { get; }
+
+    public RelayCommand ToggleSidebarCommand { get; }
+
+    public bool IsSidebarCollapsed
+    {
+        get => settingsRepository.GetFlag(SettingKeys.SidebarCollapsed, false);
+        set
+        {
+            settingsRepository.SetFlag(SettingKeys.SidebarCollapsed, value);
+            OnPropertyChanged();
+        }
+    }
 
     public void ShowCalls() => SelectedSection = Sections[2];
 

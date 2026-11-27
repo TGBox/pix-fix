@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PixFix – Anruferinnerung"
         Width="560" SizeToContent="Height"
+        Background="{DynamicResource AppWindowBackground}"
         WindowStartupLocation="CenterScreen" ShowInTaskbar="True" ResizeMode="NoResize" Topmost="True">
     <StackPanel Margin="18">
         <TextBlock Text="Rückruf-Erinnerung" FontSize="20" FontWeight="SemiBold" />
@@ -12,13 +13,13 @@
         </GroupBox>
         <DockPanel Margin="0,14,0,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="OK" Width="100" Padding="0,4" IsDefault="True" Click="OnOk"
+                <Button Content="OK" MinWidth="100" Padding="12,4" IsDefault="True" Click="OnOk"
                         ToolTip="Erinnerung beenden, Status „In Bearbeitung“ und PixFix öffnen" />
-                <Button Content="Erneut erinnern" Width="130" Margin="8,0,0,0" Click="OnSnooze" />
+                <Button Content="Erneut erinnern" MinWidth="136" Padding="12,4" Margin="8,0,0,0" Click="OnSnooze" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="in" VerticalAlignment="Center" Margin="0,0,6,0" />
-                <TextBox x:Name="Amount" Width="48" Text="10" TextAlignment="Center" VerticalContentAlignment="Center" />
+                <TextBox x:Name="Amount" Width="56" Padding="4,4" Text="10" TextAlignment="Center" VerticalContentAlignment="Center" />
                 <ComboBox x:Name="Unit" Width="100" Margin="6,0,0,0" SelectedIndex="0">
                     <ComboBoxItem Content="Minuten" />
                     <ComboBoxItem Content="Stunden" />

@@ -78,6 +78,7 @@ public partial class App : Application
         builder.Services.AddSingleton(sp => new FaxDocumentRepository(
             sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
         builder.Services.AddSingleton<SettingsRepository>();
+        builder.Services.AddSingleton<ThemeService>();
         builder.Services.AddSingleton<CobraQuickTextRepository>();
         builder.Services.AddSingleton<CallsViewModel>();
         builder.Services.AddSingleton<GeneralSettingsViewModel>();
@@ -102,6 +103,7 @@ public partial class App : Application
 
         // Fenstergrößen und Splitterbreiten merken (vor dem ersten Fenster).
         LayoutMemory.Initialize(host.Services.GetRequiredService<SettingsRepository>());
+        host.Services.GetRequiredService<ThemeService>().ApplySaved();
 
         // Lösungsbausteine im Editor (Wissensdatenbank und Schreibbereiche).
         var startupServices = host.Services;

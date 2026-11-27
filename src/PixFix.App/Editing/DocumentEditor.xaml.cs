@@ -52,7 +52,11 @@ public partial class DocumentEditor : UserControl
 
         DataContextChanged += OnDataContextChanged;
         Loaded += OnLoaded;
-        Unloaded += (_, _) => FlushSave();
+        Unloaded += (_, _) =>
+        {
+            ThemeService.ThemeChanged -= OnThemeChanged;
+            FlushSave();
+        };
 
         Editor.TextChanged += OnEditorTextChanged;
         DataObject.AddPastingHandler(Editor, OnPasting);
@@ -66,6 +70,10 @@ public partial class DocumentEditor : UserControl
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        ThemeService.ThemeChanged -= OnThemeChanged;
+        ThemeService.ThemeChanged += OnThemeChanged;
+        RefreshDocumentTheme();
+
         if (hostWindow is null)
         {
             hostWindow = Window.GetWindow(this);
@@ -74,6 +82,16 @@ public partial class DocumentEditor : UserControl
                 // Beim Schließen des Programms nichts verlieren.
                 hostWindow.Closing += (_, _) => FlushSave();
             }
+        }
+    }
+
+    private void OnThemeChanged(object? sender, EventArgs e) => RefreshDocumentTheme();
+
+    private void RefreshDocumentTheme()
+    {
+        if (Editor.Document is not null)
+        {
+            FlowDocumentThemeHelper.ApplyTheme(Editor.Document, ThemeService.IsDark);
         }
     }
 
@@ -195,6 +213,7 @@ public partial class DocumentEditor : UserControl
             documentEntryId = null; // Fehleranzeige niemals über den echten Inhalt speichern.
         }
 
+        FlowDocumentThemeHelper.ApplyTheme(flow, ThemeService.IsDark);
         flow.PagePadding = new Thickness(12);
         return flow;
     }
@@ -222,7 +241,7 @@ public partial class DocumentEditor : UserControl
 
     private void OnEditorTextChanged(object sender, TextChangedEventArgs e)
     {
-        if (loadingDocument || documentEntryId is null || host is not { CanEdit: true })
+        if (loadingDocument || FlowDocumentThemeHelper.IsMutatingTheme || documentEntryId is null || host is not { CanEdit: true })
         {
             return;
         }

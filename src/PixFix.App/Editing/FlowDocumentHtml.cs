@@ -28,18 +28,21 @@ public static class FlowDocumentHtml
         ArgumentNullException.ThrowIfNull(imageFile);
         var context = new Context(imageFile);
         var html = new StringBuilder("<html><head><meta charset=\"utf-8\"></head><body style=\"font-family:'Segoe UI',Calibri,Arial,sans-serif;font-size:11pt;\">");
-        foreach (var block in document.Blocks)
+        using (FlowDocumentThemeHelper.SuspendThemeAdaptation(document))
         {
-            WriteBlock(html, block, context);
-        }
+            foreach (var block in document.Blocks)
+            {
+                WriteBlock(html, block, context);
+            }
 
-        if (!string.IsNullOrWhiteSpace(footerText))
-        {
-            html.Append("<p style=\"margin:12px 0 0 0;\">").Append(Encode(footerText).Replace("\n", "<br>", StringComparison.Ordinal)).Append("</p>");
-        }
+            if (!string.IsNullOrWhiteSpace(footerText))
+            {
+                html.Append("<p style=\"margin:12px 0 0 0;\">").Append(Encode(footerText).Replace("\n", "<br>", StringComparison.Ordinal)).Append("</p>");
+            }
 
-        html.Append("</body></html>");
-        return (html.ToString(), context.Images);
+            html.Append("</body></html>");
+            return (html.ToString(), context.Images);
+        }
     }
 
     private static void WriteBlock(StringBuilder html, Block block, Context context)
@@ -222,12 +225,18 @@ public static class FlowDocumentHtml
             style.Append("font-family:Consolas,'Courier New',monospace;");
         }
 
-        if (run.Foreground is SolidColorBrush { Color: var foreground } && foreground != Colors.Black && foreground.A > 0)
+        if (HasLocalProperty(run, TextElement.ForegroundProperty)
+            && run.Foreground is SolidColorBrush { Color: var foreground }
+            && foreground != Colors.Black
+            && foreground.A > 0)
         {
             style.Append("color:").Append(Hex(foreground)).Append(';');
         }
 
-        if (run.Background is SolidColorBrush { Color: var background } && background.A > 0 && background != Colors.White)
+        if (HasLocalProperty(run, TextElement.BackgroundProperty)
+            && run.Background is SolidColorBrush { Color: var background }
+            && background.A > 0
+            && background != Colors.White)
         {
             style.Append("background-color:").Append(Hex(background)).Append(';');
         }
@@ -260,6 +269,22 @@ public static class FlowDocumentHtml
         }
 
         return all;
+    }
+
+    private static bool HasLocalProperty(Run run, DependencyProperty property)
+    {
+        DependencyObject? current = run;
+        while (current is TextElement element)
+        {
+            if (element.ReadLocalValue(property) != DependencyProperty.UnsetValue)
+            {
+                return true;
+            }
+
+            current = element.Parent;
+        }
+
+        return false;
     }
 
     private static string Hex(Color color) => $"#{color.R:X2}{color.G:X2}{color.B:X2}";

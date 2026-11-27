@@ -4,11 +4,11 @@
     <!-- Wiederverwendbarer Editor: DataContext ist ein IDocumentEditorHost (Wissensdatenbank, Schreibbereiche). -->
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-        <Style x:Key="ToolButton" TargetType="Button">
-            <Setter Property="MinWidth" Value="28" />
-            <Setter Property="Height" Value="26" />
-            <Setter Property="Margin" Value="0,0,2,0" />
-            <Setter Property="Padding" Value="6,0" />
+        <Style x:Key="ToolButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="MinWidth" Value="30" />
+            <Setter Property="MinHeight" Value="28" />
+            <Setter Property="Margin" Value="0,0,2,2" />
+            <Setter Property="Padding" Value="7,3" />
             <Setter Property="CommandTarget" Value="{Binding ElementName=Editor}" />
             <Setter Property="Focusable" Value="False" />
         </Style>
@@ -17,9 +17,9 @@
         <!-- Formatleiste -->
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" x:Name="HitNavigation" Visibility="Collapsed">
-                <TextBlock x:Name="HitCounter" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="Gray" />
-                <Button Content="▲" Width="28" Click="OnPreviousHit" Focusable="False" ToolTip="Vorheriger Treffer (Umschalt+F3)" />
-                <Button Content="▼" Width="28" Margin="2,0,0,0" Click="OnNextHit" Focusable="False" ToolTip="Nächster Treffer (F3)" />
+                <TextBlock x:Name="HitCounter" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                <Button Content="▲" MinWidth="30" Padding="6,3" Click="OnPreviousHit" Focusable="False" ToolTip="Vorheriger Treffer (Umschalt+F3)" />
+                <Button Content="▼" MinWidth="30" Padding="6,3" Margin="2,0,0,0" Click="OnNextHit" Focusable="False" ToolTip="Nächster Treffer (F3)" />
             </StackPanel>
             <WrapPanel IsEnabled="{Binding CanEdit}">
                 <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleBold" FontWeight="Bold" Content="F" ToolTip="Fett (Strg+B)" />
@@ -37,7 +37,7 @@
                         ToolTip="Aus dem markierten Text einen Kopier-Button machen, z. B. für Befehle oder Pfade" />
                 <Button Style="{StaticResource ToolButton}" Content="Bausteine ▾" Click="OnSnippets"
                         ToolTip="Lösungsbaustein an der Cursorposition einfügen, markierten Text als Baustein speichern oder Bausteine verwalten" />
-                <TextBlock Text="{Binding Status}" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0" />
+                <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="10,0,0,0" />
             </WrapPanel>
         </DockPanel>
 
@@ -52,7 +52,7 @@
                     </Style.Triggers>
                 </Style>
             </WrapPanel.Style>
-            <TextBlock Text="Kopieren:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,6,0" />
+            <TextBlock Text="Kopieren:" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0" />
             <ItemsControl ItemsSource="{Binding CopyActions}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -61,7 +61,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Button MaxWidth="320" Margin="0,0,4,2" Padding="6,1" FontFamily="Consolas"
+                        <Button MaxWidth="320" Margin="0,0,4,2" Padding="8,3" FontFamily="Consolas"
                                 Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding}"
                                 ToolTip="{Binding Text}">
@@ -93,9 +93,12 @@
                          Language="de-DE"
                          VerticalScrollBarVisibility="Auto"
                          AllowDrop="True"
+                         Background="{DynamicResource AppSurfaceBackground}"
+                         Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                         BorderBrush="{DynamicResource AppBorderBrush}"
                          BorderThickness="1" />
             <TextBlock Text="Dokument wird geladen …"
-                       HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                        Visibility="{Binding IsLoadingDocument, Converter={StaticResource BoolToVisibility}}" />
         </Grid>
     </DockPanel>

@@ -21,6 +21,15 @@ public static class SettingKeys
     /// <summary>Systemweites Tastenkürzel Strg+Alt+P für die Bildsuche (Standard: ja).</summary>
     public const string GlobalHotkey = "ui.global_hotkey";
 
+    /// <summary>UI color theme: "light" (default), "dark", or "system".</summary>
+    public const string Theme = "ui.theme";
+    public const string ThemeLight = "light";
+    public const string ThemeDark = "dark";
+    public const string ThemeSystem = "system";
+
+    /// <summary>Whether the left navigation sidebar is collapsed to compact icon mode (default: false).</summary>
+    public const string SidebarCollapsed = "ui.sidebar_collapsed";
+
     /// <summary>TI-Monitor an/aus, automatische Prüfung alle 5 Minuten, Blinken bei neuer Störung (Werte aus PixFix 69: true/false).</summary>
     public const string TiMonitorEnabled = "ti_monitor.enabled";
     public const string TiMonitorAutoCheck = "ti_monitor.auto_check";

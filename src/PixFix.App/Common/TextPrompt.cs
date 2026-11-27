@@ -31,6 +31,7 @@ public static class TextPrompt
             WindowStartupLocation = owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
             Owner = owner,
         };
+        window.SetResourceReference(Control.BackgroundProperty, "AppWindowBackground");
         ok.Click += (_, _) => window.DialogResult = true;
         window.Loaded += (_, _) =>
         {

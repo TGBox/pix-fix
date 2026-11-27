@@ -13,7 +13,7 @@
         <!-- Bereich, Suche, Reiter nach Abschnitten -->
         <DockPanel Grid.Column="0" Margin="0,0,8,0">
             <DockPanel DockPanel.Dock="Top">
-                <Button DockPanel.Dock="Right" Content="…" Width="28" Margin="4,0,0,0" Command="{Binding ManageWorkspacesCommand}"
+                <Button DockPanel.Dock="Right" Content="…" MinWidth="32" Padding="6,4" Margin="4,0,0,0" Command="{Binding ManageWorkspacesCommand}"
                         ToolTip="Bereiche anlegen, umbenennen, sortieren, schützen" />
                 <ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" FontSize="14">
                     <ComboBox.ItemTemplate>
@@ -21,7 +21,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding Icon}" Margin="0,0,6,0" />
                                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-                                <TextBlock Text=" 🔒" Foreground="Gray">
+                                <TextBlock Text=" 🔒" Foreground="{DynamicResource TextFillColorSecondaryBrush}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Setter Property="Visibility" Value="Collapsed" />
@@ -45,7 +45,7 @@
                         <KeyBinding Key="Escape" Command="{Binding ClearSearchCommand}" />
                     </TextBox.InputBindings>
                 </TextBox>
-                <TextBlock Text="Im Bereich suchen …" Margin="7,4,0,0" Foreground="Gray" IsHitTestVisible="False">
+                <TextBlock Text="Im Bereich suchen …" Margin="7,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" IsHitTestVisible="False">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed" />
@@ -58,17 +58,18 @@
                     </TextBlock.Style>
                 </TextBlock>
             </Grid>
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,6,0,6">
-                <Button Content="+ _Reiter" Command="{Binding NewEntryCommand}" Padding="8,1"
+            <WrapPanel DockPanel.Dock="Top" Margin="0,6,0,2">
+                <Button Content="+ _Reiter" Command="{Binding NewEntryCommand}" Padding="8,3" Margin="0,0,4,4"
                         ToolTip="Neuen Reiter im Abschnitt des ausgewählten Reiters anlegen" />
-                <Button Content="Abschnitt ↑" Command="{Binding MoveSectionUpCommand}" Padding="6,1" Margin="4,0,0,0"
+                <Button Content="Abschnitt ↑" Command="{Binding MoveSectionUpCommand}" Padding="8,3" Margin="0,0,4,4"
                         ToolTip="Abschnitt des ausgewählten Reiters nach oben" />
-                <Button Content="Abschnitt ↓" Command="{Binding MoveSectionDownCommand}" Padding="6,1" Margin="2,0,0,0"
+                <Button Content="Abschnitt ↓" Command="{Binding MoveSectionDownCommand}" Padding="8,3" Margin="0,0,4,4"
                         ToolTip="Abschnitt des ausgewählten Reiters nach unten" />
-                <Button Content="Papier_korb" Command="{Binding ShowTrashCommand}" Padding="6,1" Margin="8,0,0,0"
+                <Button Content="Papier_korb" Command="{Binding ShowTrashCommand}" Padding="8,3" Margin="0,0,4,4"
                         ToolTip="Gelöschte Reiter wiederherstellen" />
-            </StackPanel>
+            </WrapPanel>
             <ListBox ItemsSource="{Binding EntriesView}" SelectedItem="{Binding SelectedItem}"
+                     Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
                      DisplayMemberPath="Title" HorizontalContentAlignment="Stretch"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.InputBindings>
@@ -117,19 +118,19 @@
                 <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding EditTitle}" IsReadOnly="{Binding IsReadOnly}"
                          FontSize="18" FontWeight="SemiBold" BorderThickness="0,0,0,1" ToolTip="Titel des Reiters" />
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
-                    <ToggleButton Content="🔒" Width="30" IsChecked="{Binding SelectedItem.Item.IsProtected, Mode=OneWay}"
+                    <ToggleButton Content="🔒" MinWidth="32" Padding="6,4" IsChecked="{Binding SelectedItem.Item.IsProtected, Mode=OneWay}"
                                   Command="{Binding ToggleProtectedCommand}" ToolTip="Geschützt: nicht bearbeitbar und nicht löschbar" />
-                    <Button Content="↑" Width="26" Margin="8,0,0,0" Command="{Binding MoveUpCommand}" ToolTip="Reiter im Abschnitt nach oben" />
-                    <Button Content="↓" Width="26" Margin="2,0,0,0" Command="{Binding MoveDownCommand}" ToolTip="Reiter im Abschnitt nach unten" />
-                    <Button Content="Löschen" Padding="6,0" Margin="8,0,0,0" Command="{Binding DeleteCommand}" ToolTip="Reiter löschen" />
+                    <Button Content="↑" MinWidth="30" Padding="6,4" Margin="8,0,0,0" Command="{Binding MoveUpCommand}" ToolTip="Reiter im Abschnitt nach oben" />
+                    <Button Content="↓" MinWidth="30" Padding="6,4" Margin="2,0,0,0" Command="{Binding MoveDownCommand}" ToolTip="Reiter im Abschnitt nach unten" />
+                    <Button Content="Löschen" Padding="8,4" Margin="8,0,0,0" Command="{Binding DeleteCommand}" ToolTip="Reiter löschen" />
                 </StackPanel>
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6,0,0">
-                    <TextBlock Text="Abschnitt" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,6,0" />
+                    <TextBlock Text="Abschnitt" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,6,0" />
                     <ComboBox Width="220" IsEditable="True" ItemsSource="{Binding SectionNames}" Text="{Binding EditSection}"
                               IsEnabled="{Binding CanEdit}" ToolTip="Abschnitt wählen oder neuen Namen eintippen" />
-                    <Button Content="Per _Mail …" Padding="8,1" Margin="12,0,0,0" Click="OnSendMail"
+                    <Button Content="Per _Mail …" Padding="8,3" Margin="12,0,0,0" Click="OnSendMail"
                             ToolTip="Reiter als Outlook-Entwurf öffnen – mit Formatierung, Bildern und PDF-Anhängen" />
-                    <Button Content="_PDF anhängen …" Padding="8,1" Margin="6,0,0,0" Command="{Binding AddAttachmentCommand}"
+                    <Button Content="_PDF anhängen …" Padding="8,3" Margin="6,0,0,0" Command="{Binding AddAttachmentCommand}"
                             ToolTip="PDF auswählen – oder PDF-Dateien aus dem Explorer auf den Kopf des Reiters ziehen" />
                 </StackPanel>
                 <!-- PDF-Anhänge -->

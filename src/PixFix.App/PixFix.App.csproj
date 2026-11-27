@@ -11,10 +11,14 @@
     <!-- Programmsymbol (Explorer, Taskleiste, Verknüpfungen) -->
     <ApplicationIcon>..\..\assets\pix-fix.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <!-- Verteilung: dotnet publish -c Release -> eine einzelne PixFix.exe ohne installiertes .NET -->
+    <!-- Distribution: dotnet publish -c Release -> single PixFix.exe without installed .NET -->
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- WPF Fluent ThemeMode is still flagged experimental (WPF0001) in .NET 10. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+    <!-- WPF Fluent ThemeMode is marked experimental (WPF0001) in .NET 10. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />

@@ -8,6 +8,7 @@
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         AllowDrop="True"
+        Background="{DynamicResource AppWindowBackground}"
         common:LayoutMemory.Key="imagesearch">
     <Grid Margin="12">
         <Grid.ColumnDefinitions>
@@ -18,7 +19,7 @@
 
         <!-- Links: Suchbild und Trefferliste -->
         <DockPanel Grid.Column="0" Margin="0,0,8,0">
-            <Border DockPanel.Dock="Top" BorderBrush="SteelBlue" BorderThickness="1" Background="#FFE8F0FE" Height="150" Padding="6">
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource AccentFillColorDefaultBrush}" BorderThickness="1" Background="{DynamicResource SystemFillColorAttentionBackgroundBrush}" Height="150" Padding="6">
                 <Grid>
                     <Image x:Name="QueryPreview" Stretch="Uniform" />
                     <TextBlock x:Name="DropHint" TextAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" FontWeight="SemiBold"
@@ -29,11 +30,12 @@
                 <Button Content="Screenshot einfügen (Strg+V)" Padding="8,2" Click="OnPaste" />
                 <Button Content="Bilddatei …" Padding="8,2" Margin="6,0,0,0" Click="OnChooseFile" />
             </StackPanel>
-            <TextBlock x:Name="StatusText" DockPanel.Dock="Top" Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" />
+            <TextBlock x:Name="StatusText" DockPanel.Dock="Top" Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
             <Expander x:Name="RecognizedExpander" DockPanel.Dock="Top" Header="Erkannter Bildtext" Margin="0,4,0,4" Visibility="Collapsed">
                 <TextBox x:Name="RecognizedText" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="100" VerticalScrollBarVisibility="Auto" />
             </Expander>
-            <ListBox x:Name="Results" HorizontalContentAlignment="Stretch" SelectionChanged="OnSelectionChanged"
+            <ListBox x:Name="Results" Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
+                     HorizontalContentAlignment="Stretch" SelectionChanged="OnSelectionChanged"
                      MouseDoubleClick="OnOpen" KeyDown="OnResultsKeyDown"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.ItemTemplate>
@@ -42,8 +44,8 @@
                             <Image DockPanel.Dock="Left" Width="110" Height="66" Stretch="Uniform" Source="{Binding Thumbnail}" Margin="0,0,8,0" />
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{Binding SectionName}" Foreground="Gray" />
-                                <TextBlock Text="{Binding Details}" Foreground="Gray" FontSize="11" />
+                                <TextBlock Text="{Binding SectionName}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <TextBlock Text="{Binding Details}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11" />
                             </StackPanel>
                         </DockPanel>
                     </DataTemplate>
@@ -60,7 +62,7 @@
                 <Button Content="Schließen" Padding="12,3" Margin="8,0,0,0" IsCancel="True" />
             </StackPanel>
             <TextBlock x:Name="PreviewTitle" DockPanel.Dock="Top" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" TextTrimming="CharacterEllipsis" />
-            <Border BorderBrush="LightGray" BorderThickness="1" Background="White">
+            <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}">
                 <Image x:Name="HitPreview" Stretch="Uniform" StretchDirection="DownOnly" Margin="4" />
             </Border>
         </DockPanel>
