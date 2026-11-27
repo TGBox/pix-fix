@@ -3,15 +3,37 @@ name: build
 on:
   push:
   pull_request:
+    branches: [main]
 
 jobs:
   build:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check guardrails on pull request
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: .\scripts\check-guardrails.ps1 -Mode PullRequest -BaseRef "origin/${{ github.base_ref }}"
+
+      - name: Check PR title (Conventional Commits)
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          $pattern = '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?(!)?: .{3,}$'
+          if ($env:PR_TITLE -notmatch $pattern) {
+            Write-Error "PR-Titel muss dem Conventional-Commits-Format entsprechen (z. B. 'feat(calls): Rueckruf-Filter' oder 'fix(editor): Bildvorschau'). Erhalten: '$env:PR_TITLE'"
+            exit 1
+          }
+
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
+
       - run: dotnet restore
       - run: dotnet build --no-restore -c Release
       - run: dotnet test --no-build -c Release

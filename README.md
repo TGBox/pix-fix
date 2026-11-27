@@ -65,3 +65,11 @@ nicht stimmt. Der Bericht steht danach in der Oberfläche und in der Tabelle `im
 - Keine leeren `catch`-Blöcke – Fehler werden geloggt oder bewusst behandelt.
 - Fachliche Regeln aus PixFix 69 stehen in `docs/SPEC.md`; Änderungen daran dort dokumentieren.
 - Änderungen im `CHANGELOG.md` festhalten.
+
+## Entwicklung, Git-Hooks & Releases
+
+- Nach dem Klonen einmalig `.\scripts\setup-hooks.ps1` ausführen – aktiviert die lokalen Schutz-Hooks (`.githooks/`: kein direktes Committen/Pushen auf `main`, Guardrails gegen Kundendaten/UI-Hacks, Conventional Commits, Build + Tests vor dem Push).
+- Verbindliche Regeln für KI-Tools (ChatGPT, Claude, Copilot) stehen in [`AGENTS.md`](AGENTS.md) und [`CLAUDE.md`](CLAUDE.md).
+- Schritt-für-Schritt-Anleitung für Mitwirkende: [`docs/KI-WORKFLOW.md`](docs/KI-WORKFLOW.md).
+- Einmalige GitHub-Einstellungen für `main`-Schutz & Releases: [`docs/GITHUB-SETUP.md`](docs/GITHUB-SETUP.md).
+- Nach jedem Merge auf `main` erstellt `.github/workflows/release.yml` automatisch ein neues SemVer-Tag und ein GitHub-Release mit der fertigen Single-File-`PixFix.exe`.

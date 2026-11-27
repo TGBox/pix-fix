@@ -1,0 +1,97 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Compute next version
+        id: version
+        shell: pwsh
+        run: |
+          $result = (& .\scripts\next-version.ps1 | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+          if ($result.StartsWith('ALREADY_TAGGED=')) {
+            Write-Host "HEAD is already tagged ($result), skipping release."
+            "should_release=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+          else {
+            Write-Host "Next release version: $result"
+            "should_release=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            "version=$result" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+            "tag=v$result" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          }
+
+      - name: Restore, build, and test
+        if: steps.version.outputs.should_release == 'true'
+        run: |
+          dotnet restore
+          dotnet build --no-restore -c Release
+          dotnet test --no-build -c Release
+
+      - name: Publish single-file PixFix.exe
+        if: steps.version.outputs.should_release == 'true'
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          dotnet publish src/PixFix.App/PixFix.App.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:Version=$env:VERSION `
+            -p:FileVersion="$($env:VERSION).0" `
+            -p:AssemblyVersion="$($env:VERSION).0" `
+            -o publish
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if (-not (Test-Path -LiteralPath 'publish/PixFix.exe')) {
+            Write-Error 'publish/PixFix.exe was not produced.'
+            exit 1
+          }
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath 'publish/PixFix.exe').Hash.ToLowerInvariant()
+          "$hash *PixFix.exe" | Set-Content -LiteralPath 'publish/PixFix.exe.sha256' -Encoding ascii
+
+      - name: Create and push Git tag
+        if: steps.version.outputs.should_release == 'true'
+        shell: pwsh
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$env:TAG" -m "Release $env:TAG"
+          git push origin "$env:TAG"
+
+      - name: Create GitHub Release
+        if: steps.version.outputs.should_release == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$env:TAG" "publish/PixFix.exe" "publish/PixFix.exe.sha256" `
+            --title "PixFix $env:TAG" `
+            --generate-notes
