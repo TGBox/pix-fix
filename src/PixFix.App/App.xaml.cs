@@ -19,10 +19,13 @@ using System.Windows.Input;
 using PixFix.App.Backup;
 using PixFix.App.Common;
 using PixFix.App.Calls;
+using PixFix.App.Help;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
 using PixFix.App.Ti;
+using PixFix.App.Updates;
 using PixFix.App.Workspaces;
+using PixFix.Infrastructure.Updates;
 using PixFix.Infrastructure.Workspaces;
 using Serilog;
 
@@ -90,6 +93,10 @@ public partial class App : Application
         builder.Services.AddSingleton<BackupViewModel>();
         builder.Services.AddSingleton(_ => new TiMonitorClient(TiMonitorClient.CreateHttpClient()));
         builder.Services.AddSingleton<TiMonitorViewModel>();
+        builder.Services.AddSingleton(_ => new UpdateChecker(
+            UpdateChecker.CreateHttpClient(PixFix.Core.Updates.AppVersion.Format(UpdateViewModel.CurrentVersion))));
+        builder.Services.AddSingleton<UpdateViewModel>();
+        builder.Services.AddSingleton<HelpViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
@@ -140,6 +147,44 @@ public partial class App : Application
         host.Services.GetRequiredService<TiMonitorViewModel>().Start();
 
         SetUpTrayAndHotkey(window);
+        SetUpHelpAndUpdates(window);
+    }
+
+    /// <summary>Update-Hinweis (Prüfung beim Start und alle 6 Stunden) und Einführungstour beim ersten Start.</summary>
+    private void SetUpHelpAndUpdates(MainWindow window)
+    {
+        var services = host!.Services;
+        var main = services.GetRequiredService<MainViewModel>();
+        var settings = services.GetRequiredService<SettingsRepository>();
+        var tray = services.GetRequiredService<TrayService>();
+        var update = services.GetRequiredService<UpdateViewModel>();
+
+        void StartTour()
+        {
+            WindowFlash.BringToFront(window);
+            TourWindow.Start(window, main.ShowSection, () => settings.SetFlag(SettingKeys.TourCompleted, true));
+        }
+
+        main.TourRequested += (_, _) => StartTour();
+
+        // Windows-Benachrichtigung nur, wenn PixFix gerade nicht im Vordergrund ist – im Fenster steht die Hinweisleiste.
+        update.UpdateFound += (_, info) =>
+        {
+            if (!window.IsActive)
+            {
+                tray.Notify(
+                    "Neue PixFix-Version",
+                    $"PixFix {info.VersionText} ist verfügbar. Klicken, um PixFix zu öffnen und das Update herunterzuladen.",
+                    onClick: () => WindowFlash.BringToFront(window));
+            }
+        };
+        update.Start();
+
+        // Neue Mitarbeiter: Tour beim allerersten Start, sobald das Fenster steht.
+        if (!settings.GetFlag(SettingKeys.TourCompleted, false))
+        {
+            _ = Dispatcher.InvokeAsync(StartTour, DispatcherPriority.ApplicationIdle);
+        }
     }
 
     /// <summary>Infobereich, Windows-Benachrichtigungen und das systemweite Kürzel Strg+Alt+P.</summary>
@@ -173,6 +218,11 @@ public partial class App : Application
         {
             Open();
             main.ShowTi();
+        });
+        tray.AddMenuItem("Hilfe", () =>
+        {
+            Open();
+            main.ShowSection(HelpContent.Help);
         });
         tray.OpenRequested += (_, _) => Open();
         tray.ExitRequested += (_, _) => ExitApplication();

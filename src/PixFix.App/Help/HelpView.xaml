@@ -1,0 +1,85 @@
+<UserControl x:Class="PixFix.App.Help.HelpView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:common="clr-namespace:PixFix.App.Common">
+  <UserControl.Resources>
+    <BooleanToVisibilityConverter x:Key="Visible" />
+  </UserControl.Resources>
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="260" MinWidth="200" />
+      <ColumnDefinition Width="Auto" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+
+    <DockPanel Grid.Column="0">
+      <TextBlock DockPanel.Dock="Top" Text="Hilfe" FontSize="24" FontWeight="SemiBold" Margin="0,0,0,10" />
+      <Button DockPanel.Dock="Bottom" Content="Einführungstour starten" Command="{Binding StartTourCommand}"
+              Margin="0,10,0,0" Padding="12,6" HorizontalAlignment="Stretch"
+              ToolTip="Rundgang durch alle Bereiche – gut für den ersten Tag" />
+      <ListBox ItemsSource="{Binding Topics}"
+               SelectedItem="{Binding SelectedTopic}"
+               Background="{DynamicResource AppSurfaceBackground}"
+               BorderBrush="{DynamicResource AppBorderBrush}"
+               BorderThickness="1"
+               HorizontalContentAlignment="Stretch"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemContainerStyle>
+          <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+            <Setter Property="Padding" Value="8,7" />
+          </Style>
+        </ListBox.ItemContainerStyle>
+        <ListBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                         Width="22" TextAlignment="Center" VerticalAlignment="Center" />
+              <TextBlock Text="{Binding Title}" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </DockPanel>
+
+    <GridSplitter Grid.Column="1" Width="4" Margin="12,0" HorizontalAlignment="Stretch" common:LayoutMemory.Key="help.splitter" />
+
+    <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                  DataContext="{Binding SelectedTopic}">
+      <StackPanel MaxWidth="860" HorizontalAlignment="Left" Margin="4,0,12,12">
+        <DockPanel>
+          <Button DockPanel.Dock="Right" Content="Zum Bereich wechseln"
+                  Command="{Binding DataContext.GoToSectionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                  Visibility="{Binding HasSection, Converter={StaticResource Visible}}"
+                  Padding="12,4" MinWidth="160" VerticalAlignment="Center" />
+          <TextBlock Text="{Binding Title}" FontSize="22" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" />
+        </DockPanel>
+        <TextBlock Text="{Binding Summary}" Margin="0,8,0,4" TextWrapping="Wrap" FontSize="14"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <ItemsControl ItemsSource="{Binding Sections}" Focusable="False">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Margin="0,12,0,0" Padding="14,10"
+                      Background="{DynamicResource AppSurfaceBackground}"
+                      BorderBrush="{DynamicResource AppBorderBrush}"
+                      BorderThickness="1" CornerRadius="6">
+                <StackPanel>
+                  <TextBlock Text="{Binding Heading}" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,4" />
+                  <ItemsControl ItemsSource="{Binding Points}" Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <DockPanel Margin="0,4,0,0">
+                          <TextBlock DockPanel.Dock="Left" Text="•" Width="16" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                          <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                        </DockPanel>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

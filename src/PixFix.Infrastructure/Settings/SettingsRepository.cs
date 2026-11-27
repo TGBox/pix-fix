@@ -35,6 +35,12 @@ public static class SettingKeys
     public const string TiMonitorAutoCheck = "ti_monitor.auto_check";
     public const string TiMonitorBlink = "ti_monitor.blink";
 
+    /// <summary>Beim Start und alle 6 Stunden auf GitHub nach einer neuen PixFix-Version suchen (Standard: ja).</summary>
+    public const string UpdateAutoCheck = "update.auto_check";
+
+    /// <summary>Die Einführungstour wurde beendet oder übersprungen (Standard: nein – sie startet beim ersten Programmstart).</summary>
+    public const string TourCompleted = "help.tour_completed";
+
     /// <summary>„0“ schaltet die automatische Sicherung ab; sonst ist sie an.</summary>
     public const string AutoBackupEnabled = "backup.auto_enabled";
 

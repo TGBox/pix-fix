@@ -3,9 +3,11 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PixFix.App.Calls;
 using PixFix.App.Common;
+using PixFix.App.Help;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
 using PixFix.App.Ti;
+using PixFix.App.Updates;
 using PixFix.App.Workspaces;
 using PixFix.Infrastructure;
 using PixFix.Infrastructure.Settings;
@@ -28,7 +30,9 @@ public sealed class MainViewModel : ObservableObject
         TiMonitorViewModel ti,
         SettingsViewModel settings,
         SettingsRepository settingsRepository,
-        UndoService undo)
+        UndoService undo,
+        HelpViewModel help,
+        UpdateViewModel update)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(knowledge);
@@ -41,8 +45,10 @@ public sealed class MainViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(workspaces);
         ArgumentNullException.ThrowIfNull(calls);
         ArgumentNullException.ThrowIfNull(ti);
+        ArgumentNullException.ThrowIfNull(help);
         Ti = ti;
         Undo = undo;
+        Update = update;
         settings.DataReplaced += (_, _) =>
         {
             knowledge.Reload();
@@ -64,6 +70,7 @@ public sealed class MainViewModel : ObservableObject
             new("\uE717", "Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
             new("\uE95E", "TI-Monitor", "Störungen der Telematikinfrastruktur (gematik).", ti),
             new("\uE713", "Einstellungen", "Anrufe, Vorlagen, Sicherung, Import aus PixFix 69.", settings),
+            new("\uE897", "Hilfe", "Anleitungen zu allen Funktionen und die Einführungstour.", help),
         ];
         selectedSection = Sections[0];
         ToggleSidebarCommand = new RelayCommand(() => IsSidebarCollapsed = !IsSidebarCollapsed);
@@ -74,7 +81,12 @@ public sealed class MainViewModel : ObservableObject
         // Klick auf das TI-Symbol öffnet den Monitor und bestätigt eine neue Störung.
         ShowTiCommand = new RelayCommand(() => SelectedSection = Sections[3]);
 
-        // Strg+1 … Strg+5 wechselt den Bereich.
+        // Hilfe: „Zum Bereich wechseln“ und „Einführungstour starten“.
+        help.SectionRequested += (_, index) => ShowSection(index);
+        help.TourRequested += (_, _) => TourRequested?.Invoke(this, EventArgs.Empty);
+        ShowHelpCommand = new RelayCommand(() => SelectedSection = Sections[HelpContent.Help]);
+
+        // Strg+1 … Strg+6 wechselt den Bereich.
         ShowSectionCommand = new RelayCommand<string>(index =>
         {
             if (int.TryParse(index, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var i) && i >= 1 && i <= Sections.Count)
@@ -83,6 +95,9 @@ public sealed class MainViewModel : ObservableObject
             }
         });
     }
+
+    /// <summary>Die Einführungstour soll angezeigt werden (Hilfe → „Einführungstour starten“).</summary>
+    public event EventHandler? TourRequested;
 
     public ObservableCollection<NavigationSection> Sections { get; }
 
@@ -105,7 +120,12 @@ public sealed class MainViewModel : ObservableObject
     /// <summary>Hinweisleiste „… gelöscht – Rückgängig“.</summary>
     public UndoService Undo { get; }
 
+    /// <summary>Hinweisleiste „Neue Version verfügbar“.</summary>
+    public UpdateViewModel Update { get; }
+
     public RelayCommand ShowTiCommand { get; }
+
+    public RelayCommand ShowHelpCommand { get; }
 
     public RelayCommand<string> ShowSectionCommand { get; }
 
@@ -126,4 +146,13 @@ public sealed class MainViewModel : ObservableObject
     public void ShowTi() => SelectedSection = Sections[3];
 
     public void ShowKnowledge() => SelectedSection = Sections[0];
+
+    /// <summary>Bereich nach Position in der Navigation (0-basiert) anzeigen; ungültige Werte werden ignoriert.</summary>
+    public void ShowSection(int index)
+    {
+        if (index >= 0 && index < Sections.Count)
+        {
+            SelectedSection = Sections[index];
+        }
+    }
 }

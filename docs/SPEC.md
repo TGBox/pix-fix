@@ -191,6 +191,18 @@ Weg über py-connect oder Portierung der UI-Automatisierung.
 - Tooltips für erklärungsbedürftige Bedienelemente (nicht in offensichtlichen Textfeldern, nicht über anderen Dialogen).
 - Startbildschirm mit Fortschritt, falls der Start spürbar dauert.
 
+### F15 – Update-Hinweis und Hilfe · S
+
+- PixFix fragt beim Start und alle 6 Stunden `api.github.com/repos/TGBox/pix-fix/releases/latest` ab (abschaltbar,
+  Einstellung `update.auto_check`). Ist das Release neuer als die eigene Version (InformationalVersion der EXE, SemVer),
+  zeigt das Hauptfenster eine Hinweisleiste mit Download-Link auf das Asset `PixFix.exe`; im Hintergrund zusätzlich eine
+  Windows-Benachrichtigung (je Version einmal).
+- Es wird nichts automatisch heruntergeladen oder ersetzt: Der Nutzer lädt die EXE im Browser und tauscht sie selbst aus.
+  Geöffnet werden nur HTTPS-Links auf github.com.
+- Fehler (Netz, Rate-Limit, JSON) erscheinen nur als Statustext in den Einstellungen und blockieren nie die Oberfläche.
+- Bereich „Hilfe“ mit Kapiteln je Funktion und Einführungstour; die Tour startet einmalig beim ersten Start
+  (`help.tour_completed`). Texte in `src/PixFix.App/Help/HelpContent.cs` bei Funktionsänderungen mitpflegen.
+
 ---
 
 1. Nicht-funktionale Anforderungen
