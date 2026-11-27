@@ -1,0 +1,57 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{59D33426-A48C-411C-B9F9-D1730BEED661}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5CAE86EC-8506-456E-8485-85B7EBDD8AA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixFix.Core", "src\PixFix.Core\PixFix.Core.csproj", "{6B7983F3-8DF1-4B23-BC79-4C3D5043660B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixFix.Infrastructure", "src\PixFix.Infrastructure\PixFix.Infrastructure.csproj", "{686E5AC3-1405-4664-B5E5-805A83F11E2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixFix.App", "src\PixFix.App\PixFix.App.csproj", "{026B3B9C-E78F-4048-9C04-5DC3730626DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixFix.Core.Tests", "tests\PixFix.Core.Tests\PixFix.Core.Tests.csproj", "{0915D027-36C4-4451-8B48-9B41E8FAED8B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixFix.Infrastructure.Tests", "tests\PixFix.Infrastructure.Tests\PixFix.Infrastructure.Tests.csproj", "{1956CA25-C45B-4E17-879E-B6ECBD14E525}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6B7983F3-8DF1-4B23-BC79-4C3D5043660B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B7983F3-8DF1-4B23-BC79-4C3D5043660B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B7983F3-8DF1-4B23-BC79-4C3D5043660B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B7983F3-8DF1-4B23-BC79-4C3D5043660B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{686E5AC3-1405-4664-B5E5-805A83F11E2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{686E5AC3-1405-4664-B5E5-805A83F11E2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{686E5AC3-1405-4664-B5E5-805A83F11E2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{686E5AC3-1405-4664-B5E5-805A83F11E2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{026B3B9C-E78F-4048-9C04-5DC3730626DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{026B3B9C-E78F-4048-9C04-5DC3730626DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{026B3B9C-E78F-4048-9C04-5DC3730626DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{026B3B9C-E78F-4048-9C04-5DC3730626DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0915D027-36C4-4451-8B48-9B41E8FAED8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0915D027-36C4-4451-8B48-9B41E8FAED8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0915D027-36C4-4451-8B48-9B41E8FAED8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0915D027-36C4-4451-8B48-9B41E8FAED8B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1956CA25-C45B-4E17-879E-B6ECBD14E525}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1956CA25-C45B-4E17-879E-B6ECBD14E525}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1956CA25-C45B-4E17-879E-B6ECBD14E525}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1956CA25-C45B-4E17-879E-B6ECBD14E525}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6B7983F3-8DF1-4B23-BC79-4C3D5043660B} = {59D33426-A48C-411C-B9F9-D1730BEED661}
+		{686E5AC3-1405-4664-B5E5-805A83F11E2F} = {59D33426-A48C-411C-B9F9-D1730BEED661}
+		{026B3B9C-E78F-4048-9C04-5DC3730626DC} = {59D33426-A48C-411C-B9F9-D1730BEED661}
+		{0915D027-36C4-4451-8B48-9B41E8FAED8B} = {5CAE86EC-8506-456E-8485-85B7EBDD8AA7}
+		{1956CA25-C45B-4E17-879E-B6ECBD14E525} = {5CAE86EC-8506-456E-8485-85B7EBDD8AA7}
+	EndGlobalSection
+EndGlobal

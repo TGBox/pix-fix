@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Fachlogik ohne UI-, Datei- oder Datenbankabhängigkeiten. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>PixFix.Core</RootNamespace>
+  </PropertyGroup>
+</Project>

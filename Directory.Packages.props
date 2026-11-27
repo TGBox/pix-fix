@@ -1,0 +1,22 @@
+<Project>
+  <!-- Zentrale Paketversionen. Veraltete Pakete anzeigen: "dotnet list package" mit Option outdated. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Erlaubt, Versionen indirekter Abhängigkeiten hier festzulegen (siehe SQLitePCLRaw unten). -->
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.0" />
+    <!-- Sicherheitsfix: Microsoft.Data.Sqlite bringt SQLitePCLRaw.lib.e_sqlite3 2.1.11 mit (SQLite vor 3.50.2,
+         GHSA-2m69-gcr7-jv3q / CVE-2025-6965). 2.1.12+ enthält ein gepatchtes SQLite. Entfernen, sobald
+         Microsoft.Data.Sqlite selbst eine nicht betroffene Version mitbringt. -->
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="9.0.0" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.0.2" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,18 @@
+# Build
+bin/
+obj/
+artifacts/
+publish/
+*.user
+.vs/
+.idea/
+TestResults/
+
+# Niemals Nutzerdaten oder Kundendaten einchecken
+*.db
+*.db-shm
+*.db-wal
+*.pixfix
+*.zip
+PixFix-Daten/
+logs/
