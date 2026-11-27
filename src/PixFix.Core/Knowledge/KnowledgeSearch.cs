@@ -23,11 +23,12 @@ public static partial class KnowledgeSearch
     /// <summary>
     /// Nicht archivierte Einträge mit Punktzahl &gt; 0, absteigend nach Punktzahl, dann nach Titel.
     /// Ohne Suchbegriff: alle nicht archivierten Einträge in Abschnitts- und Eintragsreihenfolge.
+    /// Mit <paramref name="includeArchived"/> werden archivierte Einträge mit angezeigt (zum Zurückholen aus dem Archiv).
     /// </summary>
-    public static IReadOnlyList<KnowledgeSearchHit> Search(IEnumerable<KnowledgeListItem> entries, string? query)
+    public static IReadOnlyList<KnowledgeSearchHit> Search(IEnumerable<KnowledgeListItem> entries, string? query, bool includeArchived = false)
     {
         ArgumentNullException.ThrowIfNull(entries);
-        var active = entries.Where(e => !e.IsArchived);
+        var active = entries.Where(e => includeArchived || !e.IsArchived);
 
         if (string.IsNullOrWhiteSpace(query))
         {

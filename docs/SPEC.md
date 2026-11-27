@@ -275,7 +275,8 @@ durch das im Metafile enthaltene Bitmap als PNG. Geprüft am echten Bestand: 662
 | 0 | Projektgerüst, CI-Build, Logging, Einstellungen, Datenordner | startbare leere App |
 | 1 | Datenmodell + Legacy-Import (F12) | Altbestand vollständig gelesen, Testbericht – **umgesetzt** |
 | 2a | Wissensdatenbank anzeigen + Textsuche (F1 lesend, F2-Text) | Mitarbeiter kann nachschlagen – **umgesetzt** |
-| 2b | Editor: Einträge anlegen/bearbeiten, Bilder einfügen, Papierkorb, Umwandlung nach XAML (F1) | |
+| 2b | Editor: Einträge anlegen/bearbeiten, Bilder einfügen, Papierkorb, Umwandlung nach XAML (F1) | **umgesetzt** |
+| 2c | Copy-Actions, Eintragsvorlagen, Abschnitte umbenennen/sortieren, Einträge per Drag & Drop sortieren (F1) | |
 | 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 |
 | 4 | Schreibbereiche (F3) | |
 | 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich |

@@ -4,12 +4,20 @@
              xmlns:local="clr-namespace:PixFix.App.Knowledge">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        <Style x:Key="ToolButton" TargetType="Button">
+            <Setter Property="MinWidth" Value="28" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Margin" Value="0,0,2,0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="CommandTarget" Value="{Binding ElementName=Editor}" />
+            <Setter Property="Focusable" Value="False" />
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="360" MinWidth="220" />
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" MinWidth="300" />
+            <ColumnDefinition Width="*" MinWidth="360" />
         </Grid.ColumnDefinitions>
 
         <!-- Suche und Trefferliste -->
@@ -37,8 +45,12 @@
                 </TextBlock>
             </Grid>
             <DockPanel DockPanel.Dock="Top" Margin="0,6,0,6">
-                <Button DockPanel.Dock="Right" Content="Neu laden" Command="{Binding ReloadCommand}" Padding="8,1"
-                        ToolTip="Einträge erneut aus der Datenbank lesen" />
+                <Button DockPanel.Dock="Right" Content="Papierkorb" Command="{Binding ShowTrashCommand}" Padding="8,1" Margin="4,0,0,0"
+                        ToolTip="Gelöschte Einträge wiederherstellen oder endgültig löschen" />
+                <Button DockPanel.Dock="Right" Content="+ Neu" Command="{Binding NewEntryCommand}" Padding="8,1"
+                        ToolTip="Neuen Eintrag im Abschnitt des ausgewählten Eintrags anlegen" />
+                <CheckBox Content="Archiv" IsChecked="{Binding ShowArchived}" VerticalAlignment="Center" Margin="0,0,8,0"
+                          ToolTip="Archivierte Einträge mit anzeigen" />
                 <TextBlock Text="{Binding Summary}" Foreground="Gray" VerticalAlignment="Center" />
             </DockPanel>
             <ListBox ItemsSource="{Binding ResultsView}"
@@ -62,6 +74,8 @@
                                 <TextBlock Text="★ " Foreground="Goldenrod"
                                            Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibility}}" />
                                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text=" (archiviert)" Foreground="Gray"
+                                           Visibility="{Binding IsArchived, Converter={StaticResource BoolToVisibility}}" />
                             </StackPanel>
                             <TextBlock Text="{Binding SnippetOrSection}" Foreground="Gray" TextWrapping="Wrap" MaxHeight="48"
                                        TextTrimming="CharacterEllipsis" />
@@ -73,25 +87,74 @@
 
         <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
 
-        <!-- Dokumentanzeige -->
+        <!-- Eintrag -->
         <DockPanel Grid.Column="2" Margin="8,0,0,0">
-            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+            <!-- Kopf: Titel, Abschnitt, Tags, Zustände -->
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,6" IsEnabled="{Binding SelectedEntry, Converter={x:Static local:NotNullConverter.Instance}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding EditTitle}" IsReadOnly="{Binding IsReadOnly}"
+                         FontSize="18" FontWeight="SemiBold" BorderThickness="0,0,0,1" ToolTip="Titel" />
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                    <ToggleButton Content="★" Width="30" IsChecked="{Binding SelectedEntry.IsFavorite, Mode=OneWay}"
+                                  Command="{Binding ToggleFavoriteCommand}" ToolTip="Favorit" />
+                    <ToggleButton Content="🔒" Width="30" Margin="2,0,0,0" IsChecked="{Binding SelectedEntry.IsProtected, Mode=OneWay}"
+                                  Command="{Binding ToggleProtectedCommand}" ToolTip="Geschützt: nicht bearbeitbar und nicht löschbar" />
+                    <ToggleButton Content="Archiv" Padding="6,0" Margin="2,0,0,0" IsChecked="{Binding SelectedEntry.IsArchived, Mode=OneWay}"
+                                  Command="{Binding ToggleArchivedCommand}" ToolTip="Archivierte Einträge erscheinen nicht in der normalen Suche" />
+                    <Button Content="Löschen" Padding="6,0" Margin="8,0,0,0" Command="{Binding DeleteCommand}"
+                            ToolTip="In den Papierkorb verschieben" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBlock Text="Abschnitt" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,6,0" />
+                    <ComboBox Width="200" IsEditable="True" ItemsSource="{Binding SectionNames}" Text="{Binding EditSection}"
+                              IsEnabled="{Binding CanEdit}"
+                              ToolTip="Abschnitt wählen oder neuen Namen eintippen" />
+                    <TextBlock Text="Tags" VerticalAlignment="Center" Foreground="Gray" Margin="12,0,6,0" />
+                    <TextBox Width="260" Text="{Binding EditTags}" IsReadOnly="{Binding IsReadOnly}"
+                             ToolTip="Stichwörter für die Suche, z. B. Fehlernummern oder Programmnamen" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Formatleiste -->
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" x:Name="HitNavigation" Visibility="Collapsed">
                     <TextBlock x:Name="HitCounter" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="Gray" />
-                    <Button Content="▲" Width="28" Click="OnPreviousHit" ToolTip="Vorheriger Treffer (Umschalt+F3)" />
-                    <Button Content="▼" Width="28" Margin="4,0,0,0" Click="OnNextHit" ToolTip="Nächster Treffer (F3)" />
+                    <Button Content="▲" Width="28" Click="OnPreviousHit" Focusable="False" ToolTip="Vorheriger Treffer (Umschalt+F3)" />
+                    <Button Content="▼" Width="28" Margin="2,0,0,0" Click="OnNextHit" Focusable="False" ToolTip="Nächster Treffer (F3)" />
                 </StackPanel>
-                <StackPanel>
-                    <TextBlock Text="{Binding SelectedHit.Title}" FontSize="20" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding SelectedHit.SectionName}" Foreground="Gray" />
-                </StackPanel>
+                <WrapPanel IsEnabled="{Binding CanEdit}">
+                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleBold" FontWeight="Bold" Content="F" ToolTip="Fett (Strg+B)" />
+                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleItalic" FontStyle="Italic" Content="K" ToolTip="Kursiv (Strg+I)" />
+                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleUnderline" Content="U" ToolTip="Unterstrichen (Strg+U)" />
+                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.IncreaseFontSize" Content="A+" ToolTip="Schrift größer (Strg+])" />
+                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.DecreaseFontSize" Content="A−" ToolTip="Schrift kleiner (Strg+[)" />
+                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleBullets" Content="•" ToolTip="Aufzählung" />
+                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleNumbering" Content="1." ToolTip="Nummerierung" />
+                    <Button Style="{StaticResource ToolButton}" Command="ApplicationCommands.Undo" Content="↶" ToolTip="Rückgängig (Strg+Z)" />
+                    <Button Style="{StaticResource ToolButton}" Command="ApplicationCommands.Redo" Content="↷" ToolTip="Wiederholen (Strg+Y)" />
+                    <Button Style="{StaticResource ToolButton}" Content="Bild einfügen …" Click="OnInsertImage"
+                            ToolTip="Bilddatei einfügen. Screenshots einfach mit Strg+V einfügen oder Dateien hineinziehen." />
+                    <TextBlock Text="{Binding Status}" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0" />
+                </WrapPanel>
             </DockPanel>
+
             <Grid>
-                <RichTextBox x:Name="Viewer"
-                             IsReadOnly="True"
+                <RichTextBox x:Name="Editor"
+                             IsReadOnly="{Binding IsReadOnly}"
                              IsDocumentEnabled="True"
                              IsInactiveSelectionHighlightEnabled="True"
+                             AcceptsTab="True"
+                             SpellCheck.IsEnabled="True"
+                             Language="de-DE"
                              VerticalScrollBarVisibility="Auto"
+                             AllowDrop="True"
                              BorderThickness="1" />
                 <TextBlock Text="Dokument wird geladen …"
                            HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray"

@@ -104,7 +104,7 @@ public sealed class KnowledgeDocumentTests : IDisposable
     public void PreparedDocumentIsCached()
     {
         var first = documents.Load(LegacyFixture.EntryA);
-        var cacheFiles = Directory.GetFiles(Path.Combine(paths.CacheDirectory, "documents"));
+        var cacheFiles = Directory.GetFiles(Path.Combine(paths.CacheDirectory, "documents"), "*.rtf");
 
         var second = documents.Load(LegacyFixture.EntryA);
 

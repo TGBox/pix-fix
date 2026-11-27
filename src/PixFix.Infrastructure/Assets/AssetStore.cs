@@ -82,7 +82,33 @@ public sealed class AssetStore
             }
         }
 
-        var asset = new Asset(hash, relativePath, MediaTypeFor(extension), new FileInfo(target).Length, Path.GetFileName(sourceFile));
+        return Register(new Asset(hash, relativePath, MediaTypeFor(extension), new FileInfo(target).Length, Path.GetFileName(sourceFile)), connection, transaction, nowUtc);
+    }
+
+    /// <summary>Speichert Daten aus dem Speicher (z. B. ein eingefügtes Bild) in der Ablage.</summary>
+    public Asset ImportBytes(byte[] data, string extension, SqliteConnection connection, SqliteTransaction? transaction, DateTimeOffset nowUtc)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        ArgumentException.ThrowIfNullOrWhiteSpace(extension);
+        ArgumentNullException.ThrowIfNull(connection);
+
+        var hash = Convert.ToHexStringLower(SHA256.HashData(data));
+        extension = extension.StartsWith('.') ? extension.ToLowerInvariant() : "." + extension.ToLowerInvariant();
+        var relativePath = "assets/" + hash[..2] + "/" + hash + extension;
+        var target = Path.Combine(paths.DataDirectory, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        if (!File.Exists(target))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            var temp = target + ".tmp-" + Guid.NewGuid().ToString("N");
+            File.WriteAllBytes(temp, data);
+            File.Move(temp, target, overwrite: true);
+        }
+
+        return Register(new Asset(hash, relativePath, MediaTypeFor(extension), data.Length, null), connection, transaction, nowUtc);
+    }
+
+    private static Asset Register(Asset asset, SqliteConnection connection, SqliteTransaction? transaction, DateTimeOffset nowUtc)
+    {
         connection.Execute(
             """
             INSERT INTO assets(id, relative_path, media_type, length, original_name, created_utc)

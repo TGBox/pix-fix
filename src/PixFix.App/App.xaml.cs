@@ -8,6 +8,7 @@ using PixFix.Infrastructure.Assets;
 using PixFix.Infrastructure.Data;
 using PixFix.Infrastructure.Knowledge;
 using PixFix.Infrastructure.Legacy;
+using PixFix.Infrastructure.Ocr;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
 using Serilog;
@@ -50,7 +51,9 @@ public partial class App : Application
         builder.Services.AddSingleton<AssetStore>();
         builder.Services.AddSingleton(sp => new LegacyImporter(
             sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
-        builder.Services.AddSingleton<KnowledgeRepository>();
+        builder.Services.AddSingleton(sp => new KnowledgeRepository(
+            sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
+        builder.Services.AddSingleton<OcrService>();
         builder.Services.AddSingleton<KnowledgeDocumentService>();
         builder.Services.AddSingleton<KnowledgeViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();

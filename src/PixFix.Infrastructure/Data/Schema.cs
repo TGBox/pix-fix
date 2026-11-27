@@ -170,6 +170,11 @@ internal static class Schema
             succeeded INTEGER NOT NULL,
             report TEXT NOT NULL);
         """,
+
+        // 2 – Texterkennung (OCR) je Bild, Grundlage für die Bildsuche (Phase 2b)
+        """
+        ALTER TABLE knowledge_entry_images ADD COLUMN ocr_text TEXT NOT NULL DEFAULT '';
+        """,
     ];
 
     /// <summary>Tabellen mit Nutzdaten – ein Import ist nur in eine Datenbank erlaubt, in der diese leer sind.</summary>

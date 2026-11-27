@@ -61,6 +61,16 @@ public class KnowledgeSearchTests
     }
 
     [Fact]
+    public void ArchivedEntriesCanBeIncluded()
+    {
+        var entries = new[] { Item("Aktiv", text: "kim"), Item("Alt", text: "kim", archived: true) };
+
+        Assert.Single(KnowledgeSearch.Search(entries, "kim"));
+        Assert.Equal(2, KnowledgeSearch.Search(entries, "kim", includeArchived: true).Count);
+        Assert.Equal(2, KnowledgeSearch.Search(entries, string.Empty, includeArchived: true).Count);
+    }
+
+    [Fact]
     public void EmptyQueryListsAllActiveEntriesInSectionOrder()
     {
         var entries = new[]
