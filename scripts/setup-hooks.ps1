@@ -19,7 +19,8 @@ try {
     Write-Host 'Git-Hooks erfolgreich aktiviert (core.hooksPath = .githooks):' -ForegroundColor Green
     Write-Host '  - pre-commit : blockt direkte Commits auf main/master, Kundendaten, Secrets, leere catch-Bloecke und UI-Hacks'
     Write-Host '  - commit-msg : erzwingt Conventional Commits (z. B. feat: ... oder fix: ...) fuer automatische Releases'
-    Write-Host '  - pre-push   : blockt direktes Pushen auf main/master und prueft dotnet build + dotnet test'
+    Write-Host '  - pre-push   : blockt direktes Pushen auf main/master, fragt nach dem SemVer-Sprung (zeigt aktuelle'
+    Write-Host '                 und neue Version, prueft gegen die Commit-Typen) und prueft dotnet build + dotnet test'
     Write-Host ''
     Write-Host 'Wichtiger Hinweis: Immer auf einem eigenen Branch arbeiten, z. B.:' -ForegroundColor Cyan
     Write-Host '  git checkout -b feat/kurze-beschreibung'

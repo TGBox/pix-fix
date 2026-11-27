@@ -10,6 +10,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 
 ### Hinzugefügt
 
+- pre-push-Hook fragt nach dem gewünschten SemVer-Sprung (Patch/Minor/Major) und zeigt dazu das neueste Release-Tag und die
+  jeweils entstehende Version. Passt die Wahl nicht zu den Commit-Typen des Branches, wird der Push mit Korrekturhinweis
+  abgebrochen. Ohne Terminal nur Hinweis; Vorgabe per `PIXFIX_BUMP=patch|minor|major`.
 - Update-Hinweis: PixFix prüft beim Start und alle 6 Stunden das neueste GitHub-Release (`TGBox/pix-fix`). Gibt es eine
   neuere Version, erscheint oben im Fenster eine Hinweisleiste mit „Herunterladen“ (direkter Link auf `PixFix.exe`),
   „Was ist neu?“, „Programmordner öffnen“ und „Später“; liegt PixFix im Hintergrund, kommt zusätzlich eine
@@ -20,9 +23,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 - Warnung vor dem Beenden (Schaltfläche, Infobereich-Menü oder Schließen-Kreuz ohne Infobereich), wenn heute noch
   Rückruf-Erinnerungen anstehen – mit Liste der Rückrufe (Uhrzeit, L-Nummer, Grund); Standard ist „Nein“. Beim Abmelden
   oder Herunterfahren von Windows kommt keine Rückfrage.
-- Lokale Builds sind Entwicklungsversionen (`1.0.0-dev` in `Directory.Build.props`): keine automatische Update-Suche und
-  keine Hinweisleiste; „Jetzt nach Updates suchen“ funktioniert weiter. Releases erhalten ihre Version wie bisher aus
-  `release.yml`; `next-version.ps1` ignoriert den Zusatz.
 - Bereich „Hilfe“ (Strg+6, F1, Infobereich-Menü) mit Kapiteln zu allen Funktionen und „Zum Bereich wechseln“.
 - Einführungstour für neue Mitarbeiter: startet einmalig beim ersten Programmstart, führt durch alle Bereiche und lässt
   sich unter Hilfe jederzeit wiederholen.

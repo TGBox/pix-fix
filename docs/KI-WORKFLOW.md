@@ -89,6 +89,21 @@ Meine Aufgabe:
 
    ## *(Dabei laufen automatisch Build und alle Tests noch einmal durch.)*
 
+   Vorher fragt der Hook, welcher Versionssprung gewünscht ist – mit der aktuellen Version und dem Ergebnis je Wahl:
+
+   ```text
+   [pre-push] Aktuelle Version (neuestes Release-Tag): v1.1.0
+     1) Patch  -> v1.1.1   fix, docs, chore, refactor, ...
+     2) Minor  -> v1.2.0   feat
+     3) Major  -> v2.0.0   feat! / BREAKING CHANGE:
+   [pre-push] Die Commits dieses Branches ergeben: Minor -> v1.2.0
+   [pre-push] Welcher Versionssprung ist gewünscht? [1/2/3, Enter = Minor]:
+   ```
+
+   Passt die Wahl nicht zu den Commit-Typen, bricht der Push ab und nennt den Befehl zum Korrigieren. Ohne Terminal
+   (Push aus Visual Studio/Rider) wird nur informiert; Antwort vorgeben geht mit `$env:PIXFIX_BUMP = "minor"` (PowerShell)
+   bzw. `PIXFIX_BUMP=minor git push` (Git Bash). Wichtig: Beim Squash-Merge bestimmt der **PR-Titel** die Version.
+
 1. **Pull Request auf GitHub erstellen & auf Review warten:**
    - GitHub zeigt nach dem Push direkt einen Button **Compare & pull request** an.
    - Pull Request gegen `main` öffnen, Titel ebenfalls als `feat(...): ...` oder `fix(...): ...` wählen und kurz beschreiben, was geändert und getestet wurde.
@@ -104,5 +119,9 @@ Meine Aufgabe:
   Die Commit-Nachricht braucht ein Präfix wie `feat: ...`, `fix: ...` oder `docs: ...` (siehe Beispiele in der Fehlermeldung).
 - **`Verbotener Dateityp` oder `Echte E-Mail-Adresse` / `Windows-Benutzerpfad`:**  
   Es würde eine Datenbank, Sicherung, Logdatei oder echte/lokale Angabe hochgeladen. Datei aus dem Staging nehmen (`git restore --staged <datei>`) bzw. Platzhalter (`*.invalid`) verwenden.
+- **`Abbruch: Gewünscht ist … die Commits ergeben aber …` beim Push:**  
+  Die Commit-Typen führen zu einem anderen Versionssprung als gewählt. Zu niedrig: `git commit --amend -m "feat(...): ..."`
+  oder leerer Commit `git commit --allow-empty -m "feat(...): ..."`. Zu hoch: Nachrichten per `git rebase -i origin/main`
+  umbenennen (`reword`). Danach erneut pushen.
 - **`Build/Tests fehlgeschlagen` beim Push:**  
   Fehler im Code beheben (gern die Fehlermeldung direkt in ChatGPT/Claude einfügen), neu committen und erneut pushen.

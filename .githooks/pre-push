@@ -3,6 +3,7 @@ set -eu
 
 zero_sha="0000000000000000000000000000000000000000"
 has_push=0
+pushed_branches=""
 
 while read -r local_ref local_sha remote_ref remote_sha; do
     if [ "$remote_ref" = "refs/heads/main" ] || [ "$remote_ref" = "refs/heads/master" ]; then
@@ -13,8 +14,192 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 
     if [ "$local_sha" != "$zero_sha" ]; then
         has_push=1
+        case "$remote_ref" in
+            refs/heads/*)
+                pushed_branches="$pushed_branches ${remote_ref#refs/heads/}:$local_sha"
+                ;;
+        esac
     fi
 done
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SemVer-Abfrage: Welcher Versionssprung soll der Merge dieses Branches auf main ausloesen?
+# Die Version berechnet release.yml (scripts/next-version.ps1) aus den Commit-Typen auf main - bei Squash-Merge aus dem
+# PR-Titel: fix/docs/chore/... = Patch, feat = Minor, "!" oder "BREAKING CHANGE:" = Major. Der Hook kann Commits nicht
+# mehr aendern; er vergleicht deine Auswahl mit den Commits des Branches und bricht bei Abweichung ab.
+#
+# Ohne Terminal (z. B. Push aus einer IDE) wird nur informiert. Antwort vorgeben: PIXFIX_BUMP=patch|minor|major git push
+# ---------------------------------------------------------------------------------------------------------------------
+
+bump_rank() {
+    case "$1" in
+        major) echo 3 ;;
+        minor) echo 2 ;;
+        *) echo 1 ;;
+    esac
+}
+
+bump_label() {
+    case "$1" in
+        major) echo "Major" ;;
+        minor) echo "Minor" ;;
+        *) echo "Patch" ;;
+    esac
+}
+
+next_version() {
+    case "$1" in
+        major) echo "v$((cur_major + 1)).0.0" ;;
+        minor) echo "v$cur_major.$((cur_minor + 1)).0" ;;
+        *) echo "v$cur_major.$cur_minor.$((cur_patch + 1))" ;;
+    esac
+}
+
+can_prompt() {
+    (exec </dev/tty) 2>/dev/null
+}
+
+check_semver_bump() {
+    branch="$1"
+    sha="$2"
+
+    if git rev-parse --verify --quiet origin/main >/dev/null; then
+        base="$(git merge-base origin/main "$sha" 2>/dev/null || true)"
+    else
+        base=""
+    fi
+
+    if [ -n "$base" ]; then
+        range="$base..$sha"
+    else
+        range="$sha --not --remotes"
+    fi
+
+    # shellcheck disable=SC2086 # $range enthaelt bewusst mehrere Argumente
+    subjects="$(git log --format=%s $range 2>/dev/null || true)"
+    if [ -z "$subjects" ]; then
+        return 0
+    fi
+
+    # shellcheck disable=SC2086
+    bodies="$(git log --format=%b $range 2>/dev/null || true)"
+
+    implied="patch"
+    if printf '%s\n' "$subjects" | grep -Eq '^[a-z]+(\([^)]+\))?!:' \
+        || printf '%s\n' "$bodies" | grep -Eq '^BREAKING[ -]CHANGE:'; then
+        implied="major"
+    elif printf '%s\n' "$subjects" | grep -Eq '^feat(\([^)]+\))?:'; then
+        implied="minor"
+    fi
+
+    latest_tag="$(git tag -l 'v*.*.*' --sort=-v:refname | head -n 1)"
+    echo ""
+    echo "[pre-push] ===== Versionssprung fuer Branch '$branch' ====="
+    if [ -z "$latest_tag" ]; then
+        echo "[pre-push] Noch kein Release vorhanden - das erste Release erhaelt die Version aus Directory.Build.props."
+        return 0
+    fi
+
+    version="${latest_tag#v}"
+    cur_major="${version%%.*}"
+    rest="${version#*.}"
+    cur_minor="${rest%%.*}"
+    cur_patch="${rest#*.}"
+
+    echo "[pre-push] Aktuelle Version (neuestes Release-Tag): $latest_tag"
+    echo "  1) Patch  -> $(next_version patch)   fix, docs, chore, refactor, ...  (Fehlerbehebung, nichts Neues)"
+    echo "  2) Minor  -> $(next_version minor)   feat                             (neue Funktion, abwaertskompatibel)"
+    echo "  3) Major  -> $(next_version major)   feat! / BREAKING CHANGE:         (inkompatible Aenderung)"
+    echo "[pre-push] Die Commits dieses Branches ergeben: $(bump_label "$implied") -> $(next_version "$implied")"
+
+    chosen="${PIXFIX_BUMP:-}"
+    if [ -z "$chosen" ]; then
+        if ! can_prompt; then
+            echo "[pre-push] Hinweis: Kein Terminal fuer die Rueckfrage - Push laeuft weiter. Bitte den PR-Titel passend waehlen."
+            return 0
+        fi
+
+        printf '[pre-push] Welcher Versionssprung ist gewuenscht? [1/2/3, Enter = %s]: ' "$(bump_label "$implied")"
+        answer=""
+        read -r answer </dev/tty || answer=""
+        case "$answer" in
+            "") chosen="$implied" ;;
+            1|p|P|patch|Patch) chosen="patch" ;;
+            2|m|minor|Minor) chosen="minor" ;;
+            3|M|major|Major) chosen="major" ;;
+            *)
+                echo "[pre-push] Fehler: Ungueltige Eingabe '$answer' - Push abgebrochen." >&2
+                exit 1
+                ;;
+        esac
+    fi
+
+    case "$chosen" in
+        patch|minor|major) ;;
+        *)
+            echo "[pre-push] Fehler: PIXFIX_BUMP muss patch, minor oder major sein (erhalten: '$chosen')." >&2
+            exit 1
+            ;;
+    esac
+
+    if [ "$chosen" = "$implied" ]; then
+        case "$chosen" in
+            major) title_hint="feat(bereich)!: ..." ;;
+            minor) title_hint="feat(bereich): ..." ;;
+            *) title_hint="fix(bereich): ...  (oder docs:/chore:/refactor: ...)" ;;
+        esac
+        echo "[pre-push] OK: $(bump_label "$chosen") -> $(next_version "$chosen")."
+        echo "[pre-push] Erinnerung: Beim Squash-Merge zaehlt der PR-Titel - er muss lauten wie: $title_hint"
+        return 0
+    fi
+
+    echo "" >&2
+    echo "[pre-push] Abbruch: Gewuenscht ist $(bump_label "$chosen") -> $(next_version "$chosen")," >&2
+    echo "           die Commits ergeben aber $(bump_label "$implied") -> $(next_version "$implied")." >&2
+    echo "" >&2
+    if [ "$(bump_rank "$chosen")" -gt "$(bump_rank "$implied")" ]; then
+        case "$chosen" in
+            major) example='feat(bereich)!: kurze Beschreibung' ;;
+            *) example='feat(bereich): kurze Beschreibung' ;;
+        esac
+        echo "So korrigierst du es (eine der Moeglichkeiten):" >&2
+        echo "  - Letzte Commit-Nachricht aendern:  git commit --amend -m \"$example\"" >&2
+        echo "  - Oder leeren Commit ergaenzen:     git commit --allow-empty -m \"$example\"" >&2
+    else
+        echo "Diese Commits erhoehen die Version staerker als gewuenscht:" >&2
+        # shellcheck disable=SC2086
+        for commit in $(git rev-list $range); do
+            message="$(git log -1 --format=%B "$commit")"
+            subject="$(printf '%s\n' "$message" | head -n 1)"
+            if [ "$implied" = "major" ]; then
+                if printf '%s\n' "$subject" | grep -Eq '^[a-z]+(\([^)]+\))?!:' \
+                    || printf '%s\n' "$message" | grep -Eq '^BREAKING[ -]CHANGE:'; then
+                    echo "  $(git log -1 --format='%h' "$commit") $subject" >&2
+                fi
+            elif printf '%s\n' "$subject" | grep -Eq '^feat(\([^)]+\))?:'; then
+                echo "  $(git log -1 --format='%h' "$commit") $subject" >&2
+            fi
+        done
+        echo "" >&2
+        echo "So korrigierst du es: Commit-Nachrichten umbenennen (bei 'pick' -> 'reword'):" >&2
+        echo "  git rebase -i origin/main" >&2
+    fi
+    echo "" >&2
+    echo "Danach erneut pushen (bei bereits gepushtem Branch: git push --force-with-lease)." >&2
+    echo "Denk auch an den PR-Titel - beim Squash-Merge bestimmt er die Version." >&2
+    exit 1
+}
+
+if [ -n "$pushed_branches" ]; then
+    # Aktuelle Release-Tags und main holen, damit Version und Vergleichsbasis stimmen (offline: lokaler Stand).
+    if ! git fetch --quiet --tags origin main 2>/dev/null; then
+        echo "[pre-push] Hinweis: Tags/main konnten nicht aktualisiert werden - verwende lokalen Stand."
+    fi
+
+    for entry in $pushed_branches; do
+        check_semver_bump "${entry%%:*}" "${entry##*:}"
+    done
+fi
 
 if [ "$has_push" -eq 1 ]; then
     echo "[pre-push] Baue PixFix.sln ..."
