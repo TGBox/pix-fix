@@ -82,6 +82,12 @@ Kennzeichnung der Priorität: **M** = muss für Version 1, **S** = soll, **K** =
 **Der Scoring-Algorithmus wird 1:1 aus `PixFix.Search.cs` portiert** und mit Vergleichstests gegen PixFix 69
 abgesichert (gleiche Eingabebilder → gleiche Trefferreihenfolge), bevor er verändert werden darf.
 
+Umsetzung (Phase 3): Signaturen werden mit derselben Bibliothek (GDI+, HighQualityBicubic) und denselben Schritten
+berechnet; der Test `SignaturesMatchPixFix69Index` vergleicht sie bitgenau mit `search-index/image-index.xml` aus
+PixFix 69 (aufrufen mit Umgebungsvariable `PIXFIX_LEGACY_DATA` = Ordner `PixFix-Daten`). Zwei bewusste Abweichungen:
+Bei Gleichstand ist die Reihenfolge stabil (Titel, Bild) statt zufällig, und schlägt die OCR des Suchbilds fehl, wird
+kein Fehlertext („[OCR-Fehler …]“) als Suchtext verwendet.
+
 ### F3 – Schreibbereiche · M
 
 - Mehrere Bereiche (`WritingWorkspace`) mit Titel, Symbol, Reihenfolge, Schutzstatus.
@@ -277,7 +283,7 @@ durch das im Metafile enthaltene Bitmap als PNG. Geprüft am echten Bestand: 662
 | 2a | Wissensdatenbank anzeigen + Textsuche (F1 lesend, F2-Text) | Mitarbeiter kann nachschlagen – **umgesetzt** |
 | 2b | Editor: Einträge anlegen/bearbeiten, Bilder einfügen, Papierkorb, Umwandlung nach XAML (F1) | **umgesetzt** |
 | 2c | Copy-Actions, Eintragsvorlagen, Abschnitte umbenennen/sortieren, Einträge sortieren (F1) | **umgesetzt** (Sortieren per ↑/↓ statt Drag & Drop) |
-| 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 |
+| 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 – **umgesetzt** |
 | 4 | Schreibbereiche (F3) | |
 | 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich |
 | 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 |

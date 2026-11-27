@@ -1,0 +1,66 @@
+<Window x:Class="PixFix.App.Knowledge.ImageSearchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Bildsuche – Fehlerbild finden"
+        Width="1100" Height="720"
+        MinWidth="700" MinHeight="450"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        AllowDrop="True">
+    <Grid Margin="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="420" MinWidth="300" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Links: Suchbild und Trefferliste -->
+        <DockPanel Grid.Column="0" Margin="0,0,8,0">
+            <Border DockPanel.Dock="Top" BorderBrush="SteelBlue" BorderThickness="1" Background="#FFE8F0FE" Height="150" Padding="6">
+                <Grid>
+                    <Image x:Name="QueryPreview" Stretch="Uniform" />
+                    <TextBlock x:Name="DropHint" TextAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" FontWeight="SemiBold"
+                               Text="Screenshot mit Strg+V einfügen&#x0a;oder Bild hierher ziehen" />
+                </Grid>
+            </Border>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,6,0,0">
+                <Button Content="Screenshot einfügen (Strg+V)" Padding="8,2" Click="OnPaste" />
+                <Button Content="Bilddatei …" Padding="8,2" Margin="6,0,0,0" Click="OnChooseFile" />
+            </StackPanel>
+            <TextBlock x:Name="StatusText" DockPanel.Dock="Top" Margin="0,6,0,0" Foreground="Gray" TextWrapping="Wrap" />
+            <Expander x:Name="RecognizedExpander" DockPanel.Dock="Top" Header="Erkannter Bildtext" Margin="0,4,0,4" Visibility="Collapsed">
+                <TextBox x:Name="RecognizedText" IsReadOnly="True" TextWrapping="Wrap" MaxHeight="100" VerticalScrollBarVisibility="Auto" />
+            </Expander>
+            <ListBox x:Name="Results" HorizontalContentAlignment="Stretch" SelectionChanged="OnSelectionChanged"
+                     MouseDoubleClick="OnOpen" KeyDown="OnResultsKeyDown"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <DockPanel Margin="2,3">
+                            <Image DockPanel.Dock="Left" Width="110" Height="66" Stretch="Uniform" Source="{Binding Thumbnail}" Margin="0,0,8,0" />
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding SectionName}" Foreground="Gray" />
+                                <TextBlock Text="{Binding Details}" Foreground="Gray" FontSize="11" />
+                            </StackPanel>
+                        </DockPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+
+        <!-- Rechts: große Vorschau des markierten Treffers -->
+        <DockPanel Grid.Column="2" Margin="8,0,0,0">
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button x:Name="OpenButton" Content="Treffer öffnen" Padding="12,3" Click="OnOpen" IsEnabled="False" IsDefault="True" />
+                <Button Content="Schließen" Padding="12,3" Margin="8,0,0,0" IsCancel="True" />
+            </StackPanel>
+            <TextBlock x:Name="PreviewTitle" DockPanel.Dock="Top" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,6" TextTrimming="CharacterEllipsis" />
+            <Border BorderBrush="LightGray" BorderThickness="1" Background="White">
+                <Image x:Name="HitPreview" Stretch="Uniform" StretchDirection="DownOnly" Margin="4" />
+            </Border>
+        </DockPanel>
+    </Grid>
+</Window>

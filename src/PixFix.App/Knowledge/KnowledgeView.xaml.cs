@@ -56,6 +56,7 @@ public partial class KnowledgeView : UserControl
         InputBindings.Add(new KeyBinding(new RelayCommand(() => MoveHit(+1)), Key.F3, ModifierKeys.None));
         InputBindings.Add(new KeyBinding(new RelayCommand(() => MoveHit(-1)), Key.F3, ModifierKeys.Shift));
         InputBindings.Add(new KeyBinding(new RelayCommand(FlushSave), Key.S, ModifierKeys.Control));
+        InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.ImageSearchCommand.Execute(null)), Key.B, ModifierKeys.Control | ModifierKeys.Shift));
         InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.MoveUpCommand.Execute(null)), Key.Up, ModifierKeys.Alt));
         InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.MoveDownCommand.Execute(null)), Key.Down, ModifierKeys.Alt));
     }
@@ -81,6 +82,7 @@ public partial class KnowledgeView : UserControl
             viewModel.PropertyChanged -= OnViewModelPropertyChanged;
             viewModel.TrashRequested -= OnTrashRequested;
             viewModel.SectionsRequested -= OnSectionsRequested;
+            viewModel.ImageSearchRequested -= OnImageSearchRequested;
         }
 
         viewModel = e.NewValue as KnowledgeViewModel;
@@ -89,6 +91,7 @@ public partial class KnowledgeView : UserControl
             viewModel.PropertyChanged += OnViewModelPropertyChanged;
             viewModel.TrashRequested += OnTrashRequested;
             viewModel.SectionsRequested += OnSectionsRequested;
+            viewModel.ImageSearchRequested += OnImageSearchRequested;
             ShowDocument(viewModel.SelectedHit?.Id, viewModel.Document);
         }
     }
@@ -107,6 +110,9 @@ public partial class KnowledgeView : UserControl
                 break;
             case nameof(KnowledgeViewModel.Document):
                 ShowDocument(viewModel?.SelectedHit?.Id, viewModel?.Document);
+                break;
+            case nameof(KnowledgeViewModel.PendingImageAssetId):
+                FocusPendingImage();
                 break;
             case nameof(KnowledgeViewModel.Query):
                 Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(HighlightQuery));
@@ -134,6 +140,33 @@ public partial class KnowledgeView : UserControl
         }
 
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(HighlightQuery));
+        FocusPendingImage();
+    }
+
+    /// <summary>Springt zu dem Bild, das die Bildsuche geöffnet hat (sobald das passende Dokument geladen ist).</summary>
+    private void FocusPendingImage()
+    {
+        if (viewModel?.PendingImageAssetId is not { } assetId || documentEntryId is null || documentEntryId != viewModel.SelectedHit?.Id)
+        {
+            return;
+        }
+
+        viewModel.PendingImageAssetId = null;
+        var image = FlowDocumentStore.Images(Editor.Document).FirstOrDefault(i => FlowDocumentStore.AssetId(i) == assetId);
+        if (image is null)
+        {
+            viewModel.Status = "Das Bild wurde im Dokument nicht gefunden.";
+            return;
+        }
+
+        Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, new Action(() =>
+        {
+            image.BringIntoView();
+            if (LogicalTreeHelper.GetParent(image) is TextElement container)
+            {
+                Editor.Selection.Select(container.ContentStart, container.ContentEnd);
+            }
+        }));
     }
 
     private FlowDocument CreateFlowDocument(KnowledgeDocument? document)
@@ -410,6 +443,17 @@ public partial class KnowledgeView : UserControl
 
         var window = new SectionsWindow(viewModel) { Owner = Window.GetWindow(this) };
         window.ShowDialog();
+    }
+
+    private void OnImageSearchRequested(object? sender, EventArgs e)
+    {
+        FlushSave();
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        new ImageSearchWindow(viewModel.ImageSearch, viewModel, viewModel.Logger) { Owner = Window.GetWindow(this) }.ShowDialog();
     }
 
     // ------------------------------------------------------------------ Papierkorb

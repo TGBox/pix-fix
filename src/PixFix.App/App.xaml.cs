@@ -10,6 +10,7 @@ using PixFix.Infrastructure.Knowledge;
 using PixFix.Infrastructure.Legacy;
 using PixFix.Infrastructure.Ocr;
 using PixFix.Infrastructure.Templates;
+using PixFix.Infrastructure.Images;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
 using Serilog;
@@ -56,6 +57,7 @@ public partial class App : Application
             sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
         builder.Services.AddSingleton<OcrService>();
         builder.Services.AddSingleton<TemplateRepository>();
+        builder.Services.AddSingleton<ImageSearchService>();
         builder.Services.AddSingleton<KnowledgeDocumentService>();
         builder.Services.AddSingleton<KnowledgeViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();
@@ -71,6 +73,11 @@ public partial class App : Application
         var window = host.Services.GetRequiredService<MainWindow>();
         MainWindow = window;
         window.Show();
+
+        // Bildsuch-Index im Hintergrund ergänzen (erste Bildsuche ist dann sofort schnell) – auch nach einem Import.
+        var imageSearch = host.Services.GetRequiredService<ImageSearchService>();
+        _ = WarmUpImageIndexAsync(imageSearch);
+        host.Services.GetRequiredService<ImportViewModel>().ImportSucceeded += (_, _) => _ = WarmUpImageIndexAsync(imageSearch);
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -80,6 +87,22 @@ public partial class App : Application
         Log.Information("PixFix beendet");
         Log.CloseAndFlush();
         base.OnExit(e);
+    }
+
+    private static async Task WarmUpImageIndexAsync(ImageSearchService imageSearch)
+    {
+        try
+        {
+            var added = await Task.Run(() => imageSearch.WarmUpAsync()).ConfigureAwait(false);
+            if (added > 0)
+            {
+                Log.Information("Bildsuch-Index um {Count} Bilder ergänzt", added);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or Microsoft.Data.Sqlite.SqliteException or InvalidOperationException)
+        {
+            Log.Warning(ex, "Bildsuch-Index konnte nicht ergänzt werden");
+        }
     }
 
     private static void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

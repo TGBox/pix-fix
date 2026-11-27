@@ -37,6 +37,15 @@ Ergebnis ist eine einzelne `publish\PixFix.exe`, die ohne installiertes .NET lä
 | `tests/PixFix.Core.Tests` | Unit-Tests der Fachlogik |
 | `tests/PixFix.Infrastructure.Tests` | Integrationstests (SQLite, Import mit synthetischer PixFix-69-Installation) – laufen nur unter Windows |
 
+### Vergleich der Bildsuche mit PixFix 69
+
+```powershell
+$env:PIXFIX_LEGACY_DATA = "C:\Pfad\zu\PixFix-69.74.194\PixFix-Daten"
+dotnet test --filter SignaturesMatchPixFix69Index
+```
+
+Ohne die Variable läuft der Test leer durch.
+
 ## Daten
 
 Nutzerdaten liegen getrennt vom Programm unter `%LOCALAPPDATA%\PixFix\`

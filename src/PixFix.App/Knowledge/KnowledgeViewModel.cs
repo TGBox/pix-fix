@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using PixFix.Core.Knowledge;
 using PixFix.Infrastructure.Knowledge;
 using PixFix.Infrastructure.Ocr;
+using PixFix.Infrastructure.Images;
 using PixFix.Infrastructure.Templates;
 using PixFix.Core.Common;
 using PixFix.Core.Templates;
@@ -48,18 +49,21 @@ public sealed class KnowledgeViewModel : ObservableObject
     private string editTitle = string.Empty;
     private string editSection = string.Empty;
     private string editTags = string.Empty;
+    private string? pendingImageAssetId;
 
     public KnowledgeViewModel(
         KnowledgeRepository repository,
         KnowledgeDocumentService documents,
         OcrService ocr,
         TemplateRepository templates,
+        ImageSearchService imageSearch,
         ILogger<KnowledgeViewModel> logger)
     {
         this.repository = repository;
         this.documents = documents;
         this.ocr = ocr;
         this.templates = templates;
+        ImageSearch = imageSearch;
         this.logger = logger;
         ResultsView = CollectionViewSource.GetDefaultView(Results);
         ReloadCommand = new RelayCommand(Reload);
@@ -227,6 +231,55 @@ public sealed class KnowledgeViewModel : ObservableObject
                 SaveMetadata();
             }
         }
+    }
+
+    /// <summary>Bild, zu dem die Ansicht nach dem Laden springen soll (aus der Bildsuche); danach wieder <c>null</c>.</summary>
+    public string? PendingImageAssetId
+    {
+        get => pendingImageAssetId;
+        set => SetProperty(ref pendingImageAssetId, value);
+    }
+
+    /// <summary>Für das Bildsuche-Fenster.</summary>
+    public ImageSearchService ImageSearch { get; }
+
+    public ILogger Logger => logger;
+
+    /// <summary>Die Ansicht öffnet daraufhin die Bildsuche.</summary>
+    public event EventHandler? ImageSearchRequested;
+
+    public RelayCommand ImageSearchCommand => imageSearchCommand ??= new RelayCommand(() => ImageSearchRequested?.Invoke(this, EventArgs.Empty));
+
+    private RelayCommand? imageSearchCommand;
+
+    /// <summary>Treffer der Bildsuche öffnen: Eintrag auswählen und zum Bild springen.</summary>
+    public void OpenImageHit(string entryId, string assetId)
+    {
+        var entry = entries.FirstOrDefault(e => e.Id == entryId);
+        if (entry is null)
+        {
+            return;
+        }
+
+        Query = string.Empty;
+        if (entry.IsArchived && !ShowArchived)
+        {
+            ShowArchived = true;
+        }
+        else
+        {
+            ApplySearch();
+        }
+
+        // Erst auswählen, dann das Bild vormerken: Die Ansicht springt, sobald das Dokument dieses Eintrags geladen ist
+        // (bei bereits geöffnetem Eintrag sofort).
+        var hit = Results.FirstOrDefault(r => r.Id == entryId);
+        if (hit is not null && hit.Id != SelectedHit?.Id)
+        {
+            SelectedHit = hit;
+        }
+
+        PendingImageAssetId = assetId;
     }
 
     /// <summary>Aktuell angezeigtes Dokument; die Ansicht lädt es in den Editor.</summary>

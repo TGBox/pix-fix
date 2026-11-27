@@ -47,6 +47,8 @@
             <DockPanel DockPanel.Dock="Top" Margin="0,6,0,6">
                 <Button DockPanel.Dock="Right" Content="Papierkorb" Command="{Binding ShowTrashCommand}" Padding="8,1" Margin="4,0,0,0"
                         ToolTip="Gelöschte Einträge wiederherstellen oder endgültig löschen" />
+                <Button DockPanel.Dock="Right" Content="Bildsuche …" Command="{Binding ImageSearchCommand}" Padding="8,1" Margin="4,0,0,0"
+                        ToolTip="Ähnliche Fehlerbilder zu einem Screenshot finden (Strg+Umschalt+B)" />
                 <Button DockPanel.Dock="Right" Content="Abschnitte …" Command="{Binding ManageSectionsCommand}" Padding="8,1" Margin="4,0,0,0"
                         ToolTip="Abschnitte umbenennen, sortieren oder leere Abschnitte löschen" />
                 <Button DockPanel.Dock="Right" Content="+ Neu ▾" Click="OnNewEntry" Padding="8,1"

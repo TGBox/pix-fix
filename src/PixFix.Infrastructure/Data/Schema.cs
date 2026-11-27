@@ -175,6 +175,23 @@ internal static class Schema
         """
         ALTER TABLE knowledge_entry_images ADD COLUMN ocr_text TEXT NOT NULL DEFAULT '';
         """,
+
+        // 3 – Bildsuch-Index (Phase 3): Signaturen je Bilddatei. Abgeleitete Daten, jederzeit neu berechenbar.
+        """
+        CREATE TABLE image_signatures(
+            asset_id TEXT PRIMARY KEY REFERENCES assets(id) ON DELETE CASCADE,
+            algorithm INTEGER NOT NULL,
+            full_average INTEGER NOT NULL,
+            full_difference INTEGER NOT NULL,
+            full_pixels BLOB NOT NULL,
+            full_histogram BLOB NOT NULL,
+            full_aspect REAL NOT NULL,
+            center_average INTEGER NOT NULL,
+            center_difference INTEGER NOT NULL,
+            center_pixels BLOB NOT NULL,
+            center_histogram BLOB NOT NULL,
+            center_aspect REAL NOT NULL);
+        """,
     ];
 
     /// <summary>Tabellen mit Nutzdaten – ein Import ist nur in eine Datenbank erlaubt, in der diese leer sind.</summary>

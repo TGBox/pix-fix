@@ -35,3 +35,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 - Phase 2c: Kopier-Buttons (markierten Text als Button speichern, Klick kopiert, Löschen per Kontextmenü);
   neue Einträge leer oder aus einer Eintragsvorlage; Abschnitte umbenennen, sortieren und leere löschen;
   Einträge im Abschnitt mit ↑/↓ bzw. Alt+↑/↓ verschieben.
+- Phase 3: Bildsuche – Screenshot (Strg+V), Datei oder Drag & Drop; Bewertung 1:1 aus PixFix 69 (Signaturen per GDI+,
+  Bild × 250 + Textabdeckung × 100 + Fehlercodes × 160 + Textsuche, höchstens 60 Treffer); Vorschau per Klick,
+  Doppelklick/Enter öffnet den Eintrag und springt zum Bild. Bildsuch-Index in der Datenbank (Schema v3), wird beim Start
+  und nach einem Import im Hintergrund ergänzt. Vergleichstest gegen den Bildindex von PixFix 69 (PIXFIX_LEGACY_DATA).
