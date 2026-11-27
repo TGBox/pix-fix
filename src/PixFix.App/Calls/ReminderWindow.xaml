@@ -1,0 +1,30 @@
+<Window x:Class="PixFix.App.Calls.ReminderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PixFix – Anruferinnerung"
+        Width="560" SizeToContent="Height"
+        WindowStartupLocation="CenterScreen" ShowInTaskbar="True" ResizeMode="NoResize" Topmost="True">
+    <StackPanel Margin="18">
+        <TextBlock Text="Rückruf-Erinnerung" FontSize="20" FontWeight="SemiBold" />
+        <TextBlock x:Name="Meta" Margin="0,8,0,0" />
+        <GroupBox Header="Warum wird angerufen?" Margin="0,10,0,0">
+            <TextBlock x:Name="Reason" TextWrapping="Wrap" Margin="8" MaxHeight="140" TextTrimming="CharacterEllipsis" />
+        </GroupBox>
+        <DockPanel Margin="0,14,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="OK" Width="100" Padding="0,4" IsDefault="True" Click="OnOk"
+                        ToolTip="Erinnerung beenden, Status „In Bearbeitung“ und PixFix öffnen" />
+                <Button Content="Erneut erinnern" Width="130" Margin="8,0,0,0" Click="OnSnooze" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="in" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox x:Name="Amount" Width="48" Text="10" TextAlignment="Center" VerticalContentAlignment="Center" />
+                <ComboBox x:Name="Unit" Width="100" Margin="6,0,0,0" SelectedIndex="0">
+                    <ComboBoxItem Content="Minuten" />
+                    <ComboBoxItem Content="Stunden" />
+                    <ComboBoxItem Content="Tagen" />
+                </ComboBox>
+            </StackPanel>
+        </DockPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,24 @@
+<Window x:Class="PixFix.App.Calls.CallTrashWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PixFix – Papierkorb (Anrufe)" Width="640" Height="420" MinWidth="420" MinHeight="260"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <DockPanel Margin="12">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Wiederherstellen" Click="OnRestore" Padding="10,2" Margin="0,0,6,0" IsDefault="True" />
+            <Button Content="Endgültig löschen" Click="OnDelete" Padding="10,2" Margin="0,0,6,0" />
+            <Button Content="Schließen" IsCancel="True" Padding="10,2" />
+        </StackPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Gelöschte Anrufe. Wiederhergestellte Anrufe erscheinen wieder in der Liste, ohne aktive Erinnerung."
+                   TextWrapping="Wrap" Foreground="Gray" Margin="0,0,0,8" />
+        <ListView x:Name="Items" SelectionMode="Extended" MouseDoubleClick="OnRestore">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Gelöscht" Width="120" DisplayMemberBinding="{Binding Deleted}" />
+                    <GridViewColumn Header="L-Nummer" Width="90" DisplayMemberBinding="{Binding CustomerNumber}" />
+                    <GridViewColumn Header="Warum wird angerufen?" Width="380" DisplayMemberBinding="{Binding Reason}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </DockPanel>
+</Window>

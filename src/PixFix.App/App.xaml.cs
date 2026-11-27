@@ -5,12 +5,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PixFix.Infrastructure;
 using PixFix.Infrastructure.Assets;
+using PixFix.Infrastructure.Calls;
+using PixFix.Infrastructure.Communication;
+using PixFix.Infrastructure.Settings;
 using PixFix.Infrastructure.Data;
 using PixFix.Infrastructure.Knowledge;
 using PixFix.Infrastructure.Legacy;
 using PixFix.Infrastructure.Ocr;
 using PixFix.Infrastructure.Templates;
 using PixFix.Infrastructure.Images;
+using PixFix.App.Calls;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
 using PixFix.App.Workspaces;
@@ -65,6 +69,11 @@ public partial class App : Application
         builder.Services.AddSingleton(sp => new InformationRepository(
             sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
         builder.Services.AddSingleton<WorkspacesViewModel>();
+        builder.Services.AddSingleton(sp => new CallRepository(sp.GetRequiredService<PixFixDatabase>()));
+        builder.Services.AddSingleton(sp => new FaxDocumentRepository(
+            sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
+        builder.Services.AddSingleton<SettingsRepository>();
+        builder.Services.AddSingleton<CallsViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<MainWindow>();
@@ -78,6 +87,9 @@ public partial class App : Application
         var window = host.Services.GetRequiredService<MainWindow>();
         MainWindow = window;
         window.Show();
+
+        // Anrufe laden und Rückruf-Erinnerungen prüfen – unabhängig vom gerade angezeigten Bereich.
+        host.Services.GetRequiredService<CallsViewModel>().Start();
 
         // Bildsuch-Index im Hintergrund ergänzen (erste Bildsuche ist dann sofort schnell) – auch nach einem Import.
         var imageSearch = host.Services.GetRequiredService<ImageSearchService>();

@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using PixFix.App.Calls;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
 using PixFix.App.Workspaces;
@@ -14,7 +15,7 @@ public sealed class MainViewModel : ObservableObject
 {
     private NavigationSection? selectedSection;
 
-    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, WorkspacesViewModel workspaces, ImportViewModel import)
+    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, WorkspacesViewModel workspaces, CallsViewModel calls, ImportViewModel import)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(knowledge);
@@ -23,20 +24,25 @@ public sealed class MainViewModel : ObservableObject
 
         // Nach einem Import zeigt die Wissensdatenbank sofort die übernommenen Einträge.
         ArgumentNullException.ThrowIfNull(workspaces);
+        ArgumentNullException.ThrowIfNull(calls);
         import.ImportSucceeded += (_, _) =>
         {
             knowledge.Reload();
             workspaces.Reload();
+            calls.Reload();
         };
 
         Sections =
         [
             new("Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
             new("Schreibbereiche", "Notizen, Anleitungen, Werkzeuge und PDF-Anhänge.", workspaces),
-            new("Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie (SPEC F4–F7) – folgt in Phase 5.", null),
+            new("Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
             new("Einstellungen", "Datenordner, Sicherung, Import aus PixFix 69.", import),
         ];
         selectedSection = Sections[0];
+
+        // „OK“ in einer Rückruf-Erinnerung springt zu den Anrufen.
+        calls.ShowCallsRequested += (_, _) => SelectedSection = Sections[2];
     }
 
     public ObservableCollection<NavigationSection> Sections { get; }

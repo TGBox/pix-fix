@@ -1,0 +1,210 @@
+<UserControl x:Class="PixFix.App.Calls.CallsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:editing="clr-namespace:PixFix.App.Editing"
+             xmlns:calls="clr-namespace:PixFix.App.Calls"
+             Loaded="OnLoaded"
+             Unloaded="OnUnloaded">
+    <UserControl.Resources>
+        <editing:NotNullConverter x:Key="NotNull" />
+        <calls:CallStatusNameConverter x:Key="StatusName" />
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Margin" Value="0,4,6,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="#555" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="0,4,10,0" />
+            <Setter Property="Padding" Value="3,2" />
+        </Style>
+        <Style x:Key="Tool" TargetType="Button">
+            <Setter Property="Padding" Value="8,2" />
+            <Setter Property="Margin" Value="0,0,4,4" />
+        </Style>
+        <Style TargetType="RichTextBox">
+            <Setter Property="AcceptsTab" Value="True" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="MinHeight" Value="110" />
+            <Setter Property="Padding" Value="2" />
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320" MinWidth="220" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" MinWidth="420" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Anrufliste -->
+        <DockPanel Grid.Column="0" Margin="0,0,8,0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                <Button Content="+ Neuer Anruf" Command="{Binding NewCallCommand}" Style="{StaticResource Tool}" FontWeight="SemiBold" />
+                <Button Content="Papierkorb" Command="{Binding ShowTrashCommand}" Style="{StaticResource Tool}" />
+            </StackPanel>
+            <CheckBox DockPanel.Dock="Top" Content="Erledigte anzeigen" IsChecked="{Binding ShowDone}" Margin="0,0,0,6" />
+            <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="Gray" TextWrapping="Wrap" Margin="0,6,0,0" />
+            <ListBox ItemsSource="{Binding CallList}" SelectedItem="{Binding SelectedCall}"
+                     HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="2,4">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding StatusText}" Foreground="#2a6fb0" FontSize="11" />
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                            </DockPanel>
+                            <TextBlock Text="{Binding Summary}" TextTrimming="CharacterEllipsis" Foreground="#444" />
+                            <TextBlock Text="{Binding ReminderText}" Foreground="#b06a00" FontSize="11">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ReminderText}" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+
+        <!-- Anrufkarte -->
+        <TextBlock Grid.Column="2" Margin="12" Foreground="Gray" Text="Kein Anruf ausgewählt. Mit „+ Neuer Anruf“ eine Anrufkarte anlegen.">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedCall}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+        <ScrollViewer Grid.Column="2" Margin="8,0,0,0" VerticalScrollBarVisibility="Auto"
+                      IsEnabled="{Binding SelectedCall, Converter={StaticResource NotNull}}">
+            <ScrollViewer.Style>
+                <Style TargetType="ScrollViewer">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedCall}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Style>
+            <StackPanel>
+                <WrapPanel Margin="0,0,0,6">
+                    <Button Content="📞 Anrufen" Command="{Binding DialCommand}" Style="{StaticResource Tool}" />
+                    <Button Content="Auflegen" Command="{Binding HangUpCommand}" Style="{StaticResource Tool}"
+                            ToolTip="Beendet das eine aktive lokale TAPI-Gespräch" />
+                    <Button Content="✉ E-Mail" Command="{Binding EmailCommand}" Style="{StaticResource Tool}" />
+                    <Button Content="Fax" Command="{Binding FaxCommand}" Style="{StaticResource Tool}" />
+                    <Button Content="Rechnungs-Mail" Command="{Binding BillingMailCommand}" Style="{StaticResource Tool}"
+                            ToolTip="E-Mail für kostenpflichtigen Support öffnen" />
+                    <Button Content="Cobra-Text kopieren" Command="{Binding CopyCobraCommand}" Style="{StaticResource Tool}"
+                            ToolTip="„Warum wird angerufen? --> Lösung“ in die Zwischenablage" />
+                    <Button Content="Schnelltexte ▾" Click="OnQuickTexts" Style="{StaticResource Tool}" />
+                    <Button Content="Löschen" Command="{Binding DeleteCommand}" Style="{StaticResource Tool}" Margin="12,0,4,4" />
+                </WrapPanel>
+
+                <Grid DataContext="{Binding SelectedCall}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="L-Nummer" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CustomerNumber, UpdateSourceTrigger=LostFocus}" FontWeight="SemiBold" />
+                    <TextBlock Grid.Row="0" Grid.Column="2" Text="ID" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding CustomerId, UpdateSourceTrigger=LostFocus}" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Tel." Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Phone1, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Grid.Row="1" Grid.Column="2" Text="Tel.2" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding Phone2, UpdateSourceTrigger=LostFocus}" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Tel.3" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Phone3, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Tel. privat" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="2" Grid.Column="3" Text="{Binding PhonePrivate, UpdateSourceTrigger=LostFocus}" />
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Tel. direkt" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding PhoneDirect, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Grid.Row="3" Grid.Column="2" Text="Mobil" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="3" Grid.Column="3" Text="{Binding Mobile, UpdateSourceTrigger=LostFocus}" />
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Alternative Nr." Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding AlternativePhone, UpdateSourceTrigger=LostFocus}"
+                             ToolTip="Wird beim Anrufen bevorzugt vorgeschlagen" />
+                    <TextBlock Grid.Row="4" Grid.Column="2" Text="Rückruf an" Style="{StaticResource FieldLabel}" />
+                    <ComboBox Grid.Row="4" Grid.Column="3" Margin="0,4,10,0" SelectedItem="{Binding CallbackTarget}"
+                              ItemsSource="{Binding DataContext.CallbackTargets, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+
+                    <TextBlock Grid.Row="5" Grid.Column="0" Text="E-Mail" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Email1, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Grid.Row="5" Grid.Column="2" Text="E-Mail2" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="5" Grid.Column="3" Text="{Binding Email2, UpdateSourceTrigger=LostFocus}" />
+
+                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Fax" Style="{StaticResource FieldLabel}" />
+                    <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Fax, UpdateSourceTrigger=LostFocus}" />
+                    <TextBlock Grid.Row="6" Grid.Column="2" Text="E-Mail an" Style="{StaticResource FieldLabel}" />
+                    <ComboBox Grid.Row="6" Grid.Column="3" Margin="0,4,10,0" SelectedItem="{Binding EmailTarget}"
+                              ItemsSource="{Binding DataContext.EmailTargets, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                </Grid>
+
+                <!-- Status und Erinnerung -->
+                <DockPanel Margin="0,10,0,0">
+                    <TextBlock Text="Status" Style="{StaticResource FieldLabel}" Width="90" />
+                    <ComboBox Width="220" Margin="0,4,10,0" ItemsSource="{Binding Statuses}"
+                              SelectedItem="{Binding SelectedCall.Status}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource StatusName}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Content="Erinnerung ändern …" Command="{Binding EditReminderCommand}" Padding="8,1" Margin="0,4,8,0" />
+                    <TextBlock Text="{Binding SelectedCall.ReminderText}" Foreground="#b06a00" VerticalAlignment="Center" Margin="0,4,0,0" />
+                </DockPanel>
+
+                <!-- Abrechnung -->
+                <DockPanel Margin="0,6,0,0" DataContext="{Binding SelectedCall}">
+                    <CheckBox Content="Kostenpflichtig" IsChecked="{Binding IsBillable}" Width="120" VerticalAlignment="Center" Margin="0,4,0,0" />
+                    <TextBlock Text="von" Style="{StaticResource FieldLabel}" />
+                    <TextBox Width="60" Text="{Binding BillingStartText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
+                    <Button Content="Jetzt" Padding="6,0" Margin="0,4,10,0"
+                            Command="{Binding DataContext.BillingStartNowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    <TextBlock Text="bis" Style="{StaticResource FieldLabel}" />
+                    <TextBox Width="60" Text="{Binding BillingEndText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
+                    <Button Content="Jetzt" Padding="6,0" Margin="0,4,10,0"
+                            Command="{Binding DataContext.BillingEndNowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                    <TextBlock Text="{Binding Duration}" VerticalAlignment="Center" Margin="0,4,0,0" FontWeight="SemiBold" />
+                </DockPanel>
+
+                <TextBlock Text="Notizen" Style="{StaticResource FieldLabel}" Margin="0,10,0,0" />
+                <TextBox Text="{Binding SelectedCall.Notes, UpdateSourceTrigger=LostFocus}" Margin="0,2,0,0" />
+
+                <DockPanel Margin="0,10,0,2">
+                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,1" Click="OnReasonTemplates" />
+                    <TextBlock Text="Warum wird angerufen?" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </DockPanel>
+                <RichTextBox x:Name="ReasonBox" MinHeight="140" TextChanged="OnTextChanged" LostKeyboardFocus="OnTextLostFocus" />
+
+                <DockPanel Margin="0,10,0,2">
+                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,1" Click="OnSolutionTemplates" />
+                    <TextBlock Text="Lösung / Was wurde gemacht?" FontWeight="SemiBold" VerticalAlignment="Center" />
+                </DockPanel>
+                <RichTextBox x:Name="SolutionBox" MinHeight="140" TextChanged="OnTextChanged" LostKeyboardFocus="OnTextLostFocus" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

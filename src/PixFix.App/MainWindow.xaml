@@ -1,6 +1,7 @@
 <Window x:Class="PixFix.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:calls="clr-namespace:PixFix.App.Calls"
         xmlns:knowledge="clr-namespace:PixFix.App.Knowledge"
         xmlns:settings="clr-namespace:PixFix.App.Settings"
         xmlns:workspaces="clr-namespace:PixFix.App.Workspaces"
@@ -17,6 +18,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type workspaces:WorkspacesViewModel}">
             <workspaces:WorkspacesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type calls:CallsViewModel}">
+            <calls:CallsView />
         </DataTemplate>
         <DataTemplate DataType="{x:Type settings:ImportViewModel}">
             <settings:SettingsView />

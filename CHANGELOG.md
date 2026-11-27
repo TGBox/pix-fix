@@ -44,3 +44,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
   verschieben, PDF-Anhänge öffnen/anhängen/entfernen, Kopier-Buttons; Bereiche anlegen, umbenennen, sortieren, schützen
   und leere löschen. Gelöschte Reiter landen als Abbild im Papierkorb (Wiederherstellen folgt). Schema v4.
 - Editor als gemeinsames Bauteil (`DocumentEditor`) für Wissensdatenbank und Schreibbereiche.
+- Phase 5a: Anrufe – Liste mit Kurzinfo und Erinnerungszeit, „Erledigte anzeigen“, Anrufkarte mit allen Feldern,
+  „Warum wird angerufen?“ und Lösung als formatierte Felder (RTF, Speichern 1 s nach der Eingabe), Vorlagen für Grund
+  und Lösung, Papierkorb mit Wiederherstellen (auch PixFix-69-Papierkorb).
+- Statuswechsel wie PixFix 69: kostenpflichtige Anrufe nur mit Start- und Endzeit auf „Erledigt“, Rückfrage zur
+  Rechnungs-Mail („Nein“ öffnet sie), „Später/Morgen erneut anrufen“ fragt den Erinnerungszeitpunkt ab.
+- Rückruf-Erinnerungen: Prüfung alle 5 s unabhängig vom angezeigten Bereich, immer nur ein Fenster, Taskleiste blinkt;
+  „OK“ setzt „In Bearbeitung“ und springt zum Anruf, „Erneut erinnern“ verschiebt.
+- Anrufen (Nummernauswahl, `tel:` oder Windows-Wählhilfe) und Auflegen über TAPI (genau ein aktives Gespräch, sonst nichts).
+- E-Mail mit Vorlage, Rechnungs-Mail und Fax-Dokumente; Outlook Desktop per COM, sonst `mailto:`.
+- Cobra: Anruftext in die Zwischenablage, Cobra-Schnelltexte (Notizen, Lösungstext, Status). Abrechnungszeit „Jetzt“.
