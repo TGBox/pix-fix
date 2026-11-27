@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+
+branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
+if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
+    echo "[pre-commit] Fehler: Direkte Commits auf '$branch' sind nicht erlaubt." >&2
+    echo "Bitte lege zuerst einen eigenen Branch an, z. B.: git checkout -b feat/kurze-beschreibung" >&2
+    exit 1
+fi
+
+if command -v pwsh >/dev/null 2>&1; then
+    pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/check-guardrails.ps1 -Mode Staged
+elif command -v powershell.exe >/dev/null 2>&1; then
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/check-guardrails.ps1 -Mode Staged
+else
+    echo "[pre-commit] Fehler: Weder pwsh noch powershell.exe gefunden." >&2
+    exit 1
+fi

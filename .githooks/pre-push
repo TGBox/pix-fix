@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+zero_sha="0000000000000000000000000000000000000000"
+has_push=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_ref" = "refs/heads/main" ] || [ "$remote_ref" = "refs/heads/master" ]; then
+        echo "[pre-push] Fehler: Direktes Pushen auf '$remote_ref' ist untersagt." >&2
+        echo "Bitte pushe deinen Feature-Branch (z. B. git push -u origin HEAD) und erstelle auf GitHub einen Pull Request." >&2
+        exit 1
+    fi
+
+    if [ "$local_sha" != "$zero_sha" ]; then
+        has_push=1
+    fi
+done
+
+if [ "$has_push" -eq 1 ]; then
+    echo "[pre-push] Baue PixFix.sln ..."
+    if ! dotnet build PixFix.sln --nologo; then
+        echo "[pre-push] Fehler: Build fehlgeschlagen. Bitte Fehler beheben, bevor der Branch gepusht wird." >&2
+        exit 1
+    fi
+
+    echo "[pre-push] Fuehre Tests aus ..."
+    if ! dotnet test PixFix.sln --no-build --nologo; then
+        echo "[pre-push] Fehler: Tests fehlgeschlagen. Bitte Tests korrigieren, bevor der Branch gepusht wird." >&2
+        exit 1
+    fi
+fi

@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+msg_file="${1:-}"
+if [ -z "$msg_file" ] || [ ! -f "$msg_file" ]; then
+    echo "[commit-msg] Fehler: Commit-Nachrichtendatei fehlt." >&2
+    exit 1
+fi
+
+first_line="$(grep -v '^[[:space:]]*#' "$msg_file" | head -n 1 | tr -d '\r' || true)"
+if [ -z "$first_line" ]; then
+    echo "[commit-msg] Fehler: Commit-Nachricht darf nicht leer sein." >&2
+    exit 1
+fi
+
+case "$first_line" in
+    "Merge "*|"Revert "*)
+        exit 0
+        ;;
+esac
+
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?(!)?: .{3,}$'
+if ! printf '%s\n' "$first_line" | grep -Eq "$pattern"; then
+    echo "[commit-msg] Fehler: Bitte Conventional-Commits-Format verwenden (wird fuer automatische Releases benoetigt)." >&2
+    echo "Erhaltene Nachricht: $first_line" >&2
+    echo "Beispiele:" >&2
+    echo "  feat(calls): Rueckruf-Filter ergaenzt" >&2
+    echo "  fix(editor): Bildvorschau korrigiert" >&2
+    echo "  docs: Anleitung aktualisiert" >&2
+    exit 1
+fi
