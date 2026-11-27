@@ -7,6 +7,7 @@
         xmlns:knowledge="clr-namespace:PixFix.App.Knowledge"
         xmlns:settings="clr-namespace:PixFix.App.Settings"
         xmlns:workspaces="clr-namespace:PixFix.App.Workspaces"
+        xmlns:help="clr-namespace:PixFix.App.Help"
         Title="PixFix"
         Icon="pack://application:,,,/pix-fix.ico"
         Width="1400"
@@ -17,7 +18,7 @@
         WindowStartupLocation="CenterScreen"
         common:LayoutMemory.Key="main">
     <Window.InputBindings>
-        <!-- Bereiche: Strg+1 … Strg+5 -->
+        <!-- Bereiche: Strg+1 … Strg+6, Hilfe auch mit F1 -->
         <KeyBinding Key="D1" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="1" />
         <KeyBinding Key="D2" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="2" />
         <KeyBinding Key="D3" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="3" />
@@ -28,6 +29,9 @@
         <KeyBinding Key="NumPad3" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="3" />
         <KeyBinding Key="NumPad4" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="4" />
         <KeyBinding Key="NumPad5" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="5" />
+        <KeyBinding Key="D6" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="6" />
+        <KeyBinding Key="NumPad6" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="6" />
+        <KeyBinding Key="F1" Command="{Binding ShowHelpCommand}" />
     </Window.InputBindings>
     <Window.Resources>
         <!-- Je Bereich die passende Ansicht zum ViewModel -->
@@ -47,6 +51,9 @@
         <BooleanToVisibilityConverter x:Key="Visible" />
         <DataTemplate DataType="{x:Type settings:SettingsViewModel}">
             <settings:SettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type help:HelpViewModel}">
+            <help:HelpView />
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -208,34 +215,63 @@
 
         <GridSplitter x:Name="MainSplitter" Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="main.splitter" />
 
-        <Grid Grid.Column="2" Margin="16">
-            <ContentControl x:Name="SectionHost" Content="{Binding SelectedSection.Content}" Focusable="False" />
-            <!-- Nach dem Löschen: „Rückgängig“ (12 Sekunden) -->
-            <Border DataContext="{Binding Undo}" Visibility="{Binding IsVisible, Converter={StaticResource Visible}}"
-                    HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4" Padding="14,8"
-                    Background="#323A45" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Panel.ZIndex="10">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{Binding Text}" Foreground="White" VerticalAlignment="Center" MaxWidth="520" TextTrimming="CharacterEllipsis" />
-                    <Button Content="Rückgängig" Command="{Binding UndoCommand}" Margin="16,0,0,0" Padding="10,2" FontWeight="SemiBold" />
-                    <Button Content="✕" Command="{Binding DismissCommand}" Margin="6,0,0,0" Padding="6,2" Background="Transparent"
-                            Foreground="White" BorderThickness="0" ToolTip="Hinweis schließen" />
-                </StackPanel>
+        <DockPanel Grid.Column="2">
+            <!-- Hinweisleiste: neue PixFix-Version verfügbar -->
+            <Border DockPanel.Dock="Top" Margin="16,12,16,0" Padding="14,10"
+                    DataContext="{Binding Update}"
+                    Visibility="{Binding IsBannerVisible, Converter={StaticResource Visible}}"
+                    Background="{DynamicResource AppInfoBarBackground}"
+                    BorderBrush="{DynamicResource AppInfoBarBorderBrush}"
+                    BorderThickness="1" CornerRadius="6">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Left" Text="&#xE896;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                               Foreground="{DynamicResource AccentFillColorDefaultBrush}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                        <Button Content="_Herunterladen" Command="{Binding DownloadCommand}" MinWidth="120" Padding="12,4"
+                                ToolTip="Lädt die neue PixFix.exe im Browser herunter" />
+                        <Button Content="Was ist neu?" Command="{Binding OpenReleaseNotesCommand}" MinWidth="100" Padding="12,4" Margin="8,0,0,0" />
+                        <Button Content="Programmordner öffnen" Command="{Binding OpenProgramFolderCommand}" MinWidth="100" Padding="12,4" Margin="8,0,0,0"
+                                ToolTip="Ordner der aktuellen PixFix.exe – hier die neue Datei ablegen" />
+                        <Button Content="Später" Command="{Binding DismissCommand}" MinWidth="80" Padding="12,4" Margin="8,0,0,0"
+                                ToolTip="Hinweis bis zum nächsten Start ausblenden" />
+                    </StackPanel>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding BannerText}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                        <TextBlock Text="{Binding InstallHint}" Margin="0,2,0,0" TextWrapping="Wrap"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </DockPanel>
             </Border>
-            <!-- Platzhalter für Bereiche, die noch nicht umgesetzt sind -->
-            <StackPanel>
-                <StackPanel.Style>
-                    <Style TargetType="StackPanel">
-                        <Setter Property="Visibility" Value="Collapsed" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding SelectedSection.Content}" Value="{x:Null}">
-                                <Setter Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </StackPanel.Style>
-                <TextBlock Text="{Binding SelectedSection.Title}" FontSize="24" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding SelectedSection.Description}" Margin="0,8,0,0" TextWrapping="Wrap" />
-            </StackPanel>
-        </Grid>
+
+            <Grid Margin="16">
+                <ContentControl x:Name="SectionHost" Content="{Binding SelectedSection.Content}" Focusable="False" />
+                <!-- Nach dem Löschen: „Rückgängig“ (12 Sekunden) -->
+                <Border DataContext="{Binding Undo}" Visibility="{Binding IsVisible, Converter={StaticResource Visible}}"
+                        HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4" Padding="14,8"
+                        Background="#323A45" BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="6" Panel.ZIndex="10">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Text}" Foreground="White" VerticalAlignment="Center" MaxWidth="520" TextTrimming="CharacterEllipsis" />
+                        <Button Content="Rückgängig" Command="{Binding UndoCommand}" Margin="16,0,0,0" Padding="10,2" FontWeight="SemiBold" />
+                        <Button Content="✕" Command="{Binding DismissCommand}" Margin="6,0,0,0" Padding="6,2" Background="Transparent"
+                                Foreground="White" BorderThickness="0" ToolTip="Hinweis schließen" />
+                    </StackPanel>
+                </Border>
+                <!-- Platzhalter für Bereiche, die noch nicht umgesetzt sind -->
+                <StackPanel>
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedSection.Content}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <TextBlock Text="{Binding SelectedSection.Title}" FontSize="24" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding SelectedSection.Description}" Margin="0,8,0,0" TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+        </DockPanel>
     </Grid>
 </Window>

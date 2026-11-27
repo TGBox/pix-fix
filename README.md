@@ -27,6 +27,10 @@ dotnet publish src/PixFix.App -c Release -o publish
 
 Ergebnis ist eine einzelne `publish\PixFix.exe`, die ohne installiertes .NET läuft.
 
+Neue Versionen entstehen automatisch als GitHub-Release (siehe unten). PixFix prüft beim Start und alle 6 Stunden, ob es
+ein neueres Release gibt, und zeigt dann einen Hinweis mit Download-Link. Dafür muss das Repository öffentlich sein und
+jedes Release das Asset `PixFix.exe` enthalten.
+
 ## Projektstruktur
 
 | Projekt | Inhalt |

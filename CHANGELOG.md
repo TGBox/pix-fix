@@ -10,6 +10,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 
 ### Hinzugefügt
 
+- Update-Hinweis: PixFix prüft beim Start und alle 6 Stunden das neueste GitHub-Release (`TGBox/pix-fix`). Gibt es eine
+  neuere Version, erscheint oben im Fenster eine Hinweisleiste mit „Herunterladen“ (direkter Link auf `PixFix.exe`),
+  „Was ist neu?“, „Programmordner öffnen“ und „Später“; liegt PixFix im Hintergrund, kommt zusätzlich eine
+  Windows-Benachrichtigung. Einstellungen → Allgemein → Updates zeigt die installierte Version, sucht sofort und lässt sich
+  abschalten. Fehler bei der Abfrage bleiben in der Anzeige und stören PixFix nicht.
+- Bereich „Hilfe“ (Strg+6, F1, Infobereich-Menü) mit Kapiteln zu allen Funktionen und „Zum Bereich wechseln“.
+- Einführungstour für neue Mitarbeiter: startet einmalig beim ersten Programmstart, führt durch alle Bereiche und lässt
+  sich unter Hilfe jederzeit wiederholen.
+- Tastenkürzel-Liste gemeinsam für Hilfe und Einstellungen; Strg+6 und F1 ergänzt.
 - Projektgerüst: PixFix.Core, PixFix.Infrastructure, PixFix.App (WPF, .NET 10), Tests.
 - Spezifikation `docs/SPEC.md` aus PixFix 69.74.194 abgeleitet.
 - Datenordner unter `%LOCALAPPDATA%\PixFix`, Datei-Logging, globale Fehlerbehandlung.

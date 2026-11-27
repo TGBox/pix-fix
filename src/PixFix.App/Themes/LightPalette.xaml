@@ -8,6 +8,8 @@
     <SolidColorBrush x:Key="AppDividerBrush" Color="#B6C0CE" />
     <SolidColorBrush x:Key="AppSplitterBackground" Color="#D9E0E9" />
     <SolidColorBrush x:Key="AppSplitterHoverBackground" Color="#A4B1C2" />
+    <SolidColorBrush x:Key="AppInfoBarBackground" Color="#E3EFFA" />
+    <SolidColorBrush x:Key="AppInfoBarBorderBrush" Color="#9CC3E8" />
 
     <!-- Fluent Light contrast overrides (replaces faint 6% strokes with crisp visible borders) -->
     <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#F2F4F8" />
