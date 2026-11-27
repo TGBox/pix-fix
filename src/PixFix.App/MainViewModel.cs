@@ -1,46 +1,45 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using PixFix.App.Knowledge;
+using PixFix.App.Settings;
 using PixFix.Infrastructure;
 
 namespace PixFix.App;
 
-public sealed record NavigationSection(string Title, string Description);
+/// <summary>Eintrag der linken Navigation. <paramref name="Content"/> ist das ViewModel des Bereichs (oder null = noch nicht umgesetzt).</summary>
+public sealed record NavigationSection(string Title, string Description, object? Content);
 
 public sealed class MainViewModel : ObservableObject
 {
     private NavigationSection? selectedSection;
 
-    public MainViewModel(AppPaths paths, ImportViewModel import)
+    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, ImportViewModel import)
     {
         ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(knowledge);
+        ArgumentNullException.ThrowIfNull(import);
         DataDirectory = paths.DataDirectory;
-        Import = import;
+
+        // Nach einem Import zeigt die Wissensdatenbank sofort die übernommenen Einträge.
+        import.ImportSucceeded += (_, _) => knowledge.Reload();
+
+        Sections =
+        [
+            new("Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
+            new("Schreibbereiche", "Notizen, Anleitungen und PDF-Anhänge (SPEC F3) – folgt in Phase 4.", null),
+            new("Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie (SPEC F4–F7) – folgt in Phase 5.", null),
+            new("Einstellungen", "Datenordner, Sicherung, Import aus PixFix 69.", import),
+        ];
         selectedSection = Sections[0];
     }
 
-    public ImportViewModel Import { get; }
-
-    public ObservableCollection<NavigationSection> Sections { get; } =
-    [
-        new("Wissensdatenbank", "Fehlerbilder, Lösungen, Text- und Bildsuche (SPEC F1, F2) – Phase 2/3."),
-        new("Schreibbereiche", "Notizen, Anleitungen und PDF-Anhänge (SPEC F3) – Phase 4."),
-        new("Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie (SPEC F4–F7) – Phase 5."),
-        new("Einstellungen", "Datenordner, Sicherung, Import aus PixFix 69 (SPEC F11–F13)."),
-    ];
+    public ObservableCollection<NavigationSection> Sections { get; }
 
     public NavigationSection? SelectedSection
     {
         get => selectedSection;
-        set
-        {
-            if (SetProperty(ref selectedSection, value))
-            {
-                OnPropertyChanged(nameof(IsSettingsSelected));
-            }
-        }
+        set => SetProperty(ref selectedSection, value);
     }
-
-    public bool IsSettingsSelected => ReferenceEquals(SelectedSection, Sections[^1]);
 
     public string DataDirectory { get; }
 }

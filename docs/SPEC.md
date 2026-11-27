@@ -220,7 +220,8 @@ Wichtige Entscheidungen:
 - **WPF statt WinForms**: `RichTextBox`/`FlowDocument` mit eingebauter Rechtschreibprüfung, Datenbindung, sauberes Layout ohne Resize-Sonderlogik.
 - **Microsoft.Data.Sqlite** statt eigener P/Invoke-Schicht auf `winsqlite3.dll`.
 - **Windows-OCR direkt über WinRT** (`TargetFramework net10.0-windows10.0.19041.0`) statt PowerShell-Prozess je Bild.
-- **FTS5** für die Textsuche als Vorfilter; die Gewichtung aus PixFix 69 wird darauf angewendet.
+- **Textsuche im Speicher** mit der unveränderten Gewichtung aus PixFix 69 (bei einigen hundert Einträgen schnell genug).
+  FTS5 kommt erst dazu, wenn die Datenmenge es erfordert.
 - **Eine** Datenquelle zur Laufzeit (SQLite). Abgeleitete Daten (Bildsignaturen, Suchindex) liegen in eigenen Tabellen und sind jederzeit neu berechenbar.
 
 ---
@@ -260,6 +261,11 @@ Der Klartext für die Suche wird beim Speichern abgeleitet. RTF dient nur noch a
 Asset-Datei) bzw. HTML. Die Umwandlung nach XAML erfolgt in Phase 2 mit dem WPF-Editor beim ersten Öffnen eines Eintrags;
 die `[[PFIMG:…]]`-Marker im RTF ordnen dabei die eingebetteten Bilder den Asset-Dateien zu.
 
+**Anzeige übernommener Dokumente (Phase 2a):** WPF zeigt die von PixFix 69 als `\wmetafile8` eingebetteten Bilder
+nicht zuverlässig an. Vor der Anzeige werden sie ersetzt – mit Marker durch die Originaldatei aus der Ablage, ohne Marker
+durch das im Metafile enthaltene Bitmap als PNG. Geprüft am echten Bestand: 662 Bilder, davon 542 über Marker und 120
+über das Metafile, keins ohne Ergebnis. Das Ergebnis liegt als Cache unter `cache/documents/`; das Original bleibt unverändert.
+
 ---
 
 1. Phasenplan
@@ -268,7 +274,8 @@ die `[[PFIMG:…]]`-Marker im RTF ordnen dabei die eingebetteten Bilder den Asse
 | --- | --- | --- |
 | 0 | Projektgerüst, CI-Build, Logging, Einstellungen, Datenordner | startbare leere App |
 | 1 | Datenmodell + Legacy-Import (F12) | Altbestand vollständig gelesen, Testbericht – **umgesetzt** |
-| 2 | Wissensdatenbank + Editor + Textsuche (F1, F2-Text) | Mitarbeiter kann nachschlagen |
+| 2a | Wissensdatenbank anzeigen + Textsuche (F1 lesend, F2-Text) | Mitarbeiter kann nachschlagen – **umgesetzt** |
+| 2b | Editor: Einträge anlegen/bearbeiten, Bilder einfügen, Papierkorb, Umwandlung nach XAML (F1) | |
 | 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 |
 | 4 | Schreibbereiche (F3) | |
 | 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich |

@@ -36,7 +36,13 @@ public sealed class AssetStore
     public string GetFullPath(Asset asset)
     {
         ArgumentNullException.ThrowIfNull(asset);
-        return Path.Combine(paths.DataDirectory, asset.RelativePath.Replace('/', Path.DirectorySeparatorChar));
+        return GetFullPath(asset.RelativePath);
+    }
+
+    public string GetFullPath(string relativePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(relativePath);
+        return Path.Combine(paths.DataDirectory, relativePath.Replace('/', Path.DirectorySeparatorChar));
     }
 
     /// <summary>

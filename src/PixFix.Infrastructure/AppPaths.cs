@@ -25,6 +25,9 @@ public sealed class AppPaths
 
     public string LogsDirectory => Path.Combine(DataDirectory, "logs");
 
+    /// <summary>Abgeleitete, jederzeit neu berechenbare Daten (z. B. aufbereitete Dokumente). Wird nicht gesichert.</summary>
+    public string CacheDirectory => Path.Combine(DataDirectory, "cache");
+
     public static AppPaths CreateDefault()
     {
         var overridden = Environment.GetEnvironmentVariable(DataDirectoryVariable);
@@ -43,5 +46,6 @@ public sealed class AppPaths
         Directory.CreateDirectory(AssetsDirectory);
         Directory.CreateDirectory(BackupsDirectory);
         Directory.CreateDirectory(LogsDirectory);
+        Directory.CreateDirectory(CacheDirectory);
     }
 }

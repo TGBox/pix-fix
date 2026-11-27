@@ -52,7 +52,10 @@ internal sealed class LegacyFixture : IDisposable
         File.WriteAllBytes(Path.Combine(DataDirectory, "images", EntryB + "-1.png"), [1, 2, 3, 4]);
         File.WriteAllText(
             Path.Combine(DataDirectory, "documents", EntryA + ".rtf"),
-            "{\\rtf1 Drucker " + LegacyImageMarker.Encode(@"images\" + EntryA + "-1.png") + "}");
+            "{\\rtf1 Drucker " + LegacyImageMarker.Encode(@"images\" + EntryA + "-1.png")
+            + "{\\pict\\wmetafile8\\picwgoal1500\\pichgoal750 0000}"
+            + " und ein Bild ohne Marker {\\pict\\wmetafile8\\picwgoal100\\pichgoal100 "
+            + Convert.ToHexString(WmfSample.Create()) + "}}");
         File.WriteAllBytes(Path.Combine(ProgramDirectory, "PDF-Dokumente", "Anleitung.pdf"), Encoding.ASCII.GetBytes("%PDF-1.4"));
         File.WriteAllBytes(Path.Combine(ProgramDirectory, "Fax-Dokumente", "Fax.doc"), [9, 9, 9]);
 

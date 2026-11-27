@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using PixFix.Infrastructure.Legacy;
 
-namespace PixFix.App;
+namespace PixFix.App.Settings;
 
 /// <summary>Übernahme des Datenbestands aus PixFix 69 (SPEC F12).</summary>
 public sealed partial class ImportViewModel : ObservableObject
@@ -24,6 +24,9 @@ public sealed partial class ImportViewModel : ObservableObject
     }
 
     public IAsyncRelayCommand ImportCommand { get; }
+
+    /// <summary>Nach erfolgreichem Import, damit andere Bereiche ihre Daten neu laden.</summary>
+    public event EventHandler? ImportSucceeded;
 
     public bool IsBusy
     {
@@ -87,6 +90,7 @@ public sealed partial class ImportViewModel : ObservableObject
             if (report.Succeeded)
             {
                 logger.LogInformation("Import erfolgreich, {WarningCount} Hinweise", report.Warnings.Count);
+                ImportSucceeded?.Invoke(this, EventArgs.Empty);
             }
             else
             {

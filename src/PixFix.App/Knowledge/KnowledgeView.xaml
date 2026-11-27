@@ -1,0 +1,102 @@
+<UserControl x:Class="PixFix.App.Knowledge.KnowledgeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:PixFix.App.Knowledge">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="360" MinWidth="220" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" MinWidth="300" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Suche und Trefferliste -->
+        <DockPanel Grid.Column="0" Margin="0,0,8,0">
+            <Grid DockPanel.Dock="Top">
+                <TextBox x:Name="SearchBox"
+                         Text="{Binding Query, UpdateSourceTrigger=PropertyChanged}"
+                         Padding="4,3"
+                         ToolTip="Sucht in Titel, Abschnitt, Tags, Bildtext (OCR) und Inhalt. Esc leert die Suche.">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Escape" Command="{Binding ClearSearchCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+                <TextBlock Text="Suchen …" Margin="7,4,0,0" Foreground="Gray" IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+            <DockPanel DockPanel.Dock="Top" Margin="0,6,0,6">
+                <Button DockPanel.Dock="Right" Content="Neu laden" Command="{Binding ReloadCommand}" Padding="8,1"
+                        ToolTip="Einträge erneut aus der Datenbank lesen" />
+                <TextBlock Text="{Binding Summary}" Foreground="Gray" VerticalAlignment="Center" />
+            </DockPanel>
+            <ListBox ItemsSource="{Binding ResultsView}"
+                     SelectedItem="{Binding SelectedHit}"
+                     HorizontalContentAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+                <ListBox.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Margin="2,8,0,2" />
+                            </DataTemplate>
+                        </GroupStyle.HeaderTemplate>
+                    </GroupStyle>
+                </ListBox.GroupStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:KnowledgeHit}">
+                        <StackPanel Margin="2,3">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="★ " Foreground="Goldenrod"
+                                           Visibility="{Binding IsFavorite, Converter={StaticResource BoolToVisibility}}" />
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding SnippetOrSection}" Foreground="Gray" TextWrapping="Wrap" MaxHeight="48"
+                                       TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+
+        <!-- Dokumentanzeige -->
+        <DockPanel Grid.Column="2" Margin="8,0,0,0">
+            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" x:Name="HitNavigation" Visibility="Collapsed">
+                    <TextBlock x:Name="HitCounter" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="Gray" />
+                    <Button Content="▲" Width="28" Click="OnPreviousHit" ToolTip="Vorheriger Treffer (Umschalt+F3)" />
+                    <Button Content="▼" Width="28" Margin="4,0,0,0" Click="OnNextHit" ToolTip="Nächster Treffer (F3)" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="{Binding SelectedHit.Title}" FontSize="20" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding SelectedHit.SectionName}" Foreground="Gray" />
+                </StackPanel>
+            </DockPanel>
+            <Grid>
+                <RichTextBox x:Name="Viewer"
+                             IsReadOnly="True"
+                             IsDocumentEnabled="True"
+                             IsInactiveSelectionHighlightEnabled="True"
+                             VerticalScrollBarVisibility="Auto"
+                             BorderThickness="1" />
+                <TextBlock Text="Dokument wird geladen …"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray"
+                           Visibility="{Binding IsLoadingDocument, Converter={StaticResource BoolToVisibility}}" />
+            </Grid>
+        </DockPanel>
+    </Grid>
+</UserControl>
