@@ -81,6 +81,17 @@
                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap" />
             </DockPanel>
         </TabItem>
+        <TabItem Header="TI-Monitor">
+            <StackPanel DataContext="{Binding Ti}" Margin="8" MaxWidth="760" HorizontalAlignment="Left">
+                <CheckBox Content="TI-Monitor in PixFix aktivieren" IsChecked="{Binding IsEnabled}" FontWeight="SemiBold" />
+                <CheckBox Content="Status automatisch alle 5 Minuten prüfen" IsChecked="{Binding AutoCheck}" Margin="0,10,0,0"
+                          IsEnabled="{Binding IsEnabled}" />
+                <CheckBox Content="Bei neuer Störung das TI-Symbol rot blinken lassen" IsChecked="{Binding Blink}" Margin="0,10,0,0"
+                          IsEnabled="{Binding IsEnabled}" />
+                <TextBlock Margin="0,14,0,0" Foreground="Gray" TextWrapping="Wrap"
+                           Text="Der TI-Monitor fragt die gematik-Quellen TI-Status (aktive Einschränkungen) und TI-Lagebild (E-Rezept, ePA, KIM, VSDM, TI-Anschluss …) ab. Grün = keine aktive Störung, Rot = aktive Störung, Orange = eine Abfrage war nicht vollständig. Abfragefehler bleiben im Monitor und stören PixFix nicht." />
+            </StackPanel>
+        </TabItem>
         <TabItem Header="Import aus PixFix 69">
                 <!-- Import aus PixFix 69 (SPEC F12) -->
                 <DockPanel DataContext="{Binding Import}" Margin="8">

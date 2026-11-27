@@ -15,6 +15,11 @@ public static class SettingKeys
     /// <summary>Ordner für automatische Sicherungen und Sicherungen vor einer Wiederherstellung; leer = Datenordner\backups.</summary>
     public const string BackupDirectory = "backup.directory";
 
+    /// <summary>TI-Monitor an/aus, automatische Prüfung alle 5 Minuten, Blinken bei neuer Störung (Werte aus PixFix 69: true/false).</summary>
+    public const string TiMonitorEnabled = "ti_monitor.enabled";
+    public const string TiMonitorAutoCheck = "ti_monitor.auto_check";
+    public const string TiMonitorBlink = "ti_monitor.blink";
+
     /// <summary>„0“ schaltet die automatische Sicherung ab; sonst ist sie an.</summary>
     public const string AutoBackupEnabled = "backup.auto_enabled";
 
@@ -45,6 +50,17 @@ public sealed class SettingsRepository(PixFixDatabase database)
         using var db = database.Open();
         return db.Scalar("SELECT value FROM settings WHERE key = $key;", null, ("$key", key)) as string ?? defaultValue;
     }
+
+    /// <summary>Ja/Nein-Einstellung: „true“/„1“ bzw. „false“/„0“; fehlt sie oder ist sie unlesbar, gilt <paramref name="defaultValue"/>.</summary>
+    public bool GetFlag(string key, bool defaultValue) =>
+        Get(key).Trim().ToUpperInvariant() switch
+        {
+            "TRUE" or "1" => true,
+            "FALSE" or "0" => false,
+            _ => defaultValue,
+        };
+
+    public void SetFlag(string key, bool value) => Set(key, value ? "true" : "false");
 
     public void Set(string key, string value)
     {

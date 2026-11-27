@@ -72,3 +72,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 - Phase 6b: PixFix-69-Sicherungen im Format 2.1 (XML, vor der SQLite-Umstellung) wiederherstellen. Die XML-Dateien werden
   Feld für Feld wie in der SQLite-Erstmigration von 69.74.178 in eine PixFix-69-Datenbank umgewandelt, gegen die Anzahlen
   im Manifest geprüft und dann wie eine 3.0-Sicherung übernommen.
+- Phase 6c: Fernwartung – Buttons „AnyDesk“ und „TeamViewer“ in den Anrufen. Laufende Programme werden in den Vordergrund
+  geholt; AnyDesk startet nur über die normale Windows-Verknüpfung (gefundene Verknüpfung wird gemerkt), TeamViewer über
+  App Paths bzw. die üblichen Installationsordner, beide mit `%TEMP%` als Arbeitsverzeichnis.
+- TI-Monitor als eigener Bereich: gematik TI-Status und TI-Lagebild, grün/rot/orange, Einzelmeldungen, Links zu Fachportal
+  und Lagebild, „Jetzt prüfen“, automatische Prüfung alle 5 Minuten. TI-Symbol links unten zeigt den Zustand und blinkt
+  bei einer neuen Störung, bis der Monitor geöffnet wird. Abfragefehler bleiben im Modul.
+- Einstellungen → TI-Monitor: aktivieren, automatisch prüfen, blinken (Werte aus PixFix 69 werden übernommen).

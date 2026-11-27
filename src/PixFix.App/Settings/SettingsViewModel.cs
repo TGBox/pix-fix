@@ -1,17 +1,19 @@
 using PixFix.App.Backup;
+using PixFix.App.Ti;
 
 namespace PixFix.App.Settings;
 
-/// <summary>Bereich „Einstellungen“: Anruf-Einstellungen, Sicherung und Import aus PixFix 69.</summary>
+/// <summary>Bereich „Einstellungen“: Anruf-Einstellungen, Sicherung, TI-Monitor und Import aus PixFix 69.</summary>
 public sealed class SettingsViewModel
 {
-    public SettingsViewModel(CallSettingsViewModel calls, BackupViewModel backup, ImportViewModel import)
+    public SettingsViewModel(CallSettingsViewModel calls, BackupViewModel backup, ImportViewModel import, TiMonitorViewModel ti)
     {
         ArgumentNullException.ThrowIfNull(backup);
         ArgumentNullException.ThrowIfNull(import);
         Calls = calls;
         Backup = backup;
         Import = import;
+        Ti = ti;
         backup.RestoreSucceeded += (_, _) => DataReplaced?.Invoke(this, EventArgs.Empty);
         import.ImportSucceeded += (_, _) => DataReplaced?.Invoke(this, EventArgs.Empty);
     }
@@ -24,4 +26,6 @@ public sealed class SettingsViewModel
     public BackupViewModel Backup { get; }
 
     public ImportViewModel Import { get; }
+
+    public TiMonitorViewModel Ti { get; }
 }

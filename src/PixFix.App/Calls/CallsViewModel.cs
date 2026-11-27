@@ -12,6 +12,7 @@ using PixFix.Core.Calls;
 using PixFix.Core.Templates;
 using PixFix.Infrastructure.Calls;
 using PixFix.Infrastructure.Communication;
+using PixFix.Infrastructure.Remote;
 using PixFix.Infrastructure.Settings;
 using PixFix.Infrastructure.Telephony;
 using PixFix.Infrastructure.Templates;
@@ -72,6 +73,8 @@ public sealed class CallsViewModel : ObservableObject
         BillingStartNowCommand = new RelayCommand(() => SetBillingNow(start: true), HasSelection);
         BillingEndNowCommand = new RelayCommand(() => SetBillingNow(start: false), HasSelection);
         ShowTrashCommand = new RelayCommand(() => TrashRequested?.Invoke(this, EventArgs.Empty));
+        OpenAnyDeskCommand = new AsyncRelayCommand(OpenAnyDeskAsync);
+        OpenTeamViewerCommand = new AsyncRelayCommand(OpenTeamViewerAsync);
     }
 
     public event EventHandler? TrashRequested;
@@ -101,6 +104,8 @@ public sealed class CallsViewModel : ObservableObject
     public RelayCommand BillingStartNowCommand { get; }
     public RelayCommand BillingEndNowCommand { get; }
     public RelayCommand ShowTrashCommand { get; }
+    public AsyncRelayCommand OpenAnyDeskCommand { get; }
+    public AsyncRelayCommand OpenTeamViewerCommand { get; }
 
     public CallItemViewModel? SelectedCall
     {
@@ -590,6 +595,53 @@ public sealed class CallsViewModel : ObservableObject
         else
         {
             item.BillingEndText = now;
+        }
+    }
+
+    // ------------------------------------------------------------------ Fernwartung
+
+    private async Task OpenAnyDeskAsync()
+    {
+        Status = "AnyDesk wird geöffnet …";
+        var result = await RemoteSupportLauncher.OpenAnyDeskAsync(settings.Get(SettingKeys.AnyDeskShortcut)).ConfigureAwait(true);
+        if (result.ShortcutUsed is { } shortcut && result.Status is RemoteLaunchStatus.Started or RemoteLaunchStatus.StartedWithoutWindow)
+        {
+            settings.Set(SettingKeys.AnyDeskShortcut, shortcut);
+        }
+
+        ShowRemoteResult("AnyDesk", result);
+    }
+
+    private async Task OpenTeamViewerAsync()
+    {
+        Status = "TeamViewer wird geöffnet …";
+        ShowRemoteResult("TeamViewer", await RemoteSupportLauncher.OpenTeamViewerAsync().ConfigureAwait(true));
+    }
+
+    private void ShowRemoteResult(string name, RemoteLaunchResult result)
+    {
+        Status = result.Status switch
+        {
+            RemoteLaunchStatus.Activated => name + " ist geöffnet.",
+            RemoteLaunchStatus.Started => name + " wurde geöffnet.",
+            _ => string.Empty,
+        };
+
+        var message = result.Status switch
+        {
+            RemoteLaunchStatus.ShortcutMissing =>
+                "PixFix hat keine normale AnyDesk-Verknüpfung im Startmenü oder auf dem Desktop gefunden.\n\n"
+                + "Damit AnyDesk nicht versehentlich über einen Administrator-/Dienst-Start geöffnet wird, startet PixFix AnyDesk nicht direkt über die EXE.\n\n"
+                + "Bitte AnyDesk einmal normal über die übliche Verknüpfung öffnen.",
+            RemoteLaunchStatus.StartedWithoutWindow =>
+                name + " wurde gestartet, aber PixFix hat innerhalb von 8 Sekunden kein Fenster gefunden.\n\nDas Programm läuft möglicherweise im Infobereich oder braucht noch etwas.",
+            RemoteLaunchStatus.StartFailed =>
+                name + " konnte nicht gestartet werden.\n\n" + result.Detail,
+            _ => null,
+        };
+        if (message is not null)
+        {
+            MessageBox.Show(Owner, message, "PixFix – " + name, MessageBoxButton.OK, result.Status == RemoteLaunchStatus.StartFailed ? MessageBoxImage.Warning : MessageBoxImage.Information);
         }
     }
 

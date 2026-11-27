@@ -291,7 +291,7 @@ durch das im Metafile enthaltene Bitmap als PNG. Geprüft am echten Bestand: 662
 | 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 – **umgesetzt** |
 | 4 | Schreibbereiche (F3) | **umgesetzt** (Papierkorb für Reiter: nur Abbild, Wiederherstellen offen) |
 | 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich – **umgesetzt** (offen: Schnelltextbausteine im Editor einfügen) |
-| 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 – 6a/6b (Sicherung 4.0, Wiederherstellung 4.0/3.0/2.1, automatische Sicherung) **umgesetzt**; offen: 6c Fernwartung und TI-Monitor |
+| 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 – **umgesetzt** (6a/6b Sicherung und Wiederherstellung 4.0/3.0/2.1, 6c Fernwartung und TI-Monitor) |
 | 7 | Cobra-Anbindung (F10) | nach Entscheidung |
 
 Bis Phase 6 läuft PixFix 69 produktiv weiter; die neue Version liest dessen Daten nur.

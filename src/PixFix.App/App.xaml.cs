@@ -13,11 +13,13 @@ using PixFix.Infrastructure.Data;
 using PixFix.Infrastructure.Knowledge;
 using PixFix.Infrastructure.Ocr;
 using PixFix.Infrastructure.Templates;
+using PixFix.Infrastructure.Ti;
 using PixFix.Infrastructure.Images;
 using PixFix.App.Backup;
 using PixFix.App.Calls;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
+using PixFix.App.Ti;
 using PixFix.App.Workspaces;
 using PixFix.Infrastructure.Workspaces;
 using Serilog;
@@ -80,6 +82,8 @@ public partial class App : Application
         builder.Services.AddSingleton<BackupCoordinator>();
         builder.Services.AddSingleton<AutoBackupService>();
         builder.Services.AddSingleton<BackupViewModel>();
+        builder.Services.AddSingleton(_ => new TiMonitorClient(TiMonitorClient.CreateHttpClient()));
+        builder.Services.AddSingleton<TiMonitorViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
@@ -105,6 +109,9 @@ public partial class App : Application
 
         // Stille Tagessicherung, wenn PixFix eine Weile nicht benutzt wird.
         host.Services.GetRequiredService<AutoBackupService>().Start();
+
+        // TI-Monitor: erste Prüfung im Hintergrund, danach alle 5 Minuten (falls eingeschaltet).
+        host.Services.GetRequiredService<TiMonitorViewModel>().Start();
     }
 
     protected override void OnExit(ExitEventArgs e)

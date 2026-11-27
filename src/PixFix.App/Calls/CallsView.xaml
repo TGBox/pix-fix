@@ -41,6 +41,14 @@
                 <Button Content="+ Neuer Anruf" Command="{Binding NewCallCommand}" Style="{StaticResource Tool}" FontWeight="SemiBold" />
                 <Button Content="Papierkorb" Command="{Binding ShowTrashCommand}" Style="{StaticResource Tool}" />
             </StackPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
+                <Button Content="AnyDesk" Command="{Binding OpenAnyDeskCommand}" Padding="12,3" Margin="0,0,6,0"
+                        Background="#DC2626" Foreground="White" FontWeight="SemiBold" BorderThickness="0"
+                        ToolTip="AnyDesk über die normale Windows-Verknüpfung öffnen bzw. in den Vordergrund holen" />
+                <Button Content="TeamViewer" Command="{Binding OpenTeamViewerCommand}" Padding="12,3"
+                        Background="#2563EB" Foreground="White" FontWeight="SemiBold" BorderThickness="0"
+                        ToolTip="TeamViewer öffnen bzw. in den Vordergrund holen" />
+            </StackPanel>
             <CheckBox DockPanel.Dock="Top" Content="Erledigte anzeigen" IsChecked="{Binding ShowDone}" Margin="0,0,0,6" />
             <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="Gray" TextWrapping="Wrap" Margin="0,6,0,0" />
             <ListBox ItemsSource="{Binding CallList}" SelectedItem="{Binding SelectedCall}"

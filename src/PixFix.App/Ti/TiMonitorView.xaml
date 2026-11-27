@@ -1,0 +1,65 @@
+<UserControl x:Class="PixFix.App.Ti.TiMonitorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ti="clr-namespace:PixFix.App.Ti">
+    <UserControl.Resources>
+        <ti:TiStateBrushConverter x:Key="StateBrush" />
+        <BooleanToVisibilityConverter x:Key="Visible" />
+    </UserControl.Resources>
+    <Grid>
+        <!-- Deaktiviert -->
+        <StackPanel>
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsEnabled}" Value="False">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <TextBlock Text="TI-Monitor" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock Text="Der TI-Monitor ist ausgeschaltet. Er lässt sich unter Einstellungen → TI-Monitor wieder einschalten." Margin="0,8,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <DockPanel Visibility="{Binding IsEnabled, Converter={StaticResource Visible}}">
+            <Border DockPanel.Dock="Top" CornerRadius="12" Padding="18" Background="{Binding State, Converter={StaticResource StateBrush}}">
+                <TextBlock Text="{Binding Headline}" Foreground="White" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center" />
+            </Border>
+            <Border DockPanel.Dock="Top" Background="White" CornerRadius="6" Padding="12,10" Margin="0,14,0,0" BorderBrush="#DDE3EC" BorderThickness="1">
+                <TextBlock Text="{Binding IncidentText}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Foreground="{Binding IncidentState, Converter={StaticResource StateBrush}}" />
+            </Border>
+            <Border DockPanel.Dock="Top" Background="White" CornerRadius="6" Padding="12,10" Margin="0,8,0,0" BorderBrush="#DDE3EC" BorderThickness="1">
+                <TextBlock Text="{Binding LageText}" FontWeight="SemiBold" TextWrapping="Wrap"
+                           Foreground="{Binding LageState, Converter={StaticResource StateBrush}}" />
+            </Border>
+            <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                <TextBlock DockPanel.Dock="Right" Text="{Binding LastCheckedText}" Foreground="Gray" VerticalAlignment="Center" />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="TI-Status öffnen" Command="{Binding OpenStatusPageCommand}" Padding="12,4" Margin="0,0,6,0" />
+                    <Button Content="TI-Lagebild öffnen" Command="{Binding OpenLagePageCommand}" Padding="12,4" Margin="0,0,6,0" />
+                    <Button Content="Jetzt prüfen" Command="{Binding CheckNowCommand}" Padding="12,4" FontWeight="SemiBold" />
+                </StackPanel>
+            </DockPanel>
+            <ListBox ItemsSource="{Binding Details}" Margin="0,12,0,0" BorderThickness="1" BorderBrush="#DDE3EC">
+                <ListBox.Style>
+                    <Style TargetType="ListBox">
+                        <Style.Triggers>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBox">
+                                            <TextBlock Text="Keine Einzelmeldungen." Foreground="Gray" Margin="8" />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.Style>
+            </ListBox>
+        </DockPanel>
+    </Grid>
+</UserControl>
