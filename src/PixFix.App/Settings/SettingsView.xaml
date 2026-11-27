@@ -1,30 +1,76 @@
 <UserControl x:Class="PixFix.App.Settings.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- Import aus PixFix 69 (SPEC F12) -->
-    <DockPanel>
-        <StackPanel DockPanel.Dock="Top">
-            <TextBlock Text="Daten aus PixFix 69 übernehmen" FontSize="16" FontWeight="SemiBold" />
-            <TextBlock Margin="0,4,0,8" TextWrapping="Wrap"
-                       Text="Liest Datenbank, Bilder, Dokumente, PDFs, Fax-Dokumente und Vorlagen aus einem PixFix-69-Ordner. Die Altdaten werden nicht verändert. Stimmt eine Anzahl nicht, wird nichts übernommen." />
-            <Button Content="PixFix-69-Ordner wählen und importieren …"
-                    Command="{Binding ImportCommand}"
-                    HorizontalAlignment="Left"
-                    Padding="12,4" />
-            <Grid Margin="0,12,0,0" Height="22">
-                <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
-                <TextBlock Text="{Binding ProgressPercent, StringFormat='{}{0} %'}"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
-            </Grid>
-            <TextBlock Text="{Binding Status}" Margin="0,6,0,0" TextWrapping="Wrap" />
-        </StackPanel>
-        <TextBox Margin="0,12,0,0"
-                 Text="{Binding ReportText, Mode=OneWay}"
-                 IsReadOnly="True"
-                 FontFamily="Consolas"
-                 VerticalScrollBarVisibility="Auto"
-                 HorizontalScrollBarVisibility="Auto"
-                 TextWrapping="NoWrap" />
-    </DockPanel>
+    <TabControl>
+        <TabItem Header="Anrufe">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel DataContext="{Binding Calls}" Margin="8" MaxWidth="760" HorizontalAlignment="Left">
+                    <TextBlock Text="Telefonie" FontSize="16" FontWeight="SemiBold" />
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Text="Nummern wählen über" Width="180" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding DialMethods}" SelectedItem="{Binding DialMethod}" Width="300" HorizontalAlignment="Left" />
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                               Text="„Windows-Standard (tel:)“ öffnet die Nummer im zugeordneten Telefonieprogramm (z. B. Unify Phone). Auflegen läuft unabhängig davon immer über TAPI." />
+
+                    <TextBlock Text="E-Mail" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,0" />
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Text="E-Mail-Programm" Width="180" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding MailPrograms}" SelectedItem="{Binding MailProgram}" Width="300" HorizontalAlignment="Left" />
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                               Text="„Outlook Classic“ öffnet einen Entwurf in Outlook Desktop; „Windows-Standard“ nutzt mailto:." />
+
+                    <TextBlock Text="Rechnungs-Mail (kostenpflichtiger Support)" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,0" />
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Text="Empfänger" Width="180" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding BillingMailRecipient, UpdateSourceTrigger=LostFocus}" Padding="3,2" />
+                    </DockPanel>
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Text="Betreff" Width="180" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding BillingMailSubject, UpdateSourceTrigger=LostFocus}" Padding="3,2" />
+                    </DockPanel>
+                    <DockPanel Margin="0,6,0,0">
+                        <TextBlock Text="Text" Width="180" VerticalAlignment="Top" Margin="0,3,0,0" />
+                        <TextBox Text="{Binding BillingMailBody, UpdateSourceTrigger=LostFocus}" Height="140" Padding="3"
+                                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                               Text="Platzhalter: {LNUM}, {ID}, {WARUM}, {LOESUNG}, {EMAIL}, {FAX}. Die Mail öffnet sich über den Button „Rechnungs-Mail“ und wenn du einen kostenpflichtigen Anruf auf „Erledigt“ setzt und sie noch nicht versendet wurde." />
+
+                    <TextBlock Text="Vorlagen" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,0" />
+                    <Button Content="Vorlagen, Cobra-Schnelltexte und Fax-Dokumente bearbeiten …" Command="{Binding OpenTemplatesCommand}"
+                            HorizontalAlignment="Left" Padding="12,4" Margin="0,6,0,0" />
+                </StackPanel>
+            </ScrollViewer>
+        </TabItem>
+        <TabItem Header="Import aus PixFix 69">
+                <!-- Import aus PixFix 69 (SPEC F12) -->
+                <DockPanel DataContext="{Binding Import}" Margin="8">
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Text="Daten aus PixFix 69 übernehmen" FontSize="16" FontWeight="SemiBold" />
+                        <TextBlock Margin="0,4,0,8" TextWrapping="Wrap"
+                                   Text="Liest Datenbank, Bilder, Dokumente, PDFs, Fax-Dokumente und Vorlagen aus einem PixFix-69-Ordner. Die Altdaten werden nicht verändert. Stimmt eine Anzahl nicht, wird nichts übernommen." />
+                        <Button Content="PixFix-69-Ordner wählen und importieren …"
+                                Command="{Binding ImportCommand}"
+                                HorizontalAlignment="Left"
+                                Padding="12,4" />
+                        <Grid Margin="0,12,0,0" Height="22">
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
+                            <TextBlock Text="{Binding ProgressPercent, StringFormat='{}{0} %'}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Grid>
+                        <TextBlock Text="{Binding Status}" Margin="0,6,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <TextBox Margin="0,12,0,0"
+                             Text="{Binding ReportText, Mode=OneWay}"
+                             IsReadOnly="True"
+                             FontFamily="Consolas"
+                             VerticalScrollBarVisibility="Auto"
+                             HorizontalScrollBarVisibility="Auto"
+                             TextWrapping="NoWrap" />
+                </DockPanel>
+        </TabItem>
+    </TabControl>
 </UserControl>

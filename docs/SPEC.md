@@ -286,7 +286,7 @@ durch das im Metafile enthaltene Bitmap als PNG. Geprüft am echten Bestand: 662
 | 2c | Copy-Actions, Eintragsvorlagen, Abschnitte umbenennen/sortieren, Einträge sortieren (F1) | **umgesetzt** (Sortieren per ↑/↓ statt Drag & Drop) |
 | 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 – **umgesetzt** |
 | 4 | Schreibbereiche (F3) | **umgesetzt** (Papierkorb für Reiter: nur Abbild, Wiederherstellen offen) |
-| 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich – **5a umgesetzt** (Anrufe, Erinnerungen, Telefonie, E-Mail/Fax); 5b offen: Vorlagen-Editor, Anruf-Einstellungen |
+| 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich – **umgesetzt** (offen: Schnelltextbausteine im Editor einfügen) |
 | 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 |
 | 7 | Cobra-Anbindung (F10) | nach Entscheidung |
 

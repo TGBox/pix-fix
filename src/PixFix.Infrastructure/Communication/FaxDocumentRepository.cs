@@ -16,7 +16,7 @@ public sealed class FaxDocumentRepository(PixFixDatabase database, AssetStore as
         using var db = database.Open();
         using var command = SqliteExtensions.Create(
             db,
-            "SELECT f.id, f.name, a.relative_path FROM fax_documents f JOIN assets a ON a.id = f.asset_id ORDER BY f.sort_order, f.name;",
+            "SELECT f.id, f.name, a.relative_path FROM fax_documents f JOIN assets a ON a.id = f.asset_id ORDER BY f.sort_order, f.id;",
             null);
         using var reader = command.ExecuteReader();
         var result = new List<FaxDocument>();
@@ -33,7 +33,7 @@ public sealed class FaxDocumentRepository(PixFixDatabase database, AssetStore as
         using var db = database.Open();
         using var tx = db.BeginTransaction();
         var asset = assets.Import(file, db, tx, time.GetUtcNow());
-        var order = Convert.ToInt32(db.Scalar("SELECT COALESCE(MAX(sort_order), -1) + 1 FROM fax_documents;", tx), System.Globalization.CultureInfo.InvariantCulture);
+        var order = SortOrder.Next(db, tx, "fax_documents");
         db.Execute(
             "INSERT INTO fax_documents(name, asset_id, sort_order) VALUES($name, $asset, $order);",
             tx,
@@ -47,5 +47,22 @@ public sealed class FaxDocumentRepository(PixFixDatabase database, AssetStore as
     {
         using var db = database.Open();
         db.Execute("DELETE FROM fax_documents WHERE id = $id;", null, ("$id", id));
+    }
+
+    public void Rename(long id, string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        using var db = database.Open();
+        db.Execute("UPDATE fax_documents SET name = $name WHERE id = $id;", null, ("$name", name.Trim()), ("$id", id));
+    }
+
+    public bool Move(long id, int delta)
+    {
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        var ids = SortOrder.Ids(db, tx, "SELECT id FROM fax_documents ORDER BY sort_order, id;");
+        var moved = SortOrder.Move(db, tx, "fax_documents", ids, id, delta);
+        tx.Commit();
+        return moved;
     }
 }

@@ -15,29 +15,33 @@ public sealed class MainViewModel : ObservableObject
 {
     private NavigationSection? selectedSection;
 
-    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, WorkspacesViewModel workspaces, CallsViewModel calls, ImportViewModel import)
+    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, WorkspacesViewModel workspaces, CallsViewModel calls, SettingsViewModel settings)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(knowledge);
-        ArgumentNullException.ThrowIfNull(import);
+        ArgumentNullException.ThrowIfNull(settings);
         DataDirectory = paths.DataDirectory;
 
         // Nach einem Import zeigt die Wissensdatenbank sofort die übernommenen Einträge.
         ArgumentNullException.ThrowIfNull(workspaces);
         ArgumentNullException.ThrowIfNull(calls);
-        import.ImportSucceeded += (_, _) =>
+        settings.Import.ImportSucceeded += (_, _) =>
         {
             knowledge.Reload();
             workspaces.Reload();
             calls.Reload();
+            settings.Calls.Reload();
         };
+
+        // Bearbeitete Eintragsvorlagen sofort in der Wissensdatenbank anbieten.
+        settings.Calls.TemplatesChanged += (_, _) => knowledge.ReloadTemplates();
 
         Sections =
         [
             new("Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
             new("Schreibbereiche", "Notizen, Anleitungen, Werkzeuge und PDF-Anhänge.", workspaces),
             new("Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
-            new("Einstellungen", "Datenordner, Sicherung, Import aus PixFix 69.", import),
+            new("Einstellungen", "Anrufe, Vorlagen, Import aus PixFix 69.", settings),
         ];
         selectedSection = Sections[0];
 

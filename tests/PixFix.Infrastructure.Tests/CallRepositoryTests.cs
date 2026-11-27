@@ -97,7 +97,7 @@ public sealed class CallRepositoryTests : IDisposable
     [Fact]
     public void CobraQuickTextsSettingsAndFaxDocumentsAreAvailable()
     {
-        var quick = Assert.Single(calls.LoadCobraQuickTexts());
+        var quick = Assert.Single(new CobraQuickTextRepository(database).LoadAll());
         Assert.Equal("NE,", quick.NotesText);
         Assert.True(quick.ScheduleRecall);
 

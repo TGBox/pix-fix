@@ -7,7 +7,7 @@ namespace PixFix.Core.Calls;
 public sealed record PhoneOption(string Label, string Number);
 
 /// <summary>Cobra-Schnelltext (z. B. „Praxis nicht erreicht“) mit seinen Nebenwirkungen (SPEC F10).</summary>
-public sealed record CobraQuickText(string Name, string CobraText, string NotesText, string WorkText, bool CompleteCall, bool ScheduleRecall);
+public sealed record CobraQuickText(long Id, string Name, string CobraText, string NotesText, string WorkText, bool CompleteCall, bool ScheduleRecall);
 
 /// <summary>Ergebnis der Prüfung vor einem Statuswechsel.</summary>
 /// <param name="MissingBillingTime">Gesetzt, wenn ein kostenpflichtiger Anruf ohne Start-/Endzeit erledigt werden soll – Wechsel ablehnen.</param>

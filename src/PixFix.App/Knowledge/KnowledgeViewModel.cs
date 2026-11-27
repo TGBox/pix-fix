@@ -322,15 +322,20 @@ public sealed class KnowledgeViewModel : ObservableObject, IDocumentEditorHost
             SectionNames.Add(name);
         }
 
+        ReloadTemplates();
+        logger.LogInformation("Wissensdatenbank geladen: {Count} Einträge", entries.Count);
+        ApplySearch();
+        SelectEntry(SelectedHit?.Id);
+    }
+
+    /// <summary>Eintragsvorlagen neu laden (nach dem Bearbeiten der Vorlagen).</summary>
+    public void ReloadTemplates()
+    {
         EntryTemplates.Clear();
         foreach (var template in templates.LoadByKind(TemplateKind.Entry))
         {
             EntryTemplates.Add(template);
         }
-
-        logger.LogInformation("Wissensdatenbank geladen: {Count} Einträge", entries.Count);
-        ApplySearch();
-        SelectEntry(SelectedHit?.Id);
     }
 
     private async Task SearchDelayedAsync()

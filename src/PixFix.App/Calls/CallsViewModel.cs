@@ -28,6 +28,7 @@ public sealed class CallsViewModel : ObservableObject
     private static readonly TimeSpan ReminderCheckInterval = TimeSpan.FromSeconds(5);
 
     private readonly CallRepository repository;
+    private readonly CobraQuickTextRepository quickTexts;
     private readonly TemplateRepository templates;
     private readonly FaxDocumentRepository faxDocuments;
     private readonly SettingsRepository settings;
@@ -40,12 +41,14 @@ public sealed class CallsViewModel : ObservableObject
 
     public CallsViewModel(
         CallRepository repository,
+        CobraQuickTextRepository quickTexts,
         TemplateRepository templates,
         FaxDocumentRepository faxDocuments,
         SettingsRepository settings,
         ILogger<CallsViewModel> logger)
     {
         this.repository = repository;
+        this.quickTexts = quickTexts;
         this.templates = templates;
         this.faxDocuments = faxDocuments;
         this.settings = settings;
@@ -457,7 +460,7 @@ public sealed class CallsViewModel : ObservableObject
 
         OpenMail(
             recipient,
-            CallRules.ApplyTemplate(item.Model, settings.Get(SettingKeys.BillingMailSubject)),
+            CallRules.ApplyTemplate(item.Model, settings.Get(SettingKeys.BillingMailSubject, SettingKeys.BillingMailSubjectDefault)),
             CallRules.ApplyTemplate(item.Model, settings.Get(SettingKeys.BillingMailBody)));
     }
 
@@ -519,7 +522,7 @@ public sealed class CallsViewModel : ObservableObject
         Status = "Anruftext für Cobra wurde in die Zwischenablage kopiert.";
     }
 
-    public IReadOnlyList<CobraQuickText> LoadQuickTexts() => repository.LoadCobraQuickTexts();
+    public IReadOnlyList<CobraQuickText> LoadQuickTexts() => quickTexts.LoadAll();
 
     /// <summary>
     /// Cobra-Schnelltext (z. B. „Praxis nicht erreicht“): Text für Cobra in die Zwischenablage (die automatische Übertragung

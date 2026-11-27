@@ -73,7 +73,10 @@ public partial class App : Application
         builder.Services.AddSingleton(sp => new FaxDocumentRepository(
             sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
         builder.Services.AddSingleton<SettingsRepository>();
+        builder.Services.AddSingleton<CobraQuickTextRepository>();
         builder.Services.AddSingleton<CallsViewModel>();
+        builder.Services.AddSingleton<CallSettingsViewModel>();
+        builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<MainWindow>();

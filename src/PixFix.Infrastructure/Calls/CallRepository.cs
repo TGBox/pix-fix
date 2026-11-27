@@ -128,27 +128,6 @@ public sealed class CallRepository(PixFixDatabase database, TimeProvider? timePr
         db.Execute("DELETE FROM trash WHERE id = $id AND kind = $kind;", null, ("$id", trashId), ("$kind", TrashKind));
     }
 
-    /// <summary>Cobra-Schnelltexte (aus PixFix 69 übernommen).</summary>
-    public IReadOnlyList<CobraQuickText> LoadCobraQuickTexts()
-    {
-        using var db = database.Open();
-        using var command = SqliteExtensions.Create(db, "SELECT * FROM cobra_quick_texts ORDER BY sort_order, name;", null);
-        using var reader = command.ExecuteReader();
-        var result = new List<CobraQuickText>();
-        while (reader.Read())
-        {
-            result.Add(new CobraQuickText(
-                reader.GetText("name"),
-                reader.GetText("cobra_text"),
-                reader.GetText("notes_text"),
-                reader.GetText("work_text"),
-                reader.GetFlag("complete_call"),
-                reader.GetFlag("schedule_recall")));
-        }
-
-        return result;
-    }
-
     // ------------------------------------------------------------------ Hilfsfunktionen
 
     private sealed record CallSnapshot(string Format, Call Call);

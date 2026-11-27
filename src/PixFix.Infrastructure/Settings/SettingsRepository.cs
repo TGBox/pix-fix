@@ -12,6 +12,15 @@ public static class SettingKeys
     public const string BillingMailBody = "billing_mail.body";
     public const string AnyDeskShortcut = "remote.anydesk_shortcut";
 
+    /// <summary>Wert von <see cref="DialMethod"/> für <c>tel:</c> (Unify Phone o. Ä.), Standard in PixFix 69.</summary>
+    public const string DialMethodStandard = "Windows-Standard (tel:)";
+
+    /// <summary>Wert von <see cref="MailProgram"/> für <c>mailto:</c>.</summary>
+    public const string MailProgramStandard = "Windows-Standard";
+
+    /// <summary>Betreff der Rechnungs-Mail, solange keiner eingerichtet ist (wie PixFix 69).</summary>
+    public const string BillingMailSubjectDefault = "Kostenpflichtiger Support";
+
     /// <summary>Wert von <see cref="DialMethod"/> für die Windows-Wählhilfe (<c>dialer.exe</c>); sonst <c>tel:</c>.</summary>
     public const string DialMethodTapi = "Windows-TAPI-Wählhilfe";
 

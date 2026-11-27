@@ -54,3 +54,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 - Anrufen (Nummernauswahl, `tel:` oder Windows-Wählhilfe) und Auflegen über TAPI (genau ein aktives Gespräch, sonst nichts).
 - E-Mail mit Vorlage, Rechnungs-Mail und Fax-Dokumente; Outlook Desktop per COM, sonst `mailto:`.
 - Cobra: Anruftext in die Zwischenablage, Cobra-Schnelltexte (Notizen, Lösungstext, Status). Abrechnungszeit „Jetzt“.
+- Phase 5b: Vorlagenfenster mit allen Vorlagenarten (E-Mail mit Betreff, Anrufgründe, Lösungstexte, Fax-Vorlagen,
+  Schnelltextbausteine, Eintragsvorlagen), Cobra-Schnelltexten und Fax-Dokumenten – anlegen, bearbeiten (sofort
+  gespeichert), sortieren, löschen; Fax-Dokumente hinzufügen, umbenennen und öffnen.
+- Einstellungen mit Reitern: Anrufe (Wählmethode, E-Mail-Programm, Rechnungs-Mail mit Empfänger/Betreff/Text) und
+  Import aus PixFix 69. Ohne Einstellung gilt Outlook als E-Mail-Programm.

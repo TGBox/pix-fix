@@ -22,7 +22,7 @@
         <DataTemplate DataType="{x:Type calls:CallsViewModel}">
             <calls:CallsView />
         </DataTemplate>
-        <DataTemplate DataType="{x:Type settings:ImportViewModel}">
+        <DataTemplate DataType="{x:Type settings:SettingsViewModel}">
             <settings:SettingsView />
         </DataTemplate>
     </Window.Resources>
