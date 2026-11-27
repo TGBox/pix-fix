@@ -47,8 +47,10 @@
             <DockPanel DockPanel.Dock="Top" Margin="0,6,0,6">
                 <Button DockPanel.Dock="Right" Content="Papierkorb" Command="{Binding ShowTrashCommand}" Padding="8,1" Margin="4,0,0,0"
                         ToolTip="Gelöschte Einträge wiederherstellen oder endgültig löschen" />
-                <Button DockPanel.Dock="Right" Content="+ Neu" Command="{Binding NewEntryCommand}" Padding="8,1"
-                        ToolTip="Neuen Eintrag im Abschnitt des ausgewählten Eintrags anlegen" />
+                <Button DockPanel.Dock="Right" Content="Abschnitte …" Command="{Binding ManageSectionsCommand}" Padding="8,1" Margin="4,0,0,0"
+                        ToolTip="Abschnitte umbenennen, sortieren oder leere Abschnitte löschen" />
+                <Button DockPanel.Dock="Right" Content="+ Neu ▾" Click="OnNewEntry" Padding="8,1"
+                        ToolTip="Neuen Eintrag im Abschnitt des ausgewählten Eintrags anlegen – leer oder aus einer Vorlage" />
                 <CheckBox Content="Archiv" IsChecked="{Binding ShowArchived}" VerticalAlignment="Center" Margin="0,0,8,0"
                           ToolTip="Archivierte Einträge mit anzeigen" />
                 <TextBlock Text="{Binding Summary}" Foreground="Gray" VerticalAlignment="Center" />
@@ -108,6 +110,10 @@
                                   Command="{Binding ToggleProtectedCommand}" ToolTip="Geschützt: nicht bearbeitbar und nicht löschbar" />
                     <ToggleButton Content="Archiv" Padding="6,0" Margin="2,0,0,0" IsChecked="{Binding SelectedEntry.IsArchived, Mode=OneWay}"
                                   Command="{Binding ToggleArchivedCommand}" ToolTip="Archivierte Einträge erscheinen nicht in der normalen Suche" />
+                    <Button Content="↑" Width="26" Margin="8,0,0,0" Command="{Binding MoveUpCommand}"
+                            ToolTip="Eintrag im Abschnitt nach oben (Alt+↑)" />
+                    <Button Content="↓" Width="26" Margin="2,0,0,0" Command="{Binding MoveDownCommand}"
+                            ToolTip="Eintrag im Abschnitt nach unten (Alt+↓)" />
                     <Button Content="Löschen" Padding="6,0" Margin="8,0,0,0" Command="{Binding DeleteCommand}"
                             ToolTip="In den Papierkorb verschieben" />
                 </StackPanel>
@@ -141,9 +147,53 @@
                     <Button Style="{StaticResource ToolButton}" Command="ApplicationCommands.Redo" Content="↷" ToolTip="Wiederholen (Strg+Y)" />
                     <Button Style="{StaticResource ToolButton}" Content="Bild einfügen …" Click="OnInsertImage"
                             ToolTip="Bilddatei einfügen. Screenshots einfach mit Strg+V einfügen oder Dateien hineinziehen." />
+                    <Button Style="{StaticResource ToolButton}" Content="Kopier-Button" Click="OnAddCopyAction"
+                            ToolTip="Aus dem markierten Text einen Kopier-Button machen, z. B. für Befehle oder Pfade" />
                     <TextBlock Text="{Binding Status}" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0" />
                 </WrapPanel>
             </DockPanel>
+
+            <!-- Kopier-Buttons des Eintrags -->
+            <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
+                <WrapPanel.Style>
+                    <Style TargetType="WrapPanel">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CopyActions.Count}" Value="0">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </WrapPanel.Style>
+                <TextBlock Text="Kopieren:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ItemsControl ItemsSource="{Binding CopyActions}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button MaxWidth="320" Margin="0,0,4,2" Padding="6,1" FontFamily="Consolas"
+                                    Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    ToolTip="{Binding Text}">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Kopier-Button löschen"
+                                                  Command="{Binding PlacementTarget.Tag.DeleteCopyActionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                                <Button.Tag>
+                                    <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                </Button.Tag>
+                                <!-- TextBlock statt Content-Text: Unterstriche (z. B. in Pfaden) sonst als Tastenkürzel verschluckt -->
+                                <TextBlock Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </WrapPanel>
 
             <Grid>
                 <RichTextBox x:Name="Editor"

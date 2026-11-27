@@ -27,6 +27,9 @@ public sealed record KnowledgeContent(
 /// <param name="ImageAssetIds">Bilder in Dokumentreihenfolge.</param>
 public sealed record KnowledgeContentUpdate(string Xaml, string PlainText, IReadOnlyList<string> ImageAssetIds);
 
+/// <summary>Abschnitt mit Anzahl seiner Einträge.</summary>
+public sealed record KnowledgeSectionInfo(string Id, string Name, int SortOrder, int EntryCount);
+
 /// <summary>Eintrag im Papierkorb.</summary>
 public sealed record KnowledgeTrashItem(string TrashId, string Title, string SectionName, DateTimeOffset DeletedUtc);
 
@@ -313,6 +316,191 @@ public sealed class KnowledgeRepository(PixFixDatabase database, AssetStore asse
         }
 
         tx.Commit();
+    }
+
+    // ------------------------------------------------------------------ Copy-Actions
+
+    public IReadOnlyList<CopyAction> LoadCopyActions(string entryId)
+    {
+        using var db = database.Open();
+        using var command = SqliteExtensions.Create(
+            db, "SELECT text, occurrence FROM copy_actions WHERE owner_kind = 'knowledge' AND owner_id = $id ORDER BY ordinal;", null, ("$id", entryId));
+        using var reader = command.ExecuteReader();
+        var result = new List<CopyAction>();
+        while (reader.Read())
+        {
+            result.Add(new CopyAction(reader.GetText("text"), (int)reader.GetInteger("occurrence")));
+        }
+
+        return result;
+    }
+
+    /// <summary>Neuen Kopier-Button anlegen. Derselbe Text wird wie in PixFix 69 nur einmal angelegt.</summary>
+    public bool AddCopyAction(string entryId, CopyAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        if (string.IsNullOrWhiteSpace(action.Text))
+        {
+            return false;
+        }
+
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        EnsureNotProtected(db, tx, entryId);
+        var exists = Convert.ToInt64(
+            db.Scalar("SELECT COUNT(*) FROM copy_actions WHERE owner_kind = 'knowledge' AND owner_id = $id AND text = $text;", tx, ("$id", entryId), ("$text", action.Text)),
+            CultureInfo.InvariantCulture) > 0;
+        if (exists)
+        {
+            return false;
+        }
+
+        var ordinal = Convert.ToInt32(
+            db.Scalar("SELECT COALESCE(MAX(ordinal), -1) + 1 FROM copy_actions WHERE owner_kind = 'knowledge' AND owner_id = $id;", tx, ("$id", entryId)),
+            CultureInfo.InvariantCulture);
+        db.Execute(
+            "INSERT INTO copy_actions(owner_kind, owner_id, ordinal, text, occurrence) VALUES('knowledge', $id, $ordinal, $text, $occ);",
+            tx,
+            ("$id", entryId),
+            ("$ordinal", ordinal),
+            ("$text", action.Text),
+            ("$occ", Math.Max(0, action.Occurrence)));
+        tx.Commit();
+        return true;
+    }
+
+    public void DeleteCopyAction(string entryId, string text)
+    {
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        EnsureNotProtected(db, tx, entryId);
+        db.Execute("DELETE FROM copy_actions WHERE owner_kind = 'knowledge' AND owner_id = $id AND text = $text;", tx, ("$id", entryId), ("$text", text));
+        tx.Commit();
+    }
+
+    // ------------------------------------------------------------------ Abschnitte und Reihenfolge
+
+    public IReadOnlyList<KnowledgeSectionInfo> LoadSections()
+    {
+        using var db = database.Open();
+        using var command = SqliteExtensions.Create(
+            db,
+            """
+            SELECT s.id, s.name, s.sort_order, COUNT(e.id) AS entry_count
+            FROM knowledge_sections s LEFT JOIN knowledge_entries e ON e.section_id = s.id
+            GROUP BY s.id, s.name, s.sort_order
+            ORDER BY s.sort_order, s.name;
+            """,
+            null);
+        using var reader = command.ExecuteReader();
+        var result = new List<KnowledgeSectionInfo>();
+        while (reader.Read())
+        {
+            result.Add(new KnowledgeSectionInfo(
+                reader.GetText("id"), reader.GetText("name"), (int)reader.GetInteger("sort_order"), (int)reader.GetInteger("entry_count")));
+        }
+
+        return result;
+    }
+
+    public void RenameSection(string sectionId, string newName)
+    {
+        var name = newName?.Trim() ?? string.Empty;
+        if (name.Length == 0)
+        {
+            throw new InvalidOperationException("Der Abschnittsname darf nicht leer sein.");
+        }
+
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        var clash = db.Scalar("SELECT id FROM knowledge_sections WHERE name = $name AND id <> $id;", tx, ("$name", name), ("$id", sectionId));
+        if (clash is string)
+        {
+            throw new InvalidOperationException($"Es gibt bereits einen Abschnitt „{name}“.");
+        }
+
+        db.Execute("UPDATE knowledge_sections SET name = $name WHERE id = $id;", tx, ("$name", name), ("$id", sectionId));
+        tx.Commit();
+    }
+
+    /// <summary>Abschnitt um eine Position nach oben (-1) oder unten (+1) verschieben.</summary>
+    public void MoveSection(string sectionId, int direction)
+    {
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        var ids = ReadIds(db, tx, "SELECT id FROM knowledge_sections ORDER BY sort_order, name;");
+        if (Swap(ids, sectionId, direction))
+        {
+            for (var i = 0; i < ids.Count; i++)
+            {
+                db.Execute("UPDATE knowledge_sections SET sort_order = $o WHERE id = $id;", tx, ("$o", i), ("$id", ids[i]));
+            }
+        }
+
+        tx.Commit();
+    }
+
+    /// <summary>Löscht einen leeren Abschnitt. Abschnitte mit Einträgen werden nicht gelöscht.</summary>
+    public void DeleteSection(string sectionId)
+    {
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        var count = Convert.ToInt64(db.Scalar("SELECT COUNT(*) FROM knowledge_entries WHERE section_id = $id;", tx, ("$id", sectionId)), CultureInfo.InvariantCulture);
+        if (count > 0)
+        {
+            throw new InvalidOperationException("Der Abschnitt enthält noch Einträge. Bitte zuerst verschieben oder löschen.");
+        }
+
+        db.Execute("DELETE FROM knowledge_sections WHERE id = $id;", tx, ("$id", sectionId));
+        tx.Commit();
+    }
+
+    /// <summary>Eintrag innerhalb seines Abschnitts nach oben (-1) oder unten (+1) verschieben.</summary>
+    public void MoveEntry(string entryId, int direction)
+    {
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        if (db.Scalar("SELECT section_id FROM knowledge_entries WHERE id = $id;", tx, ("$id", entryId)) is not string sectionId)
+        {
+            return;
+        }
+
+        var ids = ReadIds(db, tx, "SELECT id FROM knowledge_entries WHERE section_id = $s ORDER BY sort_order, title;", ("$s", sectionId));
+        if (Swap(ids, entryId, direction))
+        {
+            for (var i = 0; i < ids.Count; i++)
+            {
+                db.Execute("UPDATE knowledge_entries SET sort_order = $o WHERE id = $id;", tx, ("$o", i), ("$id", ids[i]));
+            }
+        }
+
+        tx.Commit();
+    }
+
+    private static List<string> ReadIds(SqliteConnection db, SqliteTransaction tx, string sql, params (string Name, object? Value)[] parameters)
+    {
+        using var command = SqliteExtensions.Create(db, sql, tx, parameters);
+        using var reader = command.ExecuteReader();
+        var ids = new List<string>();
+        while (reader.Read())
+        {
+            ids.Add(reader.GetText("id"));
+        }
+
+        return ids;
+    }
+
+    private static bool Swap(List<string> ids, string id, int direction)
+    {
+        var index = ids.IndexOf(id);
+        var target = index + Math.Sign(direction);
+        if (index < 0 || target < 0 || target >= ids.Count)
+        {
+            return false;
+        }
+
+        (ids[index], ids[target]) = (ids[target], ids[index]);
+        return true;
     }
 
     // ------------------------------------------------------------------ Papierkorb

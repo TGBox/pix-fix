@@ -92,6 +92,18 @@ public static class FlowDocumentStore
         return new SavedDocument(xaml, plain, ids);
     }
 
+    /// <summary>XAML eines Dokuments aus Klartext (z. B. Eintragsvorlage); jede Zeile wird ein Absatz.</summary>
+    public static string FromPlainText(string text)
+    {
+        var document = new FlowDocument();
+        foreach (var line in (text ?? string.Empty).Replace("\r\n", "\n", StringComparison.Ordinal).Split('\n'))
+        {
+            document.Blocks.Add(new Paragraph(new Run(line)));
+        }
+
+        return XamlWriter.Save(document);
+    }
+
     /// <summary>Alle Bilder im Dokument in Lesereihenfolge.</summary>
     public static IEnumerable<Image> Images(DependencyObject root)
     {

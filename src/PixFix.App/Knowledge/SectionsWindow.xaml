@@ -1,0 +1,31 @@
+<Window x:Class="PixFix.App.Knowledge.SectionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Abschnitte – Wissensdatenbank"
+        Width="520" Height="420"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <DockPanel Margin="12">
+        <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" TextWrapping="Wrap" Foreground="Gray"
+                   Text="Reihenfolge und Namen der Abschnitte. Löschen geht nur bei leeren Abschnitten – Einträge vorher in einen anderen Abschnitt verschieben." />
+        <TextBlock x:Name="Error" DockPanel.Dock="Bottom" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,8,0,0" />
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+            <TextBox x:Name="NameBox" Width="220" VerticalContentAlignment="Center" ToolTip="Neuer Name für den markierten Abschnitt" />
+            <Button Content="Umbenennen" Padding="10,2" Margin="6,0,0,0" Click="OnRename" IsDefault="True" />
+            <Button Content="Schließen" Padding="10,2" Margin="6,0,0,0" IsCancel="True" />
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Right" Margin="8,0,0,0">
+            <Button Content="↑ Nach oben" Padding="8,2" Click="OnMoveUp" />
+            <Button Content="↓ Nach unten" Padding="8,2" Margin="0,4,0,0" Click="OnMoveDown" />
+            <Button Content="Löschen" Padding="8,2" Margin="0,16,0,0" Click="OnDelete" />
+        </StackPanel>
+        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Abschnitt" Width="260" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="Einträge" Width="70" DisplayMemberBinding="{Binding EntryCount}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </DockPanel>
+</Window>

@@ -56,6 +56,8 @@ public partial class KnowledgeView : UserControl
         InputBindings.Add(new KeyBinding(new RelayCommand(() => MoveHit(+1)), Key.F3, ModifierKeys.None));
         InputBindings.Add(new KeyBinding(new RelayCommand(() => MoveHit(-1)), Key.F3, ModifierKeys.Shift));
         InputBindings.Add(new KeyBinding(new RelayCommand(FlushSave), Key.S, ModifierKeys.Control));
+        InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.MoveUpCommand.Execute(null)), Key.Up, ModifierKeys.Alt));
+        InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.MoveDownCommand.Execute(null)), Key.Down, ModifierKeys.Alt));
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
@@ -78,6 +80,7 @@ public partial class KnowledgeView : UserControl
         {
             viewModel.PropertyChanged -= OnViewModelPropertyChanged;
             viewModel.TrashRequested -= OnTrashRequested;
+            viewModel.SectionsRequested -= OnSectionsRequested;
         }
 
         viewModel = e.NewValue as KnowledgeViewModel;
@@ -85,6 +88,7 @@ public partial class KnowledgeView : UserControl
         {
             viewModel.PropertyChanged += OnViewModelPropertyChanged;
             viewModel.TrashRequested += OnTrashRequested;
+            viewModel.SectionsRequested += OnSectionsRequested;
             ShowDocument(viewModel.SelectedHit?.Id, viewModel.Document);
         }
     }
@@ -342,6 +346,71 @@ public partial class KnowledgeView : UserControl
 
     private static bool IsImageFile(string file) =>
         ImageExtensions.Contains(Path.GetExtension(file), StringComparer.OrdinalIgnoreCase);
+
+    // ------------------------------------------------------------------ Neuer Eintrag, Kopier-Buttons, Abschnitte
+
+    /// <summary>Menü „Leerer Eintrag“ plus alle Eintragsvorlagen.</summary>
+    private void OnNewEntry(object sender, RoutedEventArgs e)
+    {
+        if (viewModel is not { } vm || sender is not Button button)
+        {
+            return;
+        }
+
+        FlushSave();
+        var menu = new ContextMenu { PlacementTarget = button, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        var empty = new MenuItem { Header = "Leerer Eintrag" };
+        empty.Click += (_, _) => vm.CreateEntry(null);
+        menu.Items.Add(empty);
+        if (vm.EntryTemplates.Count > 0)
+        {
+            menu.Items.Add(new Separator());
+            foreach (var template in vm.EntryTemplates)
+            {
+                var item = new MenuItem { Header = "Vorlage: " + template.Name.Replace("_", "__", StringComparison.Ordinal) };
+                item.Click += (_, _) => vm.CreateEntry(template);
+                menu.Items.Add(item);
+            }
+        }
+
+        menu.IsOpen = true;
+    }
+
+    /// <summary>Markierten Text als Kopier-Button speichern; das Vorkommen merkt sich, welche Stelle gemeint war.</summary>
+    private void OnAddCopyAction(object sender, RoutedEventArgs e)
+    {
+        var text = Editor.Selection.Text.Trim();
+        if (text.Length == 0)
+        {
+            if (viewModel is not null)
+            {
+                viewModel.Status = "Bitte zuerst den Text markieren, der kopiert werden soll.";
+            }
+
+            return;
+        }
+
+        var before = new TextRange(Editor.Document.ContentStart, Editor.Selection.Start).Text;
+        var occurrence = 0;
+        for (var index = before.IndexOf(text, StringComparison.Ordinal); index >= 0; index = before.IndexOf(text, index + text.Length, StringComparison.Ordinal))
+        {
+            occurrence++;
+        }
+
+        viewModel?.AddCopyAction(text, occurrence);
+    }
+
+    private void OnSectionsRequested(object? sender, EventArgs e)
+    {
+        FlushSave();
+        if (viewModel is null)
+        {
+            return;
+        }
+
+        var window = new SectionsWindow(viewModel) { Owner = Window.GetWindow(this) };
+        window.ShowDialog();
+    }
 
     // ------------------------------------------------------------------ Papierkorb
 

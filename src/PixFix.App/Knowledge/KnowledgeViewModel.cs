@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 using PixFix.Core.Knowledge;
 using PixFix.Infrastructure.Knowledge;
 using PixFix.Infrastructure.Ocr;
+using PixFix.Infrastructure.Templates;
+using PixFix.Core.Common;
+using PixFix.Core.Templates;
 
 namespace PixFix.App.Knowledge;
 
@@ -26,6 +29,7 @@ public sealed class KnowledgeViewModel : ObservableObject
     private readonly KnowledgeRepository repository;
     private readonly KnowledgeDocumentService documents;
     private readonly OcrService ocr;
+    private readonly TemplateRepository templates;
     private readonly ILogger<KnowledgeViewModel> logger;
     private List<KnowledgeListItem> entries = [];
     private CancellationTokenSource? searchDelay;
@@ -45,11 +49,17 @@ public sealed class KnowledgeViewModel : ObservableObject
     private string editSection = string.Empty;
     private string editTags = string.Empty;
 
-    public KnowledgeViewModel(KnowledgeRepository repository, KnowledgeDocumentService documents, OcrService ocr, ILogger<KnowledgeViewModel> logger)
+    public KnowledgeViewModel(
+        KnowledgeRepository repository,
+        KnowledgeDocumentService documents,
+        OcrService ocr,
+        TemplateRepository templates,
+        ILogger<KnowledgeViewModel> logger)
     {
         this.repository = repository;
         this.documents = documents;
         this.ocr = ocr;
+        this.templates = templates;
         this.logger = logger;
         ResultsView = CollectionViewSource.GetDefaultView(Results);
         ReloadCommand = new RelayCommand(Reload);
@@ -60,10 +70,30 @@ public sealed class KnowledgeViewModel : ObservableObject
         ToggleProtectedCommand = new RelayCommand(() => UpdateFlags(f => f with { IsProtected = !f.IsProtected }), () => SelectedEntry is not null);
         ToggleArchivedCommand = new RelayCommand(() => UpdateFlags(f => f with { IsArchived = !f.IsArchived }), () => SelectedEntry is not null);
         ShowTrashCommand = new RelayCommand(() => TrashRequested?.Invoke(this, EventArgs.Empty));
+        ManageSectionsCommand = new RelayCommand(() => SectionsRequested?.Invoke(this, EventArgs.Empty));
+        MoveUpCommand = new RelayCommand(() => MoveSelected(-1), () => SelectedEntry is not null);
+        MoveDownCommand = new RelayCommand(() => MoveSelected(+1), () => SelectedEntry is not null);
+        CopyCommand = new RelayCommand<CopyAction>(CopyToClipboard);
+        DeleteCopyActionCommand = new RelayCommand<CopyAction>(DeleteCopyAction, _ => CanEdit);
     }
 
     /// <summary>Die Ansicht öffnet daraufhin den Papierkorb.</summary>
     public event EventHandler? TrashRequested;
+
+    /// <summary>Die Ansicht öffnet daraufhin die Abschnittsverwaltung.</summary>
+    public event EventHandler? SectionsRequested;
+
+    /// <summary>Kopier-Buttons des ausgewählten Eintrags.</summary>
+    public ObservableCollection<CopyAction> CopyActions { get; } = [];
+
+    /// <summary>Vorlagen für neue Einträge (aus PixFix 69 übernommen).</summary>
+    public ObservableCollection<Template> EntryTemplates { get; } = [];
+
+    public RelayCommand ManageSectionsCommand { get; }
+    public RelayCommand MoveUpCommand { get; }
+    public RelayCommand MoveDownCommand { get; }
+    public RelayCommand<CopyAction> CopyCommand { get; }
+    public RelayCommand<CopyAction> DeleteCopyActionCommand { get; }
 
     public ObservableCollection<KnowledgeHit> Results { get; } = [];
 
@@ -148,6 +178,9 @@ public sealed class KnowledgeViewModel : ObservableObject
                 OnPropertyChanged(nameof(CanEdit));
                 OnPropertyChanged(nameof(IsReadOnly));
                 DeleteCommand.NotifyCanExecuteChanged();
+                MoveUpCommand.NotifyCanExecuteChanged();
+                MoveDownCommand.NotifyCanExecuteChanged();
+                DeleteCopyActionCommand.NotifyCanExecuteChanged();
                 ToggleFavoriteCommand.NotifyCanExecuteChanged();
                 ToggleProtectedCommand.NotifyCanExecuteChanged();
                 ToggleArchivedCommand.NotifyCanExecuteChanged();
@@ -230,6 +263,12 @@ public sealed class KnowledgeViewModel : ObservableObject
             SectionNames.Add(name);
         }
 
+        EntryTemplates.Clear();
+        foreach (var template in templates.LoadByKind(TemplateKind.Entry))
+        {
+            EntryTemplates.Add(template);
+        }
+
         logger.LogInformation("Wissensdatenbank geladen: {Count} Einträge", entries.Count);
         ApplySearch();
         SelectEntry(SelectedHit?.Id);
@@ -308,6 +347,15 @@ public sealed class KnowledgeViewModel : ObservableObject
         OnPropertyChanged(nameof(EditTitle));
         OnPropertyChanged(nameof(EditSection));
         OnPropertyChanged(nameof(EditTags));
+
+        CopyActions.Clear();
+        if (SelectedEntry is not null)
+        {
+            foreach (var action in repository.LoadCopyActions(SelectedEntry.Id))
+            {
+                CopyActions.Add(action);
+            }
+        }
     }
 
     private async Task LoadDocumentAsync(KnowledgeHit? hit)
@@ -402,14 +450,101 @@ public sealed class KnowledgeViewModel : ObservableObject
         }
     }
 
-    private void CreateEntry()
+    private void CreateEntry() => CreateEntry(null);
+
+    /// <summary>Neuer Eintrag, optional mit dem Text einer Eintragsvorlage.</summary>
+    public void CreateEntry(Template? template)
     {
         var section = SelectedEntry?.SectionName ?? KnowledgeRepository.DefaultSection;
-        var id = repository.CreateEntry(section, "Neuer Eintrag");
+        var xaml = template is null ? string.Empty : FlowDocumentStore.FromPlainText(template.Body);
+        var id = repository.CreateEntry(section, "Neuer Eintrag", xaml);
         Query = string.Empty;
         Reload();
         SelectedHit = Results.FirstOrDefault(r => r.Id == id);
-        Status = "Neuer Eintrag angelegt – Titel oben eintragen.";
+        Status = template is null ? "Neuer Eintrag angelegt – Titel oben eintragen." : $"Neuer Eintrag aus Vorlage „{template.Name}“.";
+    }
+
+    private void MoveSelected(int direction)
+    {
+        if (SelectedEntry is not { } entry)
+        {
+            return;
+        }
+
+        repository.MoveEntry(entry.Id, direction);
+        Reload();
+    }
+
+    // ------------------------------------------------------------------ Copy-Actions
+
+    /// <summary>Kopier-Button für markierten Text anlegen (<paramref name="occurrence"/> = wievieltes Vorkommen im Text).</summary>
+    public void AddCopyAction(string text, int occurrence)
+    {
+        if (SelectedEntry is not { } entry || !CanEdit || string.IsNullOrWhiteSpace(text))
+        {
+            return;
+        }
+
+        try
+        {
+            Status = repository.AddCopyAction(entry.Id, new CopyAction(text.Trim(), occurrence))
+                ? "Kopier-Button angelegt."
+                : "Diesen Kopier-Button gibt es schon.";
+            SelectEntry(entry.Id);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    private void CopyToClipboard(CopyAction? action)
+    {
+        if (action is null)
+        {
+            return;
+        }
+
+        Clipboard.SetText(action.Text);
+        Status = "In die Zwischenablage kopiert.";
+    }
+
+    private void DeleteCopyAction(CopyAction? action)
+    {
+        if (action is null || SelectedEntry is not { } entry)
+        {
+            return;
+        }
+
+        try
+        {
+            repository.DeleteCopyAction(entry.Id, action.Text);
+            CopyActions.Remove(action);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Status = ex.Message;
+        }
+    }
+
+    // ------------------------------------------------------------------ Abschnitte
+
+    public IReadOnlyList<KnowledgeSectionInfo> LoadSections() => repository.LoadSections();
+
+    /// <summary>Führt eine Abschnittsänderung aus; Fehlermeldungen kommen als Rückgabewert (null = erfolgreich).</summary>
+    public string? ChangeSections(Action<KnowledgeRepository> change)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        try
+        {
+            change(repository);
+            Reload();
+            return null;
+        }
+        catch (InvalidOperationException ex)
+        {
+            return ex.Message;
+        }
     }
 
     private void DeleteSelected()

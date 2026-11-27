@@ -148,4 +148,60 @@ public sealed class KnowledgeRepositoryTests : IDisposable
         Assert.Equal(new[] { markerImage, null }, document.PictureAssetIds);
         Assert.Equal(document.PictureAssetIds, cached.PictureAssetIds);
     }
+
+    [Fact]
+    public void CopyActionsCanBeAddedAndDeleted()
+    {
+        Assert.Single(repository.LoadCopyActions(LegacyFixture.EntryA));
+
+        Assert.True(repository.AddCopyAction(LegacyFixture.EntryA, new Core.Common.CopyAction("ping 8.8.8.8", 0)));
+        Assert.False(repository.AddCopyAction(LegacyFixture.EntryA, new Core.Common.CopyAction("ping 8.8.8.8", 1)));
+        Assert.Equal(new[] { "ipconfig /all", "ping 8.8.8.8" }, repository.LoadCopyActions(LegacyFixture.EntryA).Select(a => a.Text));
+
+        repository.DeleteCopyAction(LegacyFixture.EntryA, "ipconfig /all");
+
+        Assert.Equal("ping 8.8.8.8", Assert.Single(repository.LoadCopyActions(LegacyFixture.EntryA)).Text);
+    }
+
+    [Fact]
+    public void SectionsCanBeRenamedMovedAndDeletedWhenEmpty()
+    {
+        var sections = repository.LoadSections();
+        Assert.Equal(new[] { "Allgemeines", "Fehlermeldungen" }, sections.Select(s => s.Name));
+        var errors = sections[1];
+
+        repository.RenameSection(errors.Id, "Fehlerbilder");
+        repository.MoveSection(errors.Id, -1);
+
+        Assert.Equal(new[] { "Fehlerbilder", "Allgemeines" }, repository.LoadSections().Select(s => s.Name));
+        Assert.Throws<InvalidOperationException>(() => repository.RenameSection(errors.Id, "Allgemeines"));
+        Assert.Throws<InvalidOperationException>(() => repository.DeleteSection(errors.Id));
+
+        var empty = repository.LoadSections().Single(s => s.Name == "Fehlerbilder");
+        repository.MoveToTrash(LegacyFixture.EntryA);
+        repository.DeleteSection(empty.Id);
+        Assert.DoesNotContain(repository.LoadSections(), s => s.Id == empty.Id);
+    }
+
+    [Fact]
+    public void EntriesCanBeMovedWithinSection()
+    {
+        var first = repository.CreateEntry("Fehlermeldungen", "Zweiter");
+        var order = () => repository.LoadAll().Where(e => e.SectionName == "Fehlermeldungen").OrderBy(e => e.SortOrder).Select(e => e.Title).ToList();
+        Assert.Equal(new[] { "Drucker", "Zweiter" }, order());
+
+        repository.MoveEntry(first, -1);
+        Assert.Equal(new[] { "Zweiter", "Drucker" }, order());
+
+        repository.MoveEntry(first, -1); // schon oben: keine Änderung
+        Assert.Equal(new[] { "Zweiter", "Drucker" }, order());
+    }
+
+    [Fact]
+    public void EntryTemplatesAreAvailable()
+    {
+        var templates = new Templates.TemplateRepository(database).LoadByKind(Core.Templates.TemplateKind.Entry);
+
+        Assert.Equal("Störung", Assert.Single(templates).Name);
+    }
 }

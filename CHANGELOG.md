@@ -32,3 +32,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
   Hintergrund, Text wird durchsuchbar. Speicherformat FlowDocument-XAML mit Bildverweisen auf die Ablage; übernommene
   Dokumente werden beim ersten Speichern umgewandelt und verwenden ihre Originalbilder weiter.
 - Datenbankschema v2: OCR-Text je Bild.
+- Phase 2c: Kopier-Buttons (markierten Text als Button speichern, Klick kopiert, Löschen per Kontextmenü);
+  neue Einträge leer oder aus einer Eintragsvorlage; Abschnitte umbenennen, sortieren und leere löschen;
+  Einträge im Abschnitt mit ↑/↓ bzw. Alt+↑/↓ verschieben.
