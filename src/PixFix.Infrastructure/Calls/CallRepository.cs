@@ -50,7 +50,8 @@ public sealed class CallRepository(PixFixDatabase database, TimeProvider? timePr
     }
 
     /// <summary>Verschiebt den Anruf in den Papierkorb.</summary>
-    public void MoveToTrash(string callId)
+    /// <summary>Verschiebt den Anruf in den Papierkorb; liefert die Papierkorb-Id (für „Rückgängig“) oder null, wenn es ihn nicht gibt.</summary>
+    public string? MoveToTrash(string callId)
     {
         using var db = database.Open();
         using var tx = db.BeginTransaction();
@@ -66,19 +67,21 @@ public sealed class CallRepository(PixFixDatabase database, TimeProvider? timePr
 
         if (call is null)
         {
-            return;
+            return null;
         }
 
+        var trashId = Guid.NewGuid().ToString("N");
         db.Execute(
             "INSERT INTO trash(id, kind, original_id, deleted_utc, snapshot_json) VALUES($id, $kind, $original, $now, $json);",
             tx,
-            ("$id", Guid.NewGuid().ToString("N")),
+            ("$id", trashId),
             ("$kind", TrashKind),
             ("$original", callId),
             ("$now", time.GetUtcNow().ToDb()),
             ("$json", JsonSerializer.Serialize(new CallSnapshot(SnapshotFormat, call))));
         db.Execute("DELETE FROM calls WHERE id = $id;", tx, ("$id", callId));
         tx.Commit();
+        return trashId;
     }
 
     public IReadOnlyList<CallTrashItem> LoadTrash()

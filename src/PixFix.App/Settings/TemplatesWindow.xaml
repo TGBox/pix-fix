@@ -1,8 +1,10 @@
 <Window x:Class="PixFix.App.Settings.TemplatesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:common="clr-namespace:PixFix.App.Common"
         Title="PixFix – Vorlagen und Schnelltexte" Width="980" Height="640" MinWidth="720" MinHeight="420"
-        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        common:LayoutMemory.Key="templates">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="Visible" />
         <Style x:Key="ListButton" TargetType="Button">
@@ -123,7 +125,9 @@
                         <TextBlock Text="Anzeigename" VerticalAlignment="Center" Margin="0,0,8,0" />
                         <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" Padding="3,2" />
                     </DockPanel>
-                    <ListBox ItemsSource="{Binding FaxDocuments}" SelectedItem="{Binding SelectedFax}" DisplayMemberPath="Name" />
+                    <ListBox ItemsSource="{Binding FaxDocuments}" SelectedItem="{Binding SelectedFax}" DisplayMemberPath="Name"
+                             AllowDrop="True" DragOver="OnFaxDragOver" Drop="OnFaxDrop"
+                             ToolTip="Dokumente auch per Drag &amp; Drop aus dem Explorer hinzufügen" />
                 </DockPanel>
             </TabItem>
         </TabControl>

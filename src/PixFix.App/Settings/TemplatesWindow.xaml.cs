@@ -21,6 +21,20 @@ public partial class TemplatesWindow : Window
         window.ShowDialog();
     }
 
+    private void OnFaxDragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void OnFaxDrop(object sender, DragEventArgs e)
+    {
+        if (DataContext is TemplatesViewModel viewModel && e.Data.GetData(DataFormats.FileDrop) is string[] files)
+        {
+            viewModel.AddFaxFiles(files.Where(System.IO.File.Exists));
+        }
+    }
+
     private void CommitPendingInput()
     {
         if (System.Windows.Input.Keyboard.FocusedElement is System.Windows.Controls.TextBox box)

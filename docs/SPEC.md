@@ -105,7 +105,7 @@ kein Fehlertext („[OCR-Fehler …]“) als Suchtext verwendet.
 - Karten ein-/ausklappen, löschen (Papierkorb), wiederherstellen.
 - Bei `Erledigt` + kostenpflichtig + Rückfrage „Nein" → Rechnungs-Mail über **denselben** Weg wie der Button „Support-Mail für Rechnung".
 - Spalten-/Splitterbreiten der Karten werden gemerkt und für neue Karten übernommen.
-- *Neuaufbau:* Liste + eine Anrufkarte statt untereinander ausgeklappter Karten; Ein-/Ausklappen und gemerkte Kartenbreiten entfallen dadurch.
+- *Neuaufbau:* Liste + eine Anrufkarte statt untereinander ausgeklappter Karten; Ein-/Ausklappen entfällt. Fenster- und Splitterbreiten werden gemerkt.
 
 ### F5 – Rückruf-Erinnerungen · M
 

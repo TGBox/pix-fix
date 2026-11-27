@@ -68,7 +68,7 @@ public partial class ImageSearchWindow : Window
 
     private void OnPaste(object sender, RoutedEventArgs e) => PasteFromClipboard();
 
-    private void PasteFromClipboard()
+    internal void PasteFromClipboard()
     {
         if (Clipboard.ContainsFileDropList())
         {

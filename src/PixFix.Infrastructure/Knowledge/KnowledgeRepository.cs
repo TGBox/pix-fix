@@ -506,17 +506,19 @@ public sealed class KnowledgeRepository(PixFixDatabase database, AssetStore asse
     // ------------------------------------------------------------------ Papierkorb
 
     /// <summary>Verschiebt einen Eintrag in den Papierkorb. Dateien in der Ablage bleiben erhalten.</summary>
-    public void MoveToTrash(string entryId)
+    /// <summary>Verschiebt den Eintrag in den Papierkorb und liefert die Papierkorb-Id (für „Rückgängig“).</summary>
+    public string MoveToTrash(string entryId)
     {
         using var db = database.Open();
         using var tx = db.BeginTransaction();
         EnsureNotProtected(db, tx, entryId);
 
         var snapshot = ReadSnapshot(db, tx, entryId) ?? throw new InvalidOperationException("Eintrag nicht gefunden.");
+        var trashId = Guid.NewGuid().ToString("N");
         db.Execute(
             "INSERT INTO trash(id, kind, original_id, deleted_utc, snapshot_json) VALUES($id, $kind, $original, $now, $json);",
             tx,
-            ("$id", Guid.NewGuid().ToString("N")),
+            ("$id", trashId),
             ("$kind", TrashKind),
             ("$original", entryId),
             ("$now", time.GetUtcNow().ToDb()),
@@ -524,6 +526,7 @@ public sealed class KnowledgeRepository(PixFixDatabase database, AssetStore asse
         db.Execute("DELETE FROM copy_actions WHERE owner_kind = 'knowledge' AND owner_id = $id;", tx, ("$id", entryId));
         db.Execute("DELETE FROM knowledge_entries WHERE id = $id;", tx, ("$id", entryId));
         tx.Commit();
+        return trashId;
     }
 
     public IReadOnlyList<KnowledgeTrashItem> LoadTrash()

@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Threading;
+using PixFix.App.Common;
 using PixFix.Core.Templates;
 
 namespace PixFix.App.Calls;
@@ -13,7 +14,7 @@ namespace PixFix.App.Calls;
 /// Anrufansicht. Die beiden Textfelder „Warum wird angerufen?“ und „Lösung“ sind RichTextBoxen (RTF wie in PixFix 69);
 /// sie werden 1 s nach der letzten Eingabe, beim Verlassen des Feldes und beim Wechsel des Anrufs gespeichert.
 /// </summary>
-public partial class CallsView : UserControl
+public partial class CallsView : UserControl, IShortcutTarget
 {
     private static readonly TimeSpan SaveDelay = TimeSpan.FromSeconds(1);
 
@@ -78,6 +79,23 @@ public partial class CallsView : UserControl
             FlushTexts();
             ShowTexts(viewModel?.SelectedCall);
         }
+    }
+
+    /// <summary>Anrufe haben keine Suche – Strg+F setzt den Fokus in die Anrufliste.</summary>
+    public void FocusSearch()
+    {
+        CallList.Focus();
+        if (CallList.SelectedItem is { } selected && CallList.ItemContainerGenerator.ContainerFromItem(selected) is IInputElement item)
+        {
+            item.Focus();
+        }
+    }
+
+    public void CreateNew()
+    {
+        FlushTexts();
+        viewModel?.NewCallCommand.Execute(null);
+        _ = Dispatcher.InvokeAsync(() => CustomerNumberBox.Focus(), DispatcherPriority.Loaded);
     }
 
     // ------------------------------------------------------------------ Texte laden/speichern

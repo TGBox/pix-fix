@@ -34,6 +34,7 @@ public sealed class CallsViewModel : ObservableObject
     private readonly FaxDocumentRepository faxDocuments;
     private readonly SettingsRepository settings;
     private readonly ILogger<CallsViewModel> logger;
+    private readonly UndoService undo;
     private readonly DispatcherTimer reminderTimer;
     private CallItemViewModel? selectedCall;
     private bool showDone;
@@ -46,8 +47,10 @@ public sealed class CallsViewModel : ObservableObject
         TemplateRepository templates,
         FaxDocumentRepository faxDocuments,
         SettingsRepository settings,
+        UndoService undo,
         ILogger<CallsViewModel> logger)
     {
+        this.undo = undo;
         this.repository = repository;
         this.quickTexts = quickTexts;
         this.templates = templates;
@@ -264,6 +267,7 @@ public sealed class CallsViewModel : ObservableObject
         reminderOpen = true;
         try
         {
+            ReminderDue?.Invoke(this, item.Title + " – " + item.Summary);
             var snooze = ReminderWindow.ShowFor(Owner, item.Model);
             if (snooze is { } delay)
             {
@@ -288,6 +292,9 @@ public sealed class CallsViewModel : ObservableObject
             reminderOpen = false;
         }
     }
+
+    /// <summary>Eine Rückruf-Erinnerung wird gleich angezeigt (Text für die Windows-Benachrichtigung).</summary>
+    public event EventHandler<string>? ReminderDue;
 
     /// <summary>Nach „OK“ in einer Erinnerung soll das Hauptfenster die Anrufe zeigen.</summary>
     public event EventHandler? ShowCallsRequested;
@@ -315,10 +322,14 @@ public sealed class CallsViewModel : ObservableObject
             return;
         }
 
-        repository.MoveToTrash(item.Id);
+        var trashId = repository.MoveToTrash(item.Id);
         Calls.Remove(item);
         SelectedCall = null;
         Status = "Anruf liegt im Papierkorb.";
+        if (trashId is not null)
+        {
+            undo.Offer($"Anruf „{item.Title}“ wurde in den Papierkorb verschoben.", () => RestoreFromTrash(trashId));
+        }
     }
 
     public IReadOnlyList<CallTrashItem> LoadTrash() => repository.LoadTrash();

@@ -15,6 +15,12 @@ public static class SettingKeys
     /// <summary>Ordner für automatische Sicherungen und Sicherungen vor einer Wiederherstellung; leer = Datenordner\backups.</summary>
     public const string BackupDirectory = "backup.directory";
 
+    /// <summary>Schließen-Kreuz lässt PixFix im Infobereich weiterlaufen (Standard: ja), damit Erinnerungen nicht verloren gehen.</summary>
+    public const string CloseToTray = "ui.close_to_tray";
+
+    /// <summary>Systemweites Tastenkürzel Strg+Alt+P für die Bildsuche (Standard: ja).</summary>
+    public const string GlobalHotkey = "ui.global_hotkey";
+
     /// <summary>TI-Monitor an/aus, automatische Prüfung alle 5 Minuten, Blinken bei neuer Störung (Werte aus PixFix 69: true/false).</summary>
     public const string TiMonitorEnabled = "ti_monitor.enabled";
     public const string TiMonitorAutoCheck = "ti_monitor.auto_check";

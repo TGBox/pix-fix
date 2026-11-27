@@ -23,6 +23,7 @@ public sealed partial class ImportViewModel : ObservableObject
     private string status = "Noch kein Import durchgeführt.";
     private string reportText = string.Empty;
     private int progressPercent;
+    private CancellationTokenSource? cancellation;
 
     public ImportViewModel(RestoreService restore, BackupCoordinator coordinator, PixFixDatabase database, ILogger<ImportViewModel> logger)
     {
@@ -31,9 +32,13 @@ public sealed partial class ImportViewModel : ObservableObject
         this.database = database;
         this.logger = logger;
         ImportCommand = new AsyncRelayCommand(ImportAsync, () => !IsBusy);
+        CancelCommand = new RelayCommand(() => cancellation?.Cancel(), () => IsBusy);
     }
 
     public IAsyncRelayCommand ImportCommand { get; }
+
+    /// <summary>Import abbrechen, solange die Daten noch nicht ausgetauscht werden.</summary>
+    public RelayCommand CancelCommand { get; }
 
     /// <summary>Nach erfolgreichem Import, damit andere Bereiche ihre Daten neu laden.</summary>
     public event EventHandler? ImportSucceeded;
@@ -46,6 +51,7 @@ public sealed partial class ImportViewModel : ObservableObject
             if (SetProperty(ref isBusy, value))
             {
                 ImportCommand.NotifyCanExecuteChanged();
+                CancelCommand.NotifyCanExecuteChanged();
             }
         }
     }
@@ -98,6 +104,8 @@ public sealed partial class ImportViewModel : ObservableObject
             return;
         }
 
+        var cts = new CancellationTokenSource();
+        cancellation = cts;
         IsBusy = true;
         ReportText = string.Empty;
         ProgressPercent = 0;
@@ -110,7 +118,7 @@ public sealed partial class ImportViewModel : ObservableObject
                 ProgressPercent = p.Percent;
                 Status = p.Message;
             });
-            var report = await Task.Run(() => restore.ImportLegacyFolder(folder, coordinator.Folder, progress)).ConfigureAwait(true);
+            var report = await Task.Run(() => restore.ImportLegacyFolder(folder, coordinator.Folder, progress, cts.Token)).ConfigureAwait(true);
 
             ReportText = report.ToText();
             Status = report.Succeeded ? "Import erfolgreich abgeschlossen." : "Import abgebrochen – es wurde nichts übernommen.";
@@ -126,6 +134,8 @@ public sealed partial class ImportViewModel : ObservableObject
         }
         finally
         {
+            cancellation = null;
+            cts.Dispose();
             coordinator.Exit();
             IsBusy = false;
         }

@@ -102,6 +102,38 @@ public sealed class BackupTests : IDisposable
         Assert.False(Directory.Exists(BackupFolder) && Directory.GetFiles(BackupFolder, "Vor-*").Length > 0);
     }
 
+    [Fact]
+    public void CancelledBackupLeavesNoFile()
+    {
+        ImportFixture();
+        var file = Path.Combine(BackupFolder, "abgebrochen.pixfix");
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+
+        Assert.ThrowsAny<OperationCanceledException>(() => writer.Create(file, null, cancelled.Token));
+
+        Assert.False(File.Exists(file));
+        Assert.False(File.Exists(file + ".partial"));
+    }
+
+    [Fact]
+    public void CancelledRestoreChangesNothing()
+    {
+        ImportFixture();
+        var file = Path.Combine(BackupFolder, "test.pixfix");
+        writer.Create(file);
+        new CallRepository(database).Create();
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+
+        var report = restore.RestoreArchive(file, BackupFolder, null, cancelled.Token);
+
+        Assert.False(report.Succeeded);
+        Assert.Contains(report.Errors, e => e.Contains("abgebrochen", StringComparison.Ordinal));
+        Assert.Equal(3, new CallRepository(database).LoadAll().Count);
+        Assert.Empty(Directory.GetFiles(BackupFolder, "Vor-*"));
+    }
+
     [Theory]
     [InlineData("../x.png")]
     [InlineData("assets/../../x.png")]

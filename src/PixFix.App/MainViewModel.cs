@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PixFix.App.Calls;
+using PixFix.App.Common;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
 using PixFix.App.Ti;
@@ -17,7 +18,7 @@ public sealed class MainViewModel : ObservableObject
 {
     private NavigationSection? selectedSection;
 
-    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, WorkspacesViewModel workspaces, CallsViewModel calls, TiMonitorViewModel ti, SettingsViewModel settings)
+    public MainViewModel(AppPaths paths, KnowledgeViewModel knowledge, WorkspacesViewModel workspaces, CallsViewModel calls, TiMonitorViewModel ti, SettingsViewModel settings, UndoService undo)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(knowledge);
@@ -29,6 +30,7 @@ public sealed class MainViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(calls);
         ArgumentNullException.ThrowIfNull(ti);
         Ti = ti;
+        Undo = undo;
         settings.DataReplaced += (_, _) =>
         {
             knowledge.Reload();
@@ -56,6 +58,15 @@ public sealed class MainViewModel : ObservableObject
 
         // Klick auf das TI-Symbol öffnet den Monitor und bestätigt eine neue Störung.
         ShowTiCommand = new RelayCommand(() => SelectedSection = Sections[3]);
+
+        // Strg+1 … Strg+5 wechselt den Bereich.
+        ShowSectionCommand = new RelayCommand<string>(index =>
+        {
+            if (int.TryParse(index, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var i) && i >= 1 && i <= Sections.Count)
+            {
+                SelectedSection = Sections[i - 1];
+            }
+        });
     }
 
     public ObservableCollection<NavigationSection> Sections { get; }
@@ -76,5 +87,16 @@ public sealed class MainViewModel : ObservableObject
 
     public TiMonitorViewModel Ti { get; }
 
+    /// <summary>Hinweisleiste „… gelöscht – Rückgängig“.</summary>
+    public UndoService Undo { get; }
+
     public RelayCommand ShowTiCommand { get; }
+
+    public RelayCommand<string> ShowSectionCommand { get; }
+
+    public void ShowCalls() => SelectedSection = Sections[2];
+
+    public void ShowTi() => SelectedSection = Sections[3];
+
+    public void ShowKnowledge() => SelectedSection = Sections[0];
 }

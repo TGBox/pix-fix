@@ -537,20 +537,30 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
 
     private void AddAttachment()
     {
-        if (SelectedItem is not { } item)
+        if (SelectedItem is null)
         {
             return;
         }
 
         var dialog = new OpenFileDialog { Title = "PDF anhängen", Filter = "PDF-Dateien|*.pdf|Alle Dateien|*.*", Multiselect = true };
-        if (dialog.ShowDialog() != true)
+        if (dialog.ShowDialog() == true)
+        {
+            AddAttachments(dialog.FileNames);
+        }
+    }
+
+    /// <summary>Dateien an den ausgewählten Reiter anhängen (Dateiauswahl oder Drag &amp; Drop aus dem Explorer).</summary>
+    public void AddAttachments(IEnumerable<string> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+        if (SelectedItem is not { } item || !CanEdit)
         {
             return;
         }
 
         Try(() =>
         {
-            foreach (var file in dialog.FileNames)
+            foreach (var file in files)
             {
                 repository.AddAttachment(item.Id, file);
             }

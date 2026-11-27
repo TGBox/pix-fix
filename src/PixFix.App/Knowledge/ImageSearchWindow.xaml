@@ -1,12 +1,14 @@
 <Window x:Class="PixFix.App.Knowledge.ImageSearchWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:common="clr-namespace:PixFix.App.Common"
         Title="Bildsuche – Fehlerbild finden"
         Width="1100" Height="720"
         MinWidth="700" MinHeight="450"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        AllowDrop="True">
+        AllowDrop="True"
+        common:LayoutMemory.Key="imagesearch">
     <Grid Margin="12">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="420" MinWidth="300" />
@@ -49,7 +51,7 @@
             </ListBox>
         </DockPanel>
 
-        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="imagesearch.splitter" />
 
         <!-- Rechts: große Vorschau des markierten Treffers -->
         <DockPanel Grid.Column="2" Margin="8,0,0,0">

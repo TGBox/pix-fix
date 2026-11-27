@@ -79,3 +79,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
   und Lagebild, „Jetzt prüfen“, automatische Prüfung alle 5 Minuten. TI-Symbol links unten zeigt den Zustand und blinkt
   bei einer neuen Störung, bis der Monitor geöffnet wird. Abfragefehler bleiben im Modul.
 - Einstellungen → TI-Monitor: aktivieren, automatisch prüfen, blinken (Werte aus PixFix 69 werden übernommen).
+- Fenstergröße, -position und Maximiert sowie die Splitterbreiten (Navigation, Wissensdatenbank, Schreibbereiche, Anrufe,
+  Bildsuche) werden gemerkt; liegt die gespeicherte Position auf einem nicht mehr vorhandenen Monitor, bleibt nur die Größe.
+- Infobereich: Schließen lässt PixFix im Infobereich weiterlaufen (Erinnerungen, TI-Monitor, Sicherung bleiben aktiv),
+  Menü mit Öffnen, Anrufe, Bildsuche, TI-Monitor und Beenden. Windows-Benachrichtigungen für fällige Rückrufe und neue
+  TI-Störungen, wenn PixFix nicht im Vordergrund ist.
+- Tastatur: Strg+1 … Strg+5 (Bereiche), Strg+F (Suche), Strg+N (neu), Entf in den Listen (Papierkorb), Zugriffstasten
+  (Alt+Buchstabe) für die wichtigsten Schaltflächen. Systemweit Strg+Alt+P: PixFix nach vorn und Bildsuche mit dem
+  Screenshot aus der Zwischenablage. Übersicht unter Einstellungen → Allgemein.
+- „Rückgängig“-Hinweis nach dem Löschen eines Anrufs oder Wissensdatenbank-Eintrags (12 Sekunden).
+- Drag & Drop: PDF-Dateien auf den Kopf eines Reiters ziehen hängt sie an; Fax-Dokumente per Drag & Drop hinzufügen.
+- Sicherung, Prüfung, Wiederherstellung und Import aus PixFix 69 lassen sich abbrechen, solange die Daten noch nicht
+  ausgetauscht werden.

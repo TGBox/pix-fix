@@ -1,6 +1,7 @@
 <UserControl x:Class="PixFix.App.Knowledge.KnowledgeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:common="clr-namespace:PixFix.App.Common"
              xmlns:local="clr-namespace:PixFix.App.Knowledge"
              xmlns:editing="clr-namespace:PixFix.App.Editing">
     <UserControl.Resources>
@@ -38,13 +39,13 @@
                 </TextBlock>
             </Grid>
             <DockPanel DockPanel.Dock="Top" Margin="0,6,0,6">
-                <Button DockPanel.Dock="Right" Content="Papierkorb" Command="{Binding ShowTrashCommand}" Padding="8,1" Margin="4,0,0,0"
+                <Button DockPanel.Dock="Right" Content="_Papierkorb" Command="{Binding ShowTrashCommand}" Padding="8,1" Margin="4,0,0,0"
                         ToolTip="Gelöschte Einträge wiederherstellen oder endgültig löschen" />
-                <Button DockPanel.Dock="Right" Content="Bildsuche …" Command="{Binding ImageSearchCommand}" Padding="8,1" Margin="4,0,0,0"
+                <Button DockPanel.Dock="Right" Content="_Bildsuche …" Command="{Binding ImageSearchCommand}" Padding="8,1" Margin="4,0,0,0"
                         ToolTip="Ähnliche Fehlerbilder zu einem Screenshot finden (Strg+Umschalt+B)" />
-                <Button DockPanel.Dock="Right" Content="Abschnitte …" Command="{Binding ManageSectionsCommand}" Padding="8,1" Margin="4,0,0,0"
+                <Button DockPanel.Dock="Right" Content="Ab_schnitte …" Command="{Binding ManageSectionsCommand}" Padding="8,1" Margin="4,0,0,0"
                         ToolTip="Abschnitte umbenennen, sortieren oder leere Abschnitte löschen" />
-                <Button DockPanel.Dock="Right" Content="+ Neu ▾" Click="OnNewEntry" Padding="8,1"
+                <Button DockPanel.Dock="Right" Content="+ _Neu ▾" Click="OnNewEntry" Padding="8,1"
                         ToolTip="Neuen Eintrag im Abschnitt des ausgewählten Eintrags anlegen – leer oder aus einer Vorlage" />
                 <CheckBox Content="Archiv" IsChecked="{Binding ShowArchived}" VerticalAlignment="Center" Margin="0,0,8,0"
                           ToolTip="Archivierte Einträge mit anzeigen" />
@@ -55,6 +56,9 @@
                      HorizontalContentAlignment="Stretch"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+                <ListBox.InputBindings>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" />
+                </ListBox.InputBindings>
                 <ListBox.GroupStyle>
                     <GroupStyle>
                         <GroupStyle.HeaderTemplate>
@@ -82,7 +86,7 @@
             </ListBox>
         </DockPanel>
 
-        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="knowledge.splitter" />
 
         <!-- Eintrag -->
         <DockPanel Grid.Column="2" Margin="8,0,0,0">

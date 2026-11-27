@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Input;
+using PixFix.App.Common;
 
 namespace PixFix.App.Knowledge;
 
@@ -9,8 +10,10 @@ namespace PixFix.App.Knowledge;
 /// Ansicht der Wissensdatenbank: Trefferliste, Kopf des Eintrags und der gemeinsame Editor.
 /// Der Code-Behind öffnet nur Menüs und Dialoge; vorher wird der Editor gespeichert.
 /// </summary>
-public partial class KnowledgeView : UserControl
+public partial class KnowledgeView : UserControl, IShortcutTarget
 {
+    private ImageSearchWindow? openImageSearch;
+
     private KnowledgeViewModel? viewModel;
 
     public KnowledgeView()
@@ -22,6 +25,18 @@ public partial class KnowledgeView : UserControl
         InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.MoveUpCommand.Execute(null)), Key.Up, ModifierKeys.Alt));
         InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.MoveDownCommand.Execute(null)), Key.Down, ModifierKeys.Alt));
         InputBindings.Add(new KeyBinding(new RelayCommand(() => viewModel?.ImageSearchCommand.Execute(null)), Key.B, ModifierKeys.Control | ModifierKeys.Shift));
+    }
+
+    public void FocusSearch()
+    {
+        SearchBox.Focus();
+        SearchBox.SelectAll();
+    }
+
+    public void CreateNew()
+    {
+        EditorPanel.FlushSave();
+        viewModel?.CreateEntry(null);
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -80,10 +95,41 @@ public partial class KnowledgeView : UserControl
 
     private void OnImageSearchRequested(object? sender, EventArgs e)
     {
-        EditorPanel.FlushSave();
-        if (viewModel is not null)
+        if (viewModel is null)
         {
-            new ImageSearchWindow(viewModel.ImageSearch, viewModel, viewModel.Logger) { Owner = Window.GetWindow(this) }.ShowDialog();
+            return;
+        }
+
+        var paste = viewModel.PasteOnNextImageSearch;
+        viewModel.PasteOnNextImageSearch = false;
+
+        // Bildsuche schon offen (z. B. erneut Strg+Alt+P): nach vorn holen und neu suchen.
+        if (openImageSearch is { } open)
+        {
+            open.Activate();
+            if (paste)
+            {
+                open.PasteFromClipboard();
+            }
+
+            return;
+        }
+
+        EditorPanel.FlushSave();
+        var window = new ImageSearchWindow(viewModel.ImageSearch, viewModel, viewModel.Logger) { Owner = Window.GetWindow(this) };
+        if (paste)
+        {
+            window.Loaded += (_, _) => window.PasteFromClipboard();
+        }
+
+        openImageSearch = window;
+        try
+        {
+            window.ShowDialog();
+        }
+        finally
+        {
+            openImageSearch = null;
         }
     }
 

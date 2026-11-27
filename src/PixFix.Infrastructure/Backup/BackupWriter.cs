@@ -25,7 +25,8 @@ public sealed class BackupWriter(AppPaths paths, PixFixDatabase database, TimePr
 
     private readonly TimeProvider time = timeProvider ?? TimeProvider.System;
 
-    public BackupResult Create(string targetFile, IProgress<ImportProgress>? progress = null)
+    /// <remarks>Abbrechen über <paramref name="cancellationToken"/> löscht die halbfertige Datei; eine vorhandene Sicherung bleibt.</remarks>
+    public BackupResult Create(string targetFile, IProgress<ImportProgress>? progress = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(targetFile);
         var target = Path.GetFullPath(targetFile);
@@ -56,6 +57,7 @@ public sealed class BackupWriter(AppPaths paths, PixFixDatabase database, TimePr
                 var done = 0;
                 foreach (var relative in assets)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var source = Path.Combine(paths.DataDirectory, relative.Replace('/', Path.DirectorySeparatorChar));
                     if (!File.Exists(source))
                     {
@@ -81,6 +83,7 @@ public sealed class BackupWriter(AppPaths paths, PixFixDatabase database, TimePr
                 JsonSerializer.Serialize(stream, manifest, BackupArchive.JsonOptions);
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             progress?.Report(new ImportProgress(88, "Sicherung wird geprüft …"));
             BackupArchive.Verify(partial);
             File.Move(partial, target, overwrite: true);

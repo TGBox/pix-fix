@@ -15,6 +15,7 @@ using PixFix.Infrastructure.Images;
 using PixFix.Infrastructure.Templates;
 using PixFix.Core.Common;
 using PixFix.Core.Templates;
+using PixFix.App.Common;
 
 namespace PixFix.App.Knowledge;
 
@@ -29,6 +30,7 @@ public sealed class KnowledgeViewModel : ObservableObject, IDocumentEditorHost
 {
     private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(250);
 
+    private readonly UndoService undo;
     private readonly KnowledgeRepository repository;
     private readonly KnowledgeDocumentService documents;
     private readonly OcrService ocr;
@@ -59,8 +61,10 @@ public sealed class KnowledgeViewModel : ObservableObject, IDocumentEditorHost
         OcrService ocr,
         TemplateRepository templates,
         ImageSearchService imageSearch,
+        UndoService undo,
         ILogger<KnowledgeViewModel> logger)
     {
+        this.undo = undo;
         this.repository = repository;
         this.documents = documents;
         this.ocr = ocr;
@@ -255,6 +259,16 @@ public sealed class KnowledgeViewModel : ObservableObject, IDocumentEditorHost
     public event EventHandler? ImageSearchRequested;
 
     public RelayCommand ImageSearchCommand => imageSearchCommand ??= new RelayCommand(() => ImageSearchRequested?.Invoke(this, EventArgs.Empty));
+
+    /// <summary>Beim nächsten Öffnen der Bildsuche sofort das Bild aus der Zwischenablage suchen (Strg+Alt+P).</summary>
+    public bool PasteOnNextImageSearch { get; set; }
+
+    /// <summary>Bildsuche öffnen; mit <paramref name="pasteClipboard"/> direkt mit dem Screenshot aus der Zwischenablage.</summary>
+    public void RequestImageSearch(bool pasteClipboard)
+    {
+        PasteOnNextImageSearch = pasteClipboard;
+        ImageSearchRequested?.Invoke(this, EventArgs.Empty);
+    }
 
     private RelayCommand? imageSearchCommand;
 
@@ -631,10 +645,11 @@ public sealed class KnowledgeViewModel : ObservableObject, IDocumentEditorHost
 
         try
         {
-            repository.MoveToTrash(entry.Id);
+            var trashId = repository.MoveToTrash(entry.Id);
             SelectedHit = null;
             Reload();
             Status = $"„{entry.Title}“ liegt im Papierkorb.";
+            undo.Offer($"„{entry.Title}“ wurde in den Papierkorb verschoben.", () => RestoreFromTrash(trashId));
         }
         catch (InvalidOperationException ex)
         {

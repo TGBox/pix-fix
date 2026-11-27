@@ -15,7 +15,9 @@ using PixFix.Infrastructure.Ocr;
 using PixFix.Infrastructure.Templates;
 using PixFix.Infrastructure.Ti;
 using PixFix.Infrastructure.Images;
+using System.Windows.Input;
 using PixFix.App.Backup;
+using PixFix.App.Common;
 using PixFix.App.Calls;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
@@ -29,6 +31,8 @@ namespace PixFix.App;
 public partial class App : Application
 {
     private IHost? host;
+    private GlobalHotkey? hotkey;
+    private bool exiting;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -76,6 +80,7 @@ public partial class App : Application
         builder.Services.AddSingleton<SettingsRepository>();
         builder.Services.AddSingleton<CobraQuickTextRepository>();
         builder.Services.AddSingleton<CallsViewModel>();
+        builder.Services.AddSingleton<GeneralSettingsViewModel>();
         builder.Services.AddSingleton<CallSettingsViewModel>();
         builder.Services.AddSingleton(sp => new BackupWriter(paths, sp.GetRequiredService<PixFixDatabase>()));
         builder.Services.AddSingleton(sp => new RestoreService(paths, sp.GetRequiredService<BackupWriter>()));
@@ -88,10 +93,15 @@ public partial class App : Application
         builder.Services.AddSingleton<ImportViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<MainWindow>();
+        builder.Services.AddSingleton<TrayService>();
+        builder.Services.AddSingleton<UndoService>();
         host = builder.Build();
         host.Start();
 
         host.Services.GetRequiredService<PixFixDatabase>().Migrate();
+
+        // Fenstergrößen und Splitterbreiten merken (vor dem ersten Fenster).
+        LayoutMemory.Initialize(host.Services.GetRequiredService<SettingsRepository>());
 
         Log.Information("PixFix gestartet, Datenordner {DataDirectory}", paths.DataDirectory);
 
@@ -112,6 +122,103 @@ public partial class App : Application
 
         // TI-Monitor: erste Prüfung im Hintergrund, danach alle 5 Minuten (falls eingeschaltet).
         host.Services.GetRequiredService<TiMonitorViewModel>().Start();
+
+        SetUpTrayAndHotkey(window);
+    }
+
+    /// <summary>Infobereich, Windows-Benachrichtigungen und das systemweite Kürzel Strg+Alt+P.</summary>
+    private void SetUpTrayAndHotkey(MainWindow window)
+    {
+        var services = host!.Services;
+        var main = services.GetRequiredService<MainViewModel>();
+        var settings = services.GetRequiredService<SettingsRepository>();
+        var calls = services.GetRequiredService<CallsViewModel>();
+        var ti = services.GetRequiredService<TiMonitorViewModel>();
+        var tray = services.GetRequiredService<TrayService>();
+
+        void Open() => WindowFlash.BringToFront(window);
+
+        void OpenImageSearch()
+        {
+            Open();
+            main.ShowKnowledge();
+            var knowledge = services.GetRequiredService<KnowledgeViewModel>();
+            _ = Dispatcher.InvokeAsync(() => knowledge.RequestImageSearch(pasteClipboard: true), DispatcherPriority.Background);
+        }
+
+        tray.AddMenuItem("PixFix öffnen", Open, bold: true);
+        tray.AddMenuItem("Anrufe", () =>
+        {
+            Open();
+            main.ShowCalls();
+        });
+        tray.AddMenuItem("Bildsuche mit Zwischenablage (Strg+Alt+P)", OpenImageSearch);
+        tray.AddMenuItem("TI-Monitor", () =>
+        {
+            Open();
+            main.ShowTi();
+        });
+        tray.OpenRequested += (_, _) => Open();
+        tray.ExitRequested += (_, _) => ExitApplication();
+        tray.Show();
+
+        // Schließen-Kreuz: im Infobereich weiterlaufen, damit Erinnerungen und TI-Monitor aktiv bleiben.
+        window.Closing += (_, e) =>
+        {
+            if (!exiting && settings.GetFlag(SettingKeys.CloseToTray, true))
+            {
+                e.Cancel = true;
+                window.Hide();
+                tray.NotifyMinimizedOnce();
+            }
+        };
+        SessionEnding += (_, _) => exiting = true;
+
+        // Windows-Benachrichtigungen nur, wenn PixFix gerade nicht im Vordergrund ist.
+        calls.ReminderDue += (_, text) =>
+        {
+            if (!window.IsActive)
+            {
+                tray.Notify("Rückruf fällig", text, onClick: () =>
+                {
+                    Open();
+                    main.ShowCalls();
+                });
+            }
+        };
+        var tiWasBlinking = false;
+        ti.PropertyChanged += (_, e) =>
+        {
+            var blinking = ti.IsBlinking;
+            var started = blinking && !tiWasBlinking;
+            tiWasBlinking = blinking;
+            if (started && !window.IsActive)
+            {
+                tray.Notify("Störung in der TI", ti.IncidentText + "\n" + ti.LageText, warning: true, onClick: () =>
+                {
+                    Open();
+                    main.ShowTi();
+                });
+            }
+        };
+
+        if (settings.GetFlag(SettingKeys.GlobalHotkey, true))
+        {
+            hotkey = GlobalHotkey.TryRegister(window, ModifierKeys.Control | ModifierKeys.Alt, Key.P, OpenImageSearch);
+            if (hotkey is null)
+            {
+                Log.Warning("Strg+Alt+P ist bereits von einem anderen Programm belegt – systemweites Kürzel nicht aktiv");
+            }
+        }
+    }
+
+    /// <summary>Wirklich beenden (Menü im Infobereich): offene Eingaben speichern lassen und schließen.</summary>
+    private void ExitApplication()
+    {
+        exiting = true;
+        hotkey?.Dispose();
+        hotkey = null;
+        MainWindow?.Close();
     }
 
     protected override void OnExit(ExitEventArgs e)

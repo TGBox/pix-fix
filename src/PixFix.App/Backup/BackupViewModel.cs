@@ -28,6 +28,7 @@ public sealed class BackupViewModel : ObservableObject
     private int progressPercent;
     private string status = string.Empty;
     private string reportText = string.Empty;
+    private CancellationTokenSource? cancellation;
 
     public BackupViewModel(
         BackupCoordinator coordinator,
@@ -49,6 +50,7 @@ public sealed class BackupViewModel : ObservableObject
         ChangeFolderCommand = new RelayCommand(ChangeFolder, CanRun);
         ResetFolderCommand = new RelayCommand(() => SetFolder(string.Empty), () => CanRun() && !IsDefaultFolder);
         OpenFolderCommand = new RelayCommand(OpenFolder);
+        CancelCommand = new RelayCommand(() => cancellation?.Cancel(), () => IsBusy);
 
         coordinator.AutoBackupFinished += (_, _) => OnPropertyChanged(nameof(LastAutoBackupText));
     }
@@ -63,6 +65,7 @@ public sealed class BackupViewModel : ObservableObject
     public RelayCommand ChangeFolderCommand { get; }
     public RelayCommand ResetFolderCommand { get; }
     public RelayCommand OpenFolderCommand { get; }
+    public RelayCommand CancelCommand { get; }
 
     public string BackupFolder => coordinator.Folder;
 
@@ -114,6 +117,7 @@ public sealed class BackupViewModel : ObservableObject
                 RestoreCommand.NotifyCanExecuteChanged();
                 ChangeFolderCommand.NotifyCanExecuteChanged();
                 ResetFolderCommand.NotifyCanExecuteChanged();
+                CancelCommand.NotifyCanExecuteChanged();
             }
         }
     }
@@ -161,9 +165,9 @@ public sealed class BackupViewModel : ObservableObject
     private async Task CreateAsync(string? file)
     {
         file ??= Path.Combine(coordinator.Folder, DefaultName());
-        await RunAsync("Sicherung wird erstellt …", async progress =>
+        await RunAsync("Sicherung wird erstellt …", async (progress, token) =>
         {
-            var result = await Task.Run(() => writer.Create(file, progress)).ConfigureAwait(true);
+            var result = await Task.Run(() => writer.Create(file, progress, token)).ConfigureAwait(true);
             Status = "Sicherung erstellt und geprüft.";
             ReportText = new StringBuilder()
                 .AppendLine("Sicherung erstellt und vollständig geprüft.")
@@ -188,11 +192,15 @@ public sealed class BackupViewModel : ObservableObject
             return;
         }
 
-        await RunAsync("Sicherung wird geprüft …", async progress =>
+        await RunAsync("Sicherung wird geprüft …", async (progress, token) =>
         {
             var info = await Task.Run(() => BackupArchive.Verify(
                 file,
-                new SyncProgress<(int Done, int Total)>(p => progress.Report(new ImportProgress(100 * p.Done / Math.Max(1, p.Total), $"Datei {p.Done} von {p.Total} wird geprüft …"))))).ConfigureAwait(true);
+                new SyncProgress<(int Done, int Total)>(p =>
+                {
+                    token.ThrowIfCancellationRequested();
+                    progress.Report(new ImportProgress(100 * p.Done / Math.Max(1, p.Total), $"Datei {p.Done} von {p.Total} wird geprüft …"));
+                }))).ConfigureAwait(true);
             Status = "Die Sicherung ist vollständig und unbeschädigt.";
             ReportText = InfoText(info, "Prüfung bestanden: alle Dateien vorhanden, Längen und Prüfsummen stimmen.");
         }).ConfigureAwait(true);
@@ -226,9 +234,9 @@ public sealed class BackupViewModel : ObservableObject
             return;
         }
 
-        await RunAsync("Wiederherstellung wird vorbereitet …", async progress =>
+        await RunAsync("Wiederherstellung wird vorbereitet …", async (progress, token) =>
         {
-            var report = await Task.Run(() => restore.RestoreArchive(file, coordinator.Folder, progress)).ConfigureAwait(true);
+            var report = await Task.Run(() => restore.RestoreArchive(file, coordinator.Folder, progress, token)).ConfigureAwait(true);
             ReportText = report.ToText();
             if (report.Succeeded)
             {
@@ -291,7 +299,7 @@ public sealed class BackupViewModel : ObservableObject
     }
 
     /// <summary>Führt einen Vorgang mit Fortschrittsbalken aus; nie parallel zu einer anderen Sicherung/Wiederherstellung.</summary>
-    private async Task RunAsync(string startText, Func<IProgress<ImportProgress>, Task> work)
+    private async Task RunAsync(string startText, Func<IProgress<ImportProgress>, CancellationToken, Task> work)
     {
         if (!coordinator.TryEnter())
         {
@@ -299,6 +307,8 @@ public sealed class BackupViewModel : ObservableObject
             return;
         }
 
+        var cts = new CancellationTokenSource();
+        cancellation = cts;
         IsBusy = true;
         ProgressPercent = 0;
         Status = startText;
@@ -310,8 +320,13 @@ public sealed class BackupViewModel : ObservableObject
         });
         try
         {
-            await work(progress).ConfigureAwait(true);
+            await work(progress, cts.Token).ConfigureAwait(true);
             ProgressPercent = 100;
+        }
+        catch (OperationCanceledException)
+        {
+            Status = "Abgebrochen.";
+            ReportText = "Vom Benutzer abgebrochen. Eine halbfertige Sicherungsdatei wurde gelöscht.";
         }
         catch (Exception ex) when (ex is BackupException or IOException or UnauthorizedAccessException or SqliteException or InvalidDataException)
         {
@@ -321,6 +336,8 @@ public sealed class BackupViewModel : ObservableObject
         }
         finally
         {
+            cancellation = null;
+            cts.Dispose();
             coordinator.Exit();
             IsBusy = false;
             OnPropertyChanged(nameof(LastAutoBackupText));

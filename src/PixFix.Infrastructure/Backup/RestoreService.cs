@@ -25,10 +25,19 @@ public sealed class RestoreService(
     private readonly TimeProvider time = timeProvider ?? TimeProvider.System;
 
     /// <summary>Sicherung wiederherstellen. Vorher wird der aktuelle Stand nach <paramref name="safetyFolder"/> gesichert.</summary>
-    public ImportReport RestoreArchive(string archiveFile, string safetyFolder, IProgress<ImportProgress>? progress = null)
+    /// <remarks>
+    /// Mit <paramref name="cancellationToken"/> lässt sich bis kurz vor dem Austausch abbrechen; die Daten bleiben dann unverändert.
+    /// </remarks>
+    public ImportReport RestoreArchive(
+        string archiveFile,
+        string safetyFolder,
+        IProgress<ImportProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         var report = new ImportReport(archiveFile);
-        Run(report, safetyFolder, progress, stage =>
+        var reporter = progress;
+        progress = Guard(progress, cancellationToken);
+        Run(report, safetyFolder, reporter, progress, cancellationToken, stage =>
         {
             progress?.Report(new ImportProgress(1, "Sicherung wird gelesen …"));
             using var zip = BackupArchive.OpenZip(archiveFile);
@@ -50,16 +59,38 @@ public sealed class RestoreService(
     }
 
     /// <summary>Datenbestand durch den Inhalt eines PixFix-69-Ordners ersetzen (auch wenn schon Daten vorhanden sind).</summary>
-    public ImportReport ImportLegacyFolder(string legacyFolder, string safetyFolder, IProgress<ImportProgress>? progress = null)
+    public ImportReport ImportLegacyFolder(
+        string legacyFolder,
+        string safetyFolder,
+        IProgress<ImportProgress>? progress = null,
+        CancellationToken cancellationToken = default)
     {
         var report = new ImportReport(legacyFolder);
-        Run(report, safetyFolder, progress, stage => ImportLegacy(legacyFolder, stage, report, progress, 0));
+        var guarded = Guard(progress, cancellationToken);
+        Run(report, safetyFolder, progress, guarded, cancellationToken, stage => ImportLegacy(legacyFolder, stage, report, guarded, 0));
         return report;
     }
 
+    /// <summary>
+    /// Jede Fortschrittsmeldung prüft auf Abbruch – so endet auch der Import aus PixFix 69 mitten in den Datensätzen
+    /// (seine Transaktion in der Stage-Datenbank wird verworfen).
+    /// </summary>
+    private static IProgress<ImportProgress> Guard(IProgress<ImportProgress>? progress, CancellationToken cancellationToken) =>
+        new SyncProgress(p =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            progress?.Report(p);
+        });
+
     // ------------------------------------------------------------------ Ablauf
 
-    private void Run(ImportReport report, string safetyFolder, IProgress<ImportProgress>? progress, Action<AppPaths> prepare)
+    private void Run(
+        ImportReport report,
+        string safetyFolder,
+        IProgress<ImportProgress>? reporter,
+        IProgress<ImportProgress> progress,
+        CancellationToken cancellationToken,
+        Action<AppPaths> prepare)
     {
         var stage = new AppPaths(Path.Combine(paths.DataDirectory, StageFolder));
         try
@@ -73,11 +104,17 @@ public sealed class RestoreService(
             }
 
             FinishStage(stage);
-            report.Warnings.AddRange(SafetyBackup(safetyFolder, progress));
-            progress?.Report(new ImportProgress(97, "Daten werden ausgetauscht …"));
+            report.Warnings.AddRange(SafetyBackup(safetyFolder, progress, cancellationToken));
+
+            // Letzte Gelegenheit zum Abbrechen – ab hier wird ausgetauscht.
+            progress.Report(new ImportProgress(97, "Daten werden ausgetauscht …"));
             Activate(stage);
             report.Committed = true;
-            progress?.Report(new ImportProgress(100, "Daten wurden übernommen."));
+            reporter?.Report(new ImportProgress(100, "Daten wurden übernommen."));
+        }
+        catch (OperationCanceledException)
+        {
+            report.Errors.Add("Vom Benutzer abgebrochen – es wurde nichts verändert.");
         }
         catch (BackupException ex)
         {
@@ -93,7 +130,7 @@ public sealed class RestoreService(
             Cleanup();
             if (!report.Succeeded)
             {
-                progress?.Report(new ImportProgress(100, "Abgebrochen – die bisherigen Daten sind unverändert."));
+                reporter?.Report(new ImportProgress(100, "Abgebrochen – die bisherigen Daten sind unverändert."));
             }
         }
     }
@@ -239,7 +276,7 @@ public sealed class RestoreService(
     }
 
     /// <summary>Sicherung des aktuellen Stands vor dem Austausch (nur wenn Daten vorhanden sind).</summary>
-    private IEnumerable<string> SafetyBackup(string safetyFolder, IProgress<ImportProgress>? progress)
+    private IEnumerable<string> SafetyBackup(string safetyFolder, IProgress<ImportProgress>? progress, CancellationToken cancellationToken)
     {
         if (!File.Exists(paths.DatabaseFile))
         {
@@ -256,7 +293,7 @@ public sealed class RestoreService(
 
         progress?.Report(new ImportProgress(91, "Aktueller Stand wird vorher gesichert …"));
         var stamp = time.GetLocalNow().ToString("yyyy-MM-dd-HHmmss", CultureInfo.InvariantCulture);
-        var result = writer.Create(Path.Combine(safetyFolder, $"Vor-Wiederherstellung-{stamp}.pixfix"));
+        var result = writer.Create(Path.Combine(safetyFolder, $"Vor-Wiederherstellung-{stamp}.pixfix"), null, cancellationToken);
         return [$"Der vorherige Stand wurde gesichert: {result.File}"];
     }
 

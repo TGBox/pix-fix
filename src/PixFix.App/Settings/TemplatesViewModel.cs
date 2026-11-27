@@ -241,9 +241,16 @@ public sealed class TemplatesViewModel : ObservableObject
             return;
         }
 
+        AddFaxFiles(dialog.FileNames);
+    }
+
+    /// <summary>Dateien als Fax-Dokumente übernehmen (Dateiauswahl oder Drag &amp; Drop aus dem Explorer).</summary>
+    public void AddFaxFiles(IEnumerable<string> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
         try
         {
-            foreach (var file in dialog.FileNames)
+            foreach (var file in files)
             {
                 faxDocuments.Add(file);
             }

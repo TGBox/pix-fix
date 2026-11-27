@@ -1,6 +1,7 @@
 <Window x:Class="PixFix.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:common="clr-namespace:PixFix.App.Common"
         xmlns:calls="clr-namespace:PixFix.App.Calls"
         xmlns:ti="clr-namespace:PixFix.App.Ti"
         xmlns:knowledge="clr-namespace:PixFix.App.Knowledge"
@@ -11,7 +12,21 @@
         Height="850"
         MinWidth="900"
         MinHeight="500"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        common:LayoutMemory.Key="main">
+    <Window.InputBindings>
+        <!-- Bereiche: Strg+1 … Strg+5 -->
+        <KeyBinding Key="D1" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="1" />
+        <KeyBinding Key="D2" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="2" />
+        <KeyBinding Key="D3" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="3" />
+        <KeyBinding Key="D4" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="4" />
+        <KeyBinding Key="D5" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="5" />
+        <KeyBinding Key="NumPad1" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="1" />
+        <KeyBinding Key="NumPad2" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="2" />
+        <KeyBinding Key="NumPad3" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="3" />
+        <KeyBinding Key="NumPad4" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="4" />
+        <KeyBinding Key="NumPad5" Modifiers="Control" Command="{Binding ShowSectionCommand}" CommandParameter="5" />
+    </Window.InputBindings>
     <Window.Resources>
         <!-- Je Bereich die passende Ansicht zum ViewModel -->
         <DataTemplate DataType="{x:Type knowledge:KnowledgeViewModel}">
@@ -84,10 +99,21 @@
                      Padding="4" />
         </DockPanel>
 
-        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="main.splitter" />
 
         <Grid Grid.Column="2" Margin="16">
-            <ContentControl Content="{Binding SelectedSection.Content}" />
+            <ContentControl x:Name="SectionHost" Content="{Binding SelectedSection.Content}" Focusable="False" />
+            <!-- Nach dem Löschen: „Rückgängig“ (12 Sekunden) -->
+            <Border DataContext="{Binding Undo}" Visibility="{Binding IsVisible, Converter={StaticResource Visible}}"
+                    HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,4" Padding="14,8"
+                    Background="#323A45" CornerRadius="6" Panel.ZIndex="10">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Text}" Foreground="White" VerticalAlignment="Center" MaxWidth="520" TextTrimming="CharacterEllipsis" />
+                    <Button Content="Rückgängig" Command="{Binding UndoCommand}" Margin="16,0,0,0" Padding="10,2" FontWeight="SemiBold" />
+                    <Button Content="✕" Command="{Binding DismissCommand}" Margin="6,0,0,0" Padding="6,2" Background="Transparent"
+                            Foreground="White" BorderThickness="0" ToolTip="Hinweis schließen" />
+                </StackPanel>
+            </Border>
             <!-- Platzhalter für Bereiche, die noch nicht umgesetzt sind -->
             <StackPanel>
                 <StackPanel.Style>
