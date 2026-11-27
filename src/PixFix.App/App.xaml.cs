@@ -103,6 +103,20 @@ public partial class App : Application
         // Fenstergrößen und Splitterbreiten merken (vor dem ersten Fenster).
         LayoutMemory.Initialize(host.Services.GetRequiredService<SettingsRepository>());
 
+        // Lösungsbausteine im Editor (Wissensdatenbank und Schreibbereiche).
+        var startupServices = host.Services;
+        var templateStore = startupServices.GetRequiredService<TemplateRepository>();
+        PixFix.App.Editing.DocumentEditor.SnippetStore = templateStore;
+        PixFix.App.Editing.DocumentEditor.ManageSnippets = owner =>
+        {
+            var templates = new TemplatesViewModel(
+                templateStore,
+                startupServices.GetRequiredService<CobraQuickTextRepository>(),
+                startupServices.GetRequiredService<FaxDocumentRepository>());
+            templates.SelectedKind = templates.Kinds.First(k => k.Kind == PixFix.Core.Templates.TemplateKind.Snippet);
+            TemplatesWindow.ShowFor(owner, templates);
+        };
+
         Log.Information("PixFix gestartet, Datenordner {DataDirectory}", paths.DataDirectory);
 
         var window = host.Services.GetRequiredService<MainWindow>();

@@ -91,3 +91,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 - Drag & Drop: PDF-Dateien auf den Kopf eines Reiters ziehen hängt sie an; Fax-Dokumente per Drag & Drop hinzufügen.
 - Sicherung, Prüfung, Wiederherstellung und Import aus PixFix 69 lassen sich abbrechen, solange die Daten noch nicht
   ausgetauscht werden.
+- Programmsymbol `assets/pix-fix.ico` für EXE, Hauptfenster und Infobereich.
+- Editor: „Bausteine ▾“ fügt Lösungsbausteine an der Cursorposition ein (Code-Bausteine als Consolas-Block), speichert
+  markierten Text als Baustein und öffnet die Bausteinverwaltung – wie in PixFix 69.
+- Schreibbereiche: Papierkorb für Reiter mit Wiederherstellen (inkl. Kopier-Buttons, PDF-Anhängen und Bildern) und
+  endgültigem Löschen; „Rückgängig“-Hinweis auch nach dem Löschen eines Reiters.
+- Schreibbereiche: „Per Mail …“ öffnet den Reiter als Outlook-Entwurf mit Formatierung, eingebetteten Bildern und den
+  PDF-Anhängen (Empfänger: leer oder E-Mail-Adressen des geöffneten Anrufs); mit dem Standard-Mailprogramm nur Text.
+- Import aus einem PixFix-69-Ordner, der nur XML-Daten enthält (vor der SQLite-Umstellung): Kopie wird umgewandelt, das
+  Original bleibt unverändert.

@@ -64,6 +64,43 @@ public sealed class InformationRepositoryTests : IDisposable
     }
 
     [Fact]
+    public void DeletedEntryCanBeRestoredWithCopyActionsAttachmentsAndImages()
+    {
+        var image = repository.StoreImage([4, 5, 6], ".png");
+        repository.SaveContent("i1", $"<FlowDocument><Paragraph><Image Tag=\"pixfix-asset:{image}\" /></Paragraph></FlowDocument>", "KIM", [image]);
+
+        var trashId = repository.DeleteEntry("i1");
+        Assert.DoesNotContain(repository.LoadEntries("werkzeuge"), e => e.Id == "i1");
+        var trashed = Assert.Single(repository.LoadTrash());
+        Assert.Equal("KIM öffnen", trashed.Title);
+        Assert.Equal("Werkzeuge", trashed.Workspace);
+
+        var restored = repository.RestoreEntry(trashId);
+
+        Assert.Equal("i1", restored);
+        var entry = Assert.Single(repository.LoadEntries("werkzeuge"), e => e.Id == "i1");
+        Assert.Equal("KIM", entry.Section);
+        Assert.Equal("KIM öffnen", entry.Title);
+        Assert.Equal(2, repository.LoadCopyActions("i1").Count);
+        Assert.Single(repository.LoadAttachments("i1"));
+        using (var db = database.Open())
+        {
+            Assert.Equal(image, db.Scalar("SELECT asset_id FROM information_entry_images WHERE entry_id = 'i1';"));
+        }
+
+        Assert.Empty(repository.LoadTrash());
+        Assert.Throws<InvalidOperationException>(() => repository.RestoreEntry(trashId));
+    }
+
+    [Fact]
+    public void TrashEntryCanBeDeletedPermanently()
+    {
+        var trashId = repository.DeleteEntry("i2");
+        repository.DeleteFromTrash(trashId);
+        Assert.Empty(repository.LoadTrash());
+    }
+
+    [Fact]
     public void ProtectedEntryOrWorkspaceBlocksChanges()
     {
         repository.SetProtected("i1", true);

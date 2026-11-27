@@ -204,6 +204,23 @@ public sealed class BackupTests : IDisposable
     }
 
     [Fact]
+    public void XmlOnlyPixFix69FolderIsImportedWithoutChangingIt()
+    {
+        WriteLegacyXml();
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+        File.Delete(fixture.DatabaseFile);
+
+        var report = restore.ImportLegacyFolder(fixture.ProgramDirectory, BackupFolder);
+
+        Assert.True(report.Succeeded, report.ToText());
+        Assert.False(File.Exists(fixture.DatabaseFile), "Der PixFix-69-Ordner darf nicht verändert werden.");
+        Assert.Equal("00074", Assert.Single(new CallRepository(database).LoadAll()).CustomerNumber);
+        using var db = database.Open();
+        Assert.Equal(1, db.Count("knowledge_entries"));
+        Assert.Equal(1, db.Count("information_attachments"));
+    }
+
+    [Fact]
     public void LegacyFolderCanReplaceExistingData()
     {
         ImportFixture();
@@ -249,6 +266,18 @@ public sealed class BackupTests : IDisposable
     /// <summary>Sicherung 2.1: dieselben Dateien, aber XML statt pixfix.db (Aufbau wie XmlSerializer in PixFix 69).</summary>
     private void CreateLegacy21Backup(string file, int manifestCalls = 1)
     {
+        WriteLegacyXml();
+        CreateLegacyBackup(
+            file,
+            "2.1",
+            "LegacyXml",
+            $"<Entries>1</Entries><Calls>{manifestCalls}</Calls><DeletedCalls>1</DeletedCalls><WritingWorkspaces>1</WritingWorkspaces><InformationEntries>1</InformationEntries><PdfAttachments>1</PdfAttachments>",
+            path => path != "pixfix.db");
+    }
+
+    /// <summary>XML-Datenbestand wie PixFix 69 vor der SQLite-Umstellung (XmlSerializer-Listen).</summary>
+    private void WriteLegacyXml()
+    {
         var a = LegacyFixture.EntryA;
         File.WriteAllText(Path.Combine(fixture.DataDirectory, "pixfix.xml"), $$"""
             <?xml version="1.0" encoding="utf-8"?>
@@ -288,13 +317,6 @@ public sealed class BackupTests : IDisposable
               </InformationEntry>
             </ArrayOfInformationEntry>
             """);
-
-        CreateLegacyBackup(
-            file,
-            "2.1",
-            "LegacyXml",
-            $"<Entries>1</Entries><Calls>{manifestCalls}</Calls><DeletedCalls>1</DeletedCalls><WritingWorkspaces>1</WritingWorkspaces><InformationEntries>1</InformationEntries><PdfAttachments>1</PdfAttachments>",
-            path => path != "pixfix.db");
     }
 
     private void CreateLegacyBackup(string file, string version, string storageMode, string counts, Func<string, bool> include)

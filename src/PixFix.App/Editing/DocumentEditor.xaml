@@ -35,6 +35,8 @@
                         ToolTip="Bilddatei einfügen. Screenshots einfach mit Strg+V einfügen oder Dateien hineinziehen." />
                 <Button Style="{StaticResource ToolButton}" Content="Kopier-Button" Click="OnAddCopyAction"
                         ToolTip="Aus dem markierten Text einen Kopier-Button machen, z. B. für Befehle oder Pfade" />
+                <Button Style="{StaticResource ToolButton}" Content="Bausteine ▾" Click="OnSnippets"
+                        ToolTip="Lösungsbaustein an der Cursorposition einfügen, markierten Text als Baustein speichern oder Bausteine verwalten" />
                 <TextBlock Text="{Binding Status}" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0" />
             </WrapPanel>
         </DockPanel>

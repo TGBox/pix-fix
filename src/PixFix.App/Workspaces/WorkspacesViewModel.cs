@@ -13,6 +13,11 @@ using PixFix.App.Editing;
 using PixFix.Core.Common;
 using PixFix.Core.Workspaces;
 using PixFix.Infrastructure.Workspaces;
+using PixFix.Infrastructure.Settings;
+using PixFix.Core.Calls;
+using PixFix.App.Calls;
+
+using PixFix.App.Common;
 
 namespace PixFix.App.Workspaces;
 
@@ -54,6 +59,9 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
 {
     private const string DefaultSection = "Allgemein";
 
+    private readonly UndoService undo;
+    private readonly CallsViewModel calls;
+    private readonly SettingsRepository settings;
     private readonly InformationRepository repository;
     private readonly ILogger<WorkspacesViewModel> logger;
     private Workspace? selectedWorkspace;
@@ -67,9 +75,17 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
     private bool isLoaded;
     private bool rebuilding;
 
-    public WorkspacesViewModel(InformationRepository repository, ILogger<WorkspacesViewModel> logger)
+    public WorkspacesViewModel(
+        InformationRepository repository,
+        UndoService undo,
+        CallsViewModel calls,
+        SettingsRepository settings,
+        ILogger<WorkspacesViewModel> logger)
     {
         this.repository = repository;
+        this.undo = undo;
+        this.calls = calls;
+        this.settings = settings;
         this.logger = logger;
         EntriesView = CollectionViewSource.GetDefaultView(Entries);
         EntriesView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(InformationItem.Section)));
@@ -86,6 +102,7 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
         OpenAttachmentCommand = new RelayCommand<InformationAttachmentFile>(OpenAttachment);
         RemoveAttachmentCommand = new RelayCommand<InformationAttachmentFile>(RemoveAttachment, _ => CanEdit);
         ManageWorkspacesCommand = new RelayCommand(() => ManageWorkspacesRequested?.Invoke(this, EventArgs.Empty));
+        ShowTrashCommand = new RelayCommand(() => TrashRequested?.Invoke(this, EventArgs.Empty));
         ClearSearchCommand = new RelayCommand(() => Query = string.Empty);
         CopyCommand = new RelayCommand<CopyAction>(a =>
         {
@@ -100,6 +117,9 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
 
     /// <summary>Die Ansicht öffnet daraufhin die Bereichsverwaltung.</summary>
     public event EventHandler? ManageWorkspacesRequested;
+
+    /// <summary>Papierkorb der Reiter öffnen.</summary>
+    public event EventHandler? TrashRequested;
 
     public ObservableCollection<Workspace> Workspaces { get; } = [];
 
@@ -124,6 +144,7 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
     public RelayCommand<InformationAttachmentFile> OpenAttachmentCommand { get; }
     public RelayCommand<InformationAttachmentFile> RemoveAttachmentCommand { get; }
     public RelayCommand ManageWorkspacesCommand { get; }
+    public RelayCommand ShowTrashCommand { get; }
     public RelayCommand ClearSearchCommand { get; }
     public RelayCommand<CopyAction> CopyCommand { get; }
     public RelayCommand<CopyAction> DeleteCopyActionCommand { get; }
@@ -482,10 +503,11 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
 
         Try(() =>
         {
-            repository.DeleteEntry(item.Id);
+            var trashId = repository.DeleteEntry(item.Id);
             SelectedItem = null;
             LoadEntries();
-            Status = $"„{item.Title}“ gelöscht.";
+            Status = $"„{item.Title}“ liegt im Papierkorb.";
+            undo.Offer($"Reiter „{item.Title}“ wurde in den Papierkorb verschoben.", () => RestoreFromTrash(trashId));
         });
     }
 
@@ -633,6 +655,67 @@ public sealed class WorkspacesViewModel : ObservableObject, IDocumentEditorHost
     }
 
     public IReadOnlyList<Workspace> LoadWorkspaces() => repository.LoadWorkspaces();
+
+    // ------------------------------------------------------------------ Reiter per Mail
+
+    /// <summary>Outlook Desktop eingestellt (sonst Standard-Mailprogramm, nur Text).</summary>
+    public bool UseOutlook =>
+        settings.Get(SettingKeys.MailProgram, SettingKeys.MailProgramOutlook) == SettingKeys.MailProgramOutlook;
+
+    /// <summary>
+    /// Empfänger wie PixFix 69: leere Adresse oder die E-Mail-Adressen des gerade geöffneten Anrufs (Vorauswahl nach
+    /// „E-Mail an“).
+    /// </summary>
+    public IReadOnlyList<Choice<string>> MailRecipients(out int preselect)
+    {
+        var choices = new List<Choice<string>> { new("Leere E-Mail-Adresse", string.Empty) };
+        preselect = 0;
+        if (calls.SelectedCall?.Model is not { } call)
+        {
+            return choices;
+        }
+
+        var label = $"  (Anruf L {(call.CustomerNumber.Length > 0 ? call.CustomerNumber : "–")})";
+        if (call.Email1.Trim() is { Length: > 0 } first)
+        {
+            choices.Add(new("E-Mail: " + first + label, first));
+        }
+
+        if (call.Email2.Trim() is { Length: > 0 } second && !string.Equals(second, call.Email1.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            choices.Add(new("E-Mail2: " + second + label, second));
+        }
+
+        if (CallRules.EmailAddress(call) is { } preferred)
+        {
+            preselect = Math.Max(0, choices.FindIndex(c => string.Equals(c.Value, preferred, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        return choices;
+    }
+
+    // ------------------------------------------------------------------ Papierkorb
+
+    public IReadOnlyList<InformationTrashItem> LoadTrash() => repository.LoadTrash();
+
+    /// <summary>Reiter zurückholen und im (ursprünglichen) Bereich auswählen.</summary>
+    public void RestoreFromTrash(string trashId)
+    {
+        var id = repository.RestoreEntry(trashId);
+        var workspaceId = repository.LoadWorkspaces()
+            .FirstOrDefault(w => repository.LoadEntries(w.Id).Any(e => e.Id == id))?.Id;
+        Query = string.Empty;
+        Reload();
+        if (workspaceId is not null && SelectedWorkspace?.Id != workspaceId)
+        {
+            SelectedWorkspace = Workspaces.FirstOrDefault(w => w.Id == workspaceId);
+        }
+
+        SelectedItem = Entries.FirstOrDefault(e => e.Id == id);
+        Status = "Reiter wiederhergestellt.";
+    }
+
+    public void DeleteFromTrash(string trashId) => repository.DeleteFromTrash(trashId);
 
     private void Try(Action action)
     {

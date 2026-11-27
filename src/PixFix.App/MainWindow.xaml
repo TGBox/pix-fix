@@ -8,6 +8,7 @@
         xmlns:settings="clr-namespace:PixFix.App.Settings"
         xmlns:workspaces="clr-namespace:PixFix.App.Workspaces"
         Title="PixFix"
+        Icon="pack://application:,,,/pix-fix.ico"
         Width="1400"
         Height="850"
         MinWidth="900"

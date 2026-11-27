@@ -17,11 +17,14 @@ public sealed record InformationListItem(
 /// <summary>Inhalt eines Reiters zur Anzeige: <c>xaml</c>, <c>rtf</c> (aus PixFix 69, Bilder aufbereitet) oder <c>text</c>.</summary>
 public sealed record InformationDocument(string Format, string Text);
 
+/// <summary>Gelöschter Reiter im Papierkorb.</summary>
+public sealed record InformationTrashItem(string TrashId, string Title, string Workspace, string Section, DateTimeOffset DeletedUtc);
+
 /// <summary>PDF-Anhang mit Datei in der Ablage.</summary>
 public sealed record InformationAttachmentFile(int Ordinal, string DisplayName, string File, DateTimeOffset AddedUtc);
 
 /// <summary>Zugriff auf Schreibbereiche, Abschnitte und Reiter (SPEC F3).</summary>
-public sealed class InformationRepository(PixFixDatabase database, AssetStore assets, TimeProvider? timeProvider = null)
+public sealed partial class InformationRepository(PixFixDatabase database, AssetStore assets, TimeProvider? timeProvider = null)
 {
     private const string OwnerKind = "information";
     private const string TrashKind = "information";
@@ -280,8 +283,11 @@ public sealed class InformationRepository(PixFixDatabase database, AssetStore as
         tx.Commit();
     }
 
-    /// <summary>Löscht einen Reiter. Zur Sicherheit wird ein Abbild im Papierkorb abgelegt; Dateien bleiben in der Ablage.</summary>
-    public void DeleteEntry(string entryId)
+    /// <summary>
+    /// Verschiebt einen Reiter in den Papierkorb (vollständiges Abbild inkl. Kopier-Buttons, Anhängen und Bildern; Dateien bleiben
+    /// in der Ablage). Liefert die Papierkorb-Id für „Rückgängig“.
+    /// </summary>
+    public string DeleteEntry(string entryId)
     {
         using var db = database.Open();
         using var tx = db.BeginTransaction();
@@ -302,10 +308,12 @@ public sealed class InformationRepository(PixFixDatabase database, AssetStore as
 
         values["copy_actions"] = LoadCopyActions(db, tx, entryId);
         values["attachments"] = LoadAttachmentRows(db, tx, entryId);
+        values["images"] = LoadImageIds(db, tx, entryId);
+        var trashId = Guid.NewGuid().ToString("N");
         db.Execute(
             "INSERT INTO trash(id, kind, original_id, deleted_utc, snapshot_json) VALUES($id, $kind, $original, $now, $json);",
             tx,
-            ("$id", Guid.NewGuid().ToString("N")),
+            ("$id", trashId),
             ("$kind", TrashKind),
             ("$original", entryId),
             ("$now", time.GetUtcNow().ToDb()),
@@ -313,7 +321,203 @@ public sealed class InformationRepository(PixFixDatabase database, AssetStore as
         db.Execute("DELETE FROM copy_actions WHERE owner_kind = $k AND owner_id = $id;", tx, ("$k", OwnerKind), ("$id", entryId));
         db.Execute("DELETE FROM information_entries WHERE id = $id;", tx, ("$id", entryId));
         tx.Commit();
+        return trashId;
     }
+
+    public IReadOnlyList<InformationTrashItem> LoadTrash()
+    {
+        using var db = database.Open();
+        var workspaces = LoadWorkspaces().ToDictionary(w => w.Id, w => w.Title, StringComparer.Ordinal);
+        using var command = SqliteExtensions.Create(
+            db, "SELECT id, deleted_utc, snapshot_json FROM trash WHERE kind = $kind ORDER BY deleted_utc DESC;", null, ("$kind", TrashKind));
+        using var reader = command.ExecuteReader();
+        var result = new List<InformationTrashItem>();
+        while (reader.Read())
+        {
+            var values = SnapshotValues(reader.GetText("snapshot_json"));
+            var workspaceId = Text(values, "workspace_id");
+            result.Add(new InformationTrashItem(
+                reader.GetText("id"),
+                Text(values, "title"),
+                workspaces.TryGetValue(workspaceId, out var title) ? title : "(Bereich gelöscht)",
+                Text(values, "section"),
+                DateTimeOffset.TryParse(reader.GetText("deleted_utc"), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var at) ? at : DateTimeOffset.MinValue));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Stellt einen Reiter wieder her – im ursprünglichen Bereich und Abschnitt (am Ende des Abschnitts). Gibt es den Bereich
+    /// nicht mehr, landet er im ersten Bereich. Liefert die Id des Reiters.
+    /// </summary>
+    public string RestoreEntry(string trashId)
+    {
+        using var db = database.Open();
+        using var tx = db.BeginTransaction();
+        var json = db.Scalar("SELECT snapshot_json FROM trash WHERE id = $id AND kind = $kind;", tx, ("$id", trashId), ("$kind", TrashKind)) as string
+            ?? throw new InvalidOperationException("Der Reiter liegt nicht mehr im Papierkorb.");
+        var values = SnapshotValues(json);
+
+        var workspaceId = Text(values, "workspace_id");
+        if (Convert.ToInt64(db.Scalar("SELECT COUNT(*) FROM workspaces WHERE id = $id;", tx, ("$id", workspaceId)), CultureInfo.InvariantCulture) == 0)
+        {
+            workspaceId = db.Scalar("SELECT id FROM workspaces ORDER BY sort_order, title LIMIT 1;", tx) as string
+                ?? throw new InvalidOperationException("Es gibt keinen Schreibbereich, in den der Reiter zurückgelegt werden kann.");
+        }
+
+        var entryId = Text(values, "id");
+        if (entryId.Length == 0 || Convert.ToInt64(db.Scalar("SELECT COUNT(*) FROM information_entries WHERE id = $id;", tx, ("$id", entryId)), CultureInfo.InvariantCulture) > 0)
+        {
+            entryId = Guid.NewGuid().ToString("N");
+        }
+
+        var section = Text(values, "section") is { Length: > 0 } name ? name : "Allgemein";
+        var row = new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var column in TableColumns(db, tx, "information_entries"))
+        {
+            if (values.TryGetValue(column, out var value))
+            {
+                row[column] = ToDbValue(value);
+            }
+        }
+
+        row["id"] = entryId;
+        row["workspace_id"] = workspaceId;
+        row["section"] = section;
+        row["section_order"] = SectionOrder(db, tx, workspaceId, section);
+        row["sort_order"] = Convert.ToInt32(
+            db.Scalar("SELECT COALESCE(MAX(sort_order), -1) + 1 FROM information_entries WHERE workspace_id = $w AND section = $s;", tx, ("$w", workspaceId), ("$s", section)),
+            CultureInfo.InvariantCulture);
+        row["is_protected"] = 0L;
+        var columns = row.Keys.ToList();
+        db.Execute(
+            "INSERT INTO information_entries(" + string.Join(", ", columns) + ") VALUES(" + string.Join(", ", columns.Select((_, i) => "$p" + i.ToString(CultureInfo.InvariantCulture))) + ");",
+            tx,
+            columns.Select((c, i) => ("$p" + i.ToString(CultureInfo.InvariantCulture), row[c])).ToArray());
+
+        if (values.TryGetValue("copy_actions", out var actions) && actions.ValueKind == JsonValueKind.Array)
+        {
+            var ordinal = 0;
+            foreach (var action in actions.EnumerateArray())
+            {
+                db.Execute(
+                    "INSERT INTO copy_actions(owner_kind, owner_id, ordinal, text, occurrence) VALUES($k, $id, $o, $t, $n);",
+                    tx,
+                    ("$k", OwnerKind),
+                    ("$id", entryId),
+                    ("$o", ordinal++),
+                    ("$t", action.TryGetProperty("Text", out var text) ? text.GetString() ?? string.Empty : string.Empty),
+                    ("$n", action.TryGetProperty("Occurrence", out var occurrence) && occurrence.TryGetInt32(out var number) ? number : 0));
+            }
+        }
+
+        if (values.TryGetValue("attachments", out var attachments) && attachments.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var attachment in attachments.EnumerateArray())
+            {
+                var assetId = attachment.TryGetProperty("asset_id", out var asset) ? asset.GetString() : null;
+                if (assetId is null || !AssetExists(db, tx, assetId))
+                {
+                    continue;
+                }
+
+                db.Execute(
+                    "INSERT INTO information_attachments(entry_id, ordinal, asset_id, display_name, added_utc) VALUES($e, $o, $a, $n, $t);",
+                    tx,
+                    ("$e", entryId),
+                    ("$o", attachment.TryGetProperty("ordinal", out var o) && o.TryGetInt64(out var ord) ? ord : 0),
+                    ("$a", assetId),
+                    ("$n", attachment.TryGetProperty("display_name", out var n) ? n.GetString() ?? "PDF" : "PDF"),
+                    ("$t", attachment.TryGetProperty("added_utc", out var t) ? t.GetString() ?? time.GetUtcNow().ToDb() : time.GetUtcNow().ToDb()));
+            }
+        }
+
+        // Bilder: aus dem Abbild bzw. (ältere Abbilder) aus den Bildverweisen im Inhalt.
+        var images = values.TryGetValue("images", out var imageList) && imageList.ValueKind == JsonValueKind.Array
+            ? imageList.EnumerateArray().Select(i => i.GetString()).OfType<string>().ToList()
+            : AssetReference().Matches(Text(values, "content")).Select(m => m.Groups[1].Value).Distinct(StringComparer.Ordinal).ToList();
+        var imageOrdinal = 0;
+        foreach (var assetId in images.Where(a => AssetExists(db, tx, a)))
+        {
+            db.Execute(
+                "INSERT INTO information_entry_images(entry_id, ordinal, asset_id) VALUES($e, $o, $a);",
+                tx,
+                ("$e", entryId),
+                ("$o", imageOrdinal++),
+                ("$a", assetId));
+        }
+
+        db.Execute("DELETE FROM trash WHERE id = $id;", tx, ("$id", trashId));
+        tx.Commit();
+        return entryId;
+    }
+
+    public void DeleteFromTrash(string trashId)
+    {
+        using var db = database.Open();
+        db.Execute("DELETE FROM trash WHERE id = $id AND kind = $kind;", null, ("$id", trashId), ("$kind", TrashKind));
+    }
+
+    private static Dictionary<string, JsonElement> SnapshotValues(string json)
+    {
+        using var document = JsonDocument.Parse(json);
+        var result = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+        if (document.RootElement.TryGetProperty("Values", out var values) && values.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var property in values.EnumerateObject())
+            {
+                result[property.Name] = property.Value.Clone();
+            }
+        }
+
+        return result;
+    }
+
+    private static string Text(Dictionary<string, JsonElement> values, string name) =>
+        values.TryGetValue(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() ?? string.Empty : string.Empty;
+
+    private static object? ToDbValue(JsonElement value) => value.ValueKind switch
+    {
+        JsonValueKind.String => value.GetString(),
+        JsonValueKind.Number when value.TryGetInt64(out var number) => number,
+        JsonValueKind.Number => value.GetDouble(),
+        JsonValueKind.True => 1L,
+        JsonValueKind.False => 0L,
+        _ => null,
+    };
+
+    private static List<string> TableColumns(SqliteConnection db, SqliteTransaction tx, string table)
+    {
+        using var command = SqliteExtensions.Create(db, "SELECT name FROM pragma_table_info($t);", tx, ("$t", table));
+        using var reader = command.ExecuteReader();
+        var columns = new List<string>();
+        while (reader.Read())
+        {
+            columns.Add(reader.GetString(0));
+        }
+
+        return columns;
+    }
+
+    private static bool AssetExists(SqliteConnection db, SqliteTransaction tx, string assetId) =>
+        Convert.ToInt64(db.Scalar("SELECT COUNT(*) FROM assets WHERE id = $id;", tx, ("$id", assetId)), CultureInfo.InvariantCulture) > 0;
+
+    private static List<string> LoadImageIds(SqliteConnection db, SqliteTransaction tx, string entryId)
+    {
+        using var command = SqliteExtensions.Create(db, "SELECT asset_id FROM information_entry_images WHERE entry_id = $id ORDER BY ordinal;", tx, ("$id", entryId));
+        using var reader = command.ExecuteReader();
+        var ids = new List<string>();
+        while (reader.Read())
+        {
+            ids.Add(reader.GetString(0));
+        }
+
+        return ids;
+    }
+
+    [System.Text.RegularExpressions.GeneratedRegex("pixfix-asset:([0-9a-f]{64})")]
+    private static partial System.Text.RegularExpressions.Regex AssetReference();
 
     /// <summary>Speichert den Inhalt aus dem Editor (FlowDocument-XAML).</summary>
     public void SaveContent(string entryId, string xaml, string plainText, IReadOnlyList<string> imageAssetIds)

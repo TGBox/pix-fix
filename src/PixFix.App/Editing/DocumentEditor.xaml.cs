@@ -9,8 +9,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
+using PixFix.App.Common;
 using PixFix.Core.Common;
 using PixFix.Core.Knowledge;
+using PixFix.Core.Templates;
+using PixFix.Infrastructure.Templates;
 
 namespace PixFix.App.Editing;
 
@@ -28,6 +31,9 @@ public partial class DocumentEditor : UserControl
 
     private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".bmp"];
     private static readonly TimeSpan AutosaveDelay = TimeSpan.FromSeconds(2);
+
+    private static readonly System.Windows.Media.Brush CodeBackground = Frozen(System.Windows.Media.Color.FromRgb(241, 245, 249));
+    private static readonly System.Windows.Media.Brush CodeForeground = Frozen(System.Windows.Media.Color.FromRgb(30, 41, 59));
 
     private readonly DispatcherTimer autosave;
     private IDocumentEditorHost? host;
@@ -386,6 +392,114 @@ public partial class DocumentEditor : UserControl
         }
 
         host?.AddCopyAction(text, occurrence);
+    }
+
+    /// <summary>Das angezeigte Dokument (z. B. für „Reiter per Mail“); vorher <see cref="FlushSave"/> aufrufen.</summary>
+    public FlowDocument CurrentDocument => Editor.Document;
+
+    // ------------------------------------------------------------------ Lösungsbausteine
+
+    /// <summary>Vorlagenablage für die Bausteine (beim Programmstart gesetzt; Editor-Instanzen entstehen in XAML).</summary>
+    public static TemplateRepository? SnippetStore { get; set; }
+
+    /// <summary>Öffnet die Bausteinverwaltung (Vorlagenfenster); beim Programmstart gesetzt.</summary>
+    public static Action<Window?>? ManageSnippets { get; set; }
+
+    /// <summary>Menü wie in PixFix 69: Bausteine (⌘ = Code-Block), aus Auswahl speichern, verwalten.</summary>
+    private void OnSnippets(object sender, RoutedEventArgs e)
+    {
+        if (SnippetStore is not { } store || sender is not Button button)
+        {
+            return;
+        }
+
+        var snippets = store.LoadByKind(TemplateKind.Snippet).Select(t => (Template: t, Code: false))
+            .Concat(store.LoadByKind(TemplateKind.CodeSnippet).Select(t => (Template: t, Code: true)))
+            .OrderBy(s => s.Template.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+        var menu = new ContextMenu { PlacementTarget = button, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        if (snippets.Count == 0)
+        {
+            menu.Items.Add(new MenuItem { Header = "Noch keine Lösungsbausteine", IsEnabled = false });
+        }
+
+        foreach (var (template, code) in snippets)
+        {
+            var item = new MenuItem { Header = new TextBlock { Text = (code ? "⌘ " : string.Empty) + template.Name } };
+            item.Click += (_, _) => InsertSnippet(template, code);
+            menu.Items.Add(item);
+        }
+
+        menu.Items.Add(new Separator());
+        var save = new MenuItem { Header = "Aus Auswahl als Baustein speichern …", IsEnabled = !Editor.Selection.IsEmpty };
+        save.Click += (_, _) => SaveSnippetFromSelection(store);
+        menu.Items.Add(save);
+        var manage = new MenuItem { Header = "Bausteine verwalten …" };
+        manage.Click += (_, _) => ManageSnippets?.Invoke(Window.GetWindow(this));
+        menu.Items.Add(manage);
+        menu.IsOpen = true;
+    }
+
+    /// <summary>Baustein an der Cursorposition einfügen (ersetzt eine Auswahl); Code-Bausteine als Consolas-Block.</summary>
+    private void InsertSnippet(Template template, bool code)
+    {
+        if (host is not { CanEdit: true } || Editor.IsReadOnly)
+        {
+            return;
+        }
+
+        var text = template.Body.ReplaceLineEndings("\r\n");
+        Editor.Selection.Text = text;
+        if (code && text.Length > 0)
+        {
+            Editor.Selection.ApplyPropertyValue(TextElement.FontFamilyProperty, new System.Windows.Media.FontFamily("Consolas"));
+            Editor.Selection.ApplyPropertyValue(TextElement.BackgroundProperty, CodeBackground);
+            Editor.Selection.ApplyPropertyValue(TextElement.ForegroundProperty, CodeForeground);
+        }
+
+        Editor.Selection.Select(Editor.Selection.End, Editor.Selection.End);
+        Editor.Focus();
+        host.Status = "Baustein eingefügt: " + template.Name;
+    }
+
+    private void SaveSnippetFromSelection(TemplateRepository store)
+    {
+        var body = Editor.Selection.Text.TrimEnd('\r', '\n');
+        if (body.Trim().Length == 0)
+        {
+            return;
+        }
+
+        var owner = Window.GetWindow(this);
+        if (TextPrompt.Ask(owner, "Lösungsbaustein speichern", "Name des Bausteins:") is not { } name)
+        {
+            return;
+        }
+
+        var answer = MessageBox.Show(
+            owner!,
+            "Soll dieser Baustein beim Einfügen als Code-/Befehlsblock formatiert werden?",
+            "PixFix – Lösungsbaustein",
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+        if (answer == MessageBoxResult.Cancel)
+        {
+            return;
+        }
+
+        var created = store.Create(answer == MessageBoxResult.Yes ? TemplateKind.CodeSnippet : TemplateKind.Snippet, name);
+        store.Save(created with { Body = body });
+        if (host is not null)
+        {
+            host.Status = "Lösungsbaustein gespeichert: " + name;
+        }
+    }
+
+    private static System.Windows.Media.Brush Frozen(System.Windows.Media.Color color)
+    {
+        var brush = new System.Windows.Media.SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
     }
 
     // ------------------------------------------------------------------ Fundstellen

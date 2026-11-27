@@ -65,6 +65,8 @@
                         ToolTip="Abschnitt des ausgewählten Reiters nach oben" />
                 <Button Content="Abschnitt ↓" Command="{Binding MoveSectionDownCommand}" Padding="6,1" Margin="2,0,0,0"
                         ToolTip="Abschnitt des ausgewählten Reiters nach unten" />
+                <Button Content="Papier_korb" Command="{Binding ShowTrashCommand}" Padding="6,1" Margin="8,0,0,0"
+                        ToolTip="Gelöschte Reiter wiederherstellen" />
             </StackPanel>
             <ListBox ItemsSource="{Binding EntriesView}" SelectedItem="{Binding SelectedItem}"
                      DisplayMemberPath="Title" HorizontalContentAlignment="Stretch"
@@ -125,7 +127,9 @@
                     <TextBlock Text="Abschnitt" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,6,0" />
                     <ComboBox Width="220" IsEditable="True" ItemsSource="{Binding SectionNames}" Text="{Binding EditSection}"
                               IsEnabled="{Binding CanEdit}" ToolTip="Abschnitt wählen oder neuen Namen eintippen" />
-                    <Button Content="_PDF anhängen …" Padding="8,1" Margin="12,0,0,0" Command="{Binding AddAttachmentCommand}"
+                    <Button Content="Per _Mail …" Padding="8,1" Margin="12,0,0,0" Click="OnSendMail"
+                            ToolTip="Reiter als Outlook-Entwurf öffnen – mit Formatierung, Bildern und PDF-Anhängen" />
+                    <Button Content="_PDF anhängen …" Padding="8,1" Margin="6,0,0,0" Command="{Binding AddAttachmentCommand}"
                             ToolTip="PDF auswählen – oder PDF-Dateien aus dem Explorer auf den Kopf des Reiters ziehen" />
                 </StackPanel>
                 <!-- PDF-Anhänge -->

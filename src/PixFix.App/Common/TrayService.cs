@@ -92,8 +92,22 @@ public sealed class TrayService : IDisposable
         icon.Dispose();
     }
 
+    /// <summary>PixFix-Symbol aus den Ressourcen in Infobereich-Größe; sonst das Symbol der EXE.</summary>
     private static System.Drawing.Icon LoadIcon()
     {
+        try
+        {
+            if (Application.GetResourceStream(new Uri("pack://application:,,,/pix-fix.ico")) is { } resource)
+            {
+                using var stream = resource.Stream;
+                return new System.Drawing.Icon(stream, Forms.SystemInformation.SmallIconSize);
+            }
+        }
+        catch (Exception ex) when (ex is ArgumentException or System.IO.IOException or UriFormatException)
+        {
+            // Fallback unten.
+        }
+
         try
         {
             if (Environment.ProcessPath is { } exe && System.Drawing.Icon.ExtractAssociatedIcon(exe) is { } own)

@@ -8,6 +8,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>PixFix.App</RootNamespace>
     <AssemblyName>PixFix</AssemblyName>
+    <!-- Programmsymbol (Explorer, Taskleiste, Verknüpfungen) -->
+    <ApplicationIcon>..\..\assets\pix-fix.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <!-- Verteilung: dotnet publish -c Release -> eine einzelne PixFix.exe ohne installiertes .NET -->
     <SelfContained>true</SelfContained>
@@ -19,6 +21,10 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Serilog.Extensions.Hosting" />
     <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Dasselbe Symbol als WPF-Ressource für Fenster und Infobereich -->
+    <Resource Include="..\..\assets\pix-fix.ico" Link="pix-fix.ico" />
   </ItemGroup>
   <ItemGroup>
     <Using Remove="System.Windows.Forms" />

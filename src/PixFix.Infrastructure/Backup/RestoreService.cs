@@ -67,8 +67,78 @@ public sealed class RestoreService(
     {
         var report = new ImportReport(legacyFolder);
         var guarded = Guard(progress, cancellationToken);
-        Run(report, safetyFolder, progress, guarded, cancellationToken, stage => ImportLegacy(legacyFolder, stage, report, guarded, 0));
+        Run(report, safetyFolder, progress, guarded, cancellationToken, stage =>
+            ImportLegacy(PrepareXmlOnlyFolder(legacyFolder, guarded), stage, report, guarded, 5));
         return report;
+    }
+
+    /// <summary>
+    /// PixFix 69 vor der SQLite-Umstellung hat nur XML-Dateien (<c>pixfix.xml</c> …) und keine <c>pixfix.db</c>. Dann wird der
+    /// Datenordner (und Fax-/PDF-Dokumente) kopiert und die Kopie wie eine 2.1-Sicherung umgewandelt; das Original bleibt
+    /// unverändert. Ordner mit <c>pixfix.db</c> werden unverändert zurückgegeben.
+    /// </summary>
+    private string PrepareXmlOnlyFolder(string folder, IProgress<ImportProgress> progress)
+    {
+        var full = Path.GetFullPath(folder);
+        if (File.Exists(Path.Combine(full, LegacyLayout.DataFolderName, "pixfix.db")) || File.Exists(Path.Combine(full, "pixfix.db")))
+        {
+            return folder;
+        }
+
+        string programDirectory, dataDirectory;
+        if (File.Exists(Path.Combine(full, LegacyLayout.DataFolderName, "pixfix.xml")))
+        {
+            programDirectory = full;
+            dataDirectory = Path.Combine(full, LegacyLayout.DataFolderName);
+        }
+        else if (File.Exists(Path.Combine(full, "pixfix.xml")))
+        {
+            dataDirectory = full;
+            programDirectory = Directory.GetParent(full)?.FullName ?? full;
+        }
+        else
+        {
+            return folder;
+        }
+
+        progress.Report(new ImportProgress(1, "PixFix 69 mit XML-Daten erkannt – Daten werden kopiert …"));
+        var legacyRoot = Path.Combine(paths.DataDirectory, LegacyFolder);
+        CopyDirectory(dataDirectory, Path.Combine(legacyRoot, LegacyLayout.DataFolderName));
+        foreach (var name in new[] { "Fax-Dokumente", "PDF-Dokumente" })
+        {
+            var source = Path.Combine(programDirectory, name);
+            if (Directory.Exists(source))
+            {
+                CopyDirectory(source, Path.Combine(legacyRoot, name));
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.Combine(legacyRoot, name));
+            }
+        }
+
+        progress.Report(new ImportProgress(4, "XML-Daten aus PixFix 69 werden umgewandelt …"));
+        try
+        {
+            Legacy21Converter.CreateDatabase(Path.Combine(legacyRoot, LegacyLayout.DataFolderName));
+        }
+        catch (LegacyImportException ex)
+        {
+            throw new BackupException(ex.Message, ex);
+        }
+
+        return legacyRoot;
+    }
+
+    private static void CopyDirectory(string source, string target)
+    {
+        Directory.CreateDirectory(target);
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            var destination = Path.Combine(target, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+            File.Copy(file, destination, overwrite: true);
+        }
     }
 
     /// <summary>
