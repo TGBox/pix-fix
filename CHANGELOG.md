@@ -20,6 +20,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 - Warnung vor dem Beenden (Schaltfläche, Infobereich-Menü oder Schließen-Kreuz ohne Infobereich), wenn heute noch
   Rückruf-Erinnerungen anstehen – mit Liste der Rückrufe (Uhrzeit, L-Nummer, Grund); Standard ist „Nein“. Beim Abmelden
   oder Herunterfahren von Windows kommt keine Rückfrage.
+- Lokale Builds sind Entwicklungsversionen (`1.0.0-dev` in `Directory.Build.props`): keine automatische Update-Suche und
+  keine Hinweisleiste; „Jetzt nach Updates suchen“ funktioniert weiter. Releases erhalten ihre Version wie bisher aus
+  `release.yml`; `next-version.ps1` ignoriert den Zusatz.
 - Bereich „Hilfe“ (Strg+6, F1, Infobereich-Menü) mit Kapiteln zu allen Funktionen und „Zum Bereich wechseln“.
 - Einführungstour für neue Mitarbeiter: startet einmalig beim ersten Programmstart, führt durch alle Bereiche und lässt
   sich unter Hilfe jederzeit wiederholen.

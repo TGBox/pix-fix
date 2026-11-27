@@ -28,7 +28,7 @@ if (-not $hasExplicitInput) {
         $initialVersion = '1.0.0'
         if (Test-Path -LiteralPath $PropsFile) {
             $propsContent = Get-Content -LiteralPath $PropsFile -Raw
-            if ($propsContent -match '<Version>(\d+\.\d+\.\d+)</Version>') {
+            if ($propsContent -match '<Version>(\d+\.\d+\.\d+)(-[^<]*)?</Version>') {
                 $initialVersion = $Matches[1]
             }
         }

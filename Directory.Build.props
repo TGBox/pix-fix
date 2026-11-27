@@ -6,7 +6,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <Version>1.0.0</Version>
+    <!-- Lokale Builds sind Entwicklungsversionen ("-dev": keine automatische Update-Suche). Die echte Versionsnummer
+         setzt .github/workflows/release.yml beim Veröffentlichen per -p:Version. -->
+    <Version>1.0.0-dev</Version>
     <Company>Carasent</Company>
     <Product>PixFix</Product>
     <NeutralLanguage>de-DE</NeutralLanguage>

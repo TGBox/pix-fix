@@ -61,6 +61,28 @@ public static class AppVersion
         return true;
     }
 
+    /// <summary>
+    /// Lokaler Entwicklungsbuild: Versionszusatz <c>-dev</c> (z. B. <c>1.0.0-dev+abc123</c> aus <c>Directory.Build.props</c>).
+    /// Release-Builds bekommen ihre Version ohne Zusatz von der Release-Pipeline.
+    /// </summary>
+    public static bool IsDevelopmentBuild(string? informationalVersion)
+    {
+        if (string.IsNullOrWhiteSpace(informationalVersion))
+        {
+            return false;
+        }
+
+        var value = informationalVersion.Trim();
+        var plus = value.IndexOf('+', StringComparison.Ordinal);
+        if (plus >= 0)
+        {
+            value = value[..plus];
+        }
+
+        var dash = value.IndexOf('-', StringComparison.Ordinal);
+        return dash >= 0 && value[(dash + 1)..].StartsWith("dev", StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary><c>true</c>, wenn <paramref name="latest"/> neuer ist als <paramref name="current"/> (nur Major.Minor.Patch).</summary>
     public static bool IsNewer(Version latest, Version current)
     {

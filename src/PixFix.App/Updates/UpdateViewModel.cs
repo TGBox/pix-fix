@@ -68,7 +68,18 @@ public sealed class UpdateViewModel : ObservableObject
     /// <summary>Version dieser EXE (aus dem Release-Build, z. B. 1.4.2); unlesbar = 0.0.0.</summary>
     public static Version CurrentVersion { get; } = ReadCurrentVersion();
 
-    public string CurrentVersionText => AppVersion.Format(CurrentVersion);
+    /// <summary>
+    /// Lokaler Build (Version mit <c>-dev</c>): keine automatische Suche und keine Hinweisleiste, nur „Jetzt nach Updates
+    /// suchen“ in den Einstellungen.
+    /// </summary>
+    public static bool IsDevelopmentBuild { get; } = AppVersion.IsDevelopmentBuild(ReadInformationalVersion());
+
+    public bool IsReleaseBuild => !IsDevelopmentBuild;
+
+    public string CurrentVersionText =>
+        IsDevelopmentBuild
+            ? AppVersion.Format(CurrentVersion) + "-dev (Entwicklungsversion, nicht aus einem Release)"
+            : AppVersion.Format(CurrentVersion);
 
     /// <summary>Ordner der laufenden <c>PixFix.exe</c> (dort muss die neue Datei hin).</summary>
     public static string? ProgramFolder =>
@@ -81,7 +92,7 @@ public sealed class UpdateViewModel : ObservableObject
         {
             settings.SetFlag(SettingKeys.UpdateAutoCheck, value);
             ApplySettings();
-            if (value && latest is null && !IsChecking)
+            if (value && latest is null && !IsChecking && !IsDevelopmentBuild)
             {
                 _ = CheckAsync();
             }
@@ -104,7 +115,7 @@ public sealed class UpdateViewModel : ObservableObject
     public bool IsUpdateAvailable => latest is not null && AppVersion.IsNewer(latest.Version, CurrentVersion);
 
     /// <summary>Hinweisleiste im Hauptfenster: neue Version vorhanden und nicht mit „Später“ ausgeblendet.</summary>
-    public bool IsBannerVisible => IsUpdateAvailable && dismissedVersion != latest!.Version;
+    public bool IsBannerVisible => !IsDevelopmentBuild && IsUpdateAvailable && dismissedVersion != latest!.Version;
 
     public string LatestVersionText => latest?.VersionText ?? string.Empty;
 
@@ -128,7 +139,14 @@ public sealed class UpdateViewModel : ObservableObject
 
             if (lastChecked is null)
             {
-                return lastError is null ? "Noch nicht geprüft." : "Prüfung fehlgeschlagen: " + lastError;
+                if (lastError is not null)
+                {
+                    return "Prüfung fehlgeschlagen: " + lastError;
+                }
+
+                return IsDevelopmentBuild
+                    ? "Entwicklungsversion – keine automatische Suche. „Jetzt nach Updates suchen“ prüft trotzdem."
+                    : "Noch nicht geprüft.";
             }
 
             var stand = "  ·  Stand: " + lastChecked.Value.ToString("dd.MM.yyyy HH:mm", CultureInfo.CurrentCulture);
@@ -147,6 +165,12 @@ public sealed class UpdateViewModel : ObservableObject
     public void Start()
     {
         ApplySettings();
+        if (IsDevelopmentBuild)
+        {
+            logger.LogInformation("Entwicklungsversion – automatische Update-Suche aus");
+            return;
+        }
+
         if (AutoCheck)
         {
             _ = CheckAsync();
@@ -158,7 +182,7 @@ public sealed class UpdateViewModel : ObservableObject
 
     private void ApplySettings()
     {
-        if (AutoCheck)
+        if (AutoCheck && !IsDevelopmentBuild)
         {
             timer.Start();
         }
@@ -192,7 +216,7 @@ public sealed class UpdateViewModel : ObservableObject
                 logger.LogInformation("Update-Prüfung ohne Ergebnis: {Error}", result.Error);
             }
 
-            if (IsUpdateAvailable && notifiedVersion != latest!.Version)
+            if (IsUpdateAvailable && !IsDevelopmentBuild && notifiedVersion != latest!.Version)
             {
                 notifiedVersion = latest.Version;
                 logger.LogInformation(
@@ -208,11 +232,15 @@ public sealed class UpdateViewModel : ObservableObject
         }
     }
 
+    private static Assembly EntryAssembly => Assembly.GetEntryAssembly() ?? typeof(UpdateViewModel).Assembly;
+
+    private static string? ReadInformationalVersion() =>
+        EntryAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+
     private static Version ReadCurrentVersion()
     {
-        var assembly = Assembly.GetEntryAssembly() ?? typeof(UpdateViewModel).Assembly;
-        var informational = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-        if (AppVersion.TryParse(informational, out var version))
+        var assembly = EntryAssembly;
+        if (AppVersion.TryParse(ReadInformationalVersion(), out var version))
         {
             return version;
         }

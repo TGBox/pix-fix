@@ -197,6 +197,8 @@ Weg über py-connect oder Portierung der UI-Automatisierung.
   Einstellung `update.auto_check`). Ist das Release neuer als die eigene Version (InformationalVersion der EXE, SemVer),
   zeigt das Hauptfenster eine Hinweisleiste mit Download-Link auf das Asset `PixFix.exe`; im Hintergrund zusätzlich eine
   Windows-Benachrichtigung (je Version einmal).
+- Lokale Builds tragen die Version `x.y.z-dev` (`Directory.Build.props`) und suchen nicht automatisch; nur Release-Builds
+  (Version aus `release.yml`) zeigen den Hinweis.
 - Es wird nichts automatisch heruntergeladen oder ersetzt: Der Nutzer lädt die EXE im Browser und tauscht sie selbst aus.
   Geöffnet werden nur HTTPS-Links auf github.com.
 - Fehler (Netz, Rate-Limit, JSON) erscheinen nur als Statustext in den Einstellungen und blockieren nie die Oberfläche.

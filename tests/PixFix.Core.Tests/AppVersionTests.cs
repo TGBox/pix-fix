@@ -50,6 +50,21 @@ public sealed class AppVersionTests
         Assert.False(AppVersion.IsNewer(new Version(1, 2, 3, 9), new Version(1, 2, 3)));
     }
 
+    [Theory]
+    [InlineData("1.0.0-dev", true)]
+    [InlineData("1.0.0-dev+4f2c9e1", true)]
+    [InlineData("1.0.0-DEV.3", true)]
+    [InlineData("1.1.0", false)]
+    [InlineData("1.1.0+4f2c9e1", false)]
+    [InlineData("1.1.0-beta", false)]
+    [InlineData("1.1.0+dev-branch", false)]
+    [InlineData(null, false)]
+    [InlineData("", false)]
+    public void IsDevelopmentBuildDetectsDevSuffix(string? informational, bool expected)
+    {
+        Assert.Equal(expected, AppVersion.IsDevelopmentBuild(informational));
+    }
+
     [Fact]
     public void FormatShowsThreeParts()
     {
