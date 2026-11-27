@@ -59,3 +59,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
   gespeichert), sortieren, löschen; Fax-Dokumente hinzufügen, umbenennen und öffnen.
 - Einstellungen mit Reitern: Anrufe (Wählmethode, E-Mail-Programm, Rechnungs-Mail mit Empfänger/Betreff/Text) und
   Import aus PixFix 69. Ohne Einstellung gilt Outlook als E-Mail-Programm.
+- Phase 6a: Sicherung im neuen Format 4.0 (`.pixfix`, ZIP mit `manifest.json`, Länge und SHA-256 je Datei,
+  konsistenter SQLite-Snapshot per `VACUUM INTO`, ohne Bildindex). Jede Sicherung wird nach dem Schreiben vollständig geprüft.
+- Einstellungen → Sicherung: Sicherungsordner wählbar (Standard: Datenordner\backups, z. B. OneDrive möglich), Jetzt sichern,
+  Sichern unter, Sicherung prüfen, Sicherung wiederherstellen.
+- Wiederherstellen von PixFix-Sicherungen 4.0 und PixFix-69-Sicherungen 3.0: prüfen → in Stage-Ordner entpacken bzw.
+  importieren → aktuellen Stand sichern → Datenbank und Ablage austauschen, bei Fehler Rückgängig; Pfade aus dem Archiv
+  werden gegen Pfad-Traversal geprüft.
+- Automatische Sicherung: eine Datei pro Tag (`AUTO-Datum.pixfix`), höchstens alle 4 Stunden aktualisiert, nur wenn der
+  Benutzer mindestens 1 Minute untätig ist, 7 Tage Aufbewahrung; Fehler nur im Log und in den Einstellungen.
+- Import aus PixFix 69 funktioniert jetzt auch, wenn schon Daten vorhanden sind (nach Rückfrage, mit Sicherung vorher).

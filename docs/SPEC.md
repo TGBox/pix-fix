@@ -166,6 +166,9 @@ Weg über py-connect oder Portierung der UI-Automatisierung.
 - **Import alter PixFix-69-Sicherungen**: Format 2.1 (XML-Nutzdaten) und 3.0 (SQLite). Das ist Pflicht.
 - Eigenes neues Sicherungsformat (4.0) mit Versionsfeld; alte Formate bleiben dauerhaft lesbar.
 - Abgeleitete Daten (Bildindex, Suchindex) werden nicht gesichert, sondern neu aufgebaut.
+- *Umsetzung 6a:* Format 4.0 (`manifest.json`), Wiederherstellung 4.0 und 3.0, automatische Sicherung. Sicherungen werden
+  nicht verschlüsselt (Entscheidung); der Sicherungsordner ist einstellbar, Standard ist `Datenordner\backups`.
+  Aufbewahrung der Tagessicherungen 7 Tage (PixFix 69: heute und gestern). Format 2.1 folgt in 6b.
 
 ### F12 – Datenübernahme aus PixFix 69 · M
 
@@ -287,7 +290,7 @@ durch das im Metafile enthaltene Bitmap als PNG. Geprüft am echten Bestand: 662
 | 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 – **umgesetzt** |
 | 4 | Schreibbereiche (F3) | **umgesetzt** (Papierkorb für Reiter: nur Abbild, Wiederherstellen offen) |
 | 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich – **umgesetzt** (offen: Schnelltextbausteine im Editor einfügen) |
-| 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 |
+| 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 – 6a (Sicherung 4.0/3.0, automatische Sicherung) **umgesetzt**; offen: 6b Format 2.1, 6c Fernwartung und TI-Monitor |
 | 7 | Cobra-Anbindung (F10) | nach Entscheidung |
 
 Bis Phase 6 läuft PixFix 69 produktiv weiter; die neue Version liest dessen Daten nur.
@@ -298,7 +301,7 @@ Bis Phase 6 läuft PixFix 69 produktiv weiter; die neue Version liest dessen Dat
 
 1. Cobra-Anbindung: Datenbank direkt, über py-connect oder UI-Automatisierung? (vertagt)
 1. Wird der OneNote-/DOCX-Import noch gebraucht?
-1. Sollen Sicherungen verschlüsselt werden (Kundendaten)? Wo liegen sie heute (OneDrive)?
+1. ~~Sollen Sicherungen verschlüsselt werden?~~ Entschieden: nein; Sicherungsordner einstellbar, Standard lokal.
 1. Soll PixFix später von mehreren Hotline-Mitarbeitern genutzt werden – jeweils eigene Daten oder ein gemeinsamer Wissensbestand?
 1. Welche Fax-/Mail-Wege werden tatsächlich genutzt (Outlook, Standard-Mailprogramm, Faxdrucker)?
 1. Ist die Anrufen-Funktion über `tel:`/Unify in allen Hotline-Rechnern gleich eingerichtet?

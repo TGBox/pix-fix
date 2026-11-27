@@ -22,15 +22,16 @@ public sealed class MainViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(settings);
         DataDirectory = paths.DataDirectory;
 
-        // Nach einem Import zeigt die Wissensdatenbank sofort die übernommenen Einträge.
+        // Nach Import oder Wiederherstellung zeigen alle Bereiche sofort den neuen Datenbestand.
         ArgumentNullException.ThrowIfNull(workspaces);
         ArgumentNullException.ThrowIfNull(calls);
-        settings.Import.ImportSucceeded += (_, _) =>
+        settings.DataReplaced += (_, _) =>
         {
             knowledge.Reload();
             workspaces.Reload();
             calls.Reload();
             settings.Calls.Reload();
+            settings.Backup.Refresh();
         };
 
         // Bearbeitete Eintragsvorlagen sofort in der Wissensdatenbank anbieten.
@@ -41,7 +42,7 @@ public sealed class MainViewModel : ObservableObject
             new("Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
             new("Schreibbereiche", "Notizen, Anleitungen, Werkzeuge und PDF-Anhänge.", workspaces),
             new("Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
-            new("Einstellungen", "Anrufe, Vorlagen, Import aus PixFix 69.", settings),
+            new("Einstellungen", "Anrufe, Vorlagen, Sicherung, Import aus PixFix 69.", settings),
         ];
         selectedSection = Sections[0];
 

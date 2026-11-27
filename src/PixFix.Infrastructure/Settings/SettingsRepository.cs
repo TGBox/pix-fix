@@ -12,6 +12,15 @@ public static class SettingKeys
     public const string BillingMailBody = "billing_mail.body";
     public const string AnyDeskShortcut = "remote.anydesk_shortcut";
 
+    /// <summary>Ordner für automatische Sicherungen und Sicherungen vor einer Wiederherstellung; leer = Datenordner\backups.</summary>
+    public const string BackupDirectory = "backup.directory";
+
+    /// <summary>„0“ schaltet die automatische Sicherung ab; sonst ist sie an.</summary>
+    public const string AutoBackupEnabled = "backup.auto_enabled";
+
+    /// <summary>Letzte Fehlermeldung der automatischen Sicherung (leer = letzte Sicherung erfolgreich).</summary>
+    public const string AutoBackupLastError = "backup.auto_last_error";
+
     /// <summary>Wert von <see cref="DialMethod"/> für <c>tel:</c> (Unify Phone o. Ä.), Standard in PixFix 69.</summary>
     public const string DialMethodStandard = "Windows-Standard (tel:)";
 

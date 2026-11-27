@@ -5,15 +5,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PixFix.Infrastructure;
 using PixFix.Infrastructure.Assets;
+using PixFix.Infrastructure.Backup;
 using PixFix.Infrastructure.Calls;
 using PixFix.Infrastructure.Communication;
 using PixFix.Infrastructure.Settings;
 using PixFix.Infrastructure.Data;
 using PixFix.Infrastructure.Knowledge;
-using PixFix.Infrastructure.Legacy;
 using PixFix.Infrastructure.Ocr;
 using PixFix.Infrastructure.Templates;
 using PixFix.Infrastructure.Images;
+using PixFix.App.Backup;
 using PixFix.App.Calls;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
@@ -57,8 +58,6 @@ public partial class App : Application
         builder.Services.AddSingleton(paths);
         builder.Services.AddSingleton<PixFixDatabase>();
         builder.Services.AddSingleton<AssetStore>();
-        builder.Services.AddSingleton(sp => new LegacyImporter(
-            sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
         builder.Services.AddSingleton(sp => new KnowledgeRepository(
             sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
         builder.Services.AddSingleton<OcrService>();
@@ -76,6 +75,11 @@ public partial class App : Application
         builder.Services.AddSingleton<CobraQuickTextRepository>();
         builder.Services.AddSingleton<CallsViewModel>();
         builder.Services.AddSingleton<CallSettingsViewModel>();
+        builder.Services.AddSingleton(sp => new BackupWriter(paths, sp.GetRequiredService<PixFixDatabase>()));
+        builder.Services.AddSingleton(sp => new RestoreService(paths, sp.GetRequiredService<BackupWriter>()));
+        builder.Services.AddSingleton<BackupCoordinator>();
+        builder.Services.AddSingleton<AutoBackupService>();
+        builder.Services.AddSingleton<BackupViewModel>();
         builder.Services.AddSingleton<SettingsViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
@@ -97,7 +101,10 @@ public partial class App : Application
         // Bildsuch-Index im Hintergrund ergänzen (erste Bildsuche ist dann sofort schnell) – auch nach einem Import.
         var imageSearch = host.Services.GetRequiredService<ImageSearchService>();
         _ = WarmUpImageIndexAsync(imageSearch);
-        host.Services.GetRequiredService<ImportViewModel>().ImportSucceeded += (_, _) => _ = WarmUpImageIndexAsync(imageSearch);
+        host.Services.GetRequiredService<SettingsViewModel>().DataReplaced += (_, _) => _ = WarmUpImageIndexAsync(imageSearch);
+
+        // Stille Tagessicherung, wenn PixFix eine Weile nicht benutzt wird.
+        host.Services.GetRequiredService<AutoBackupService>().Start();
     }
 
     protected override void OnExit(ExitEventArgs e)

@@ -44,13 +44,50 @@
                 </StackPanel>
             </ScrollViewer>
         </TabItem>
+        <TabItem Header="Sicherung">
+            <DockPanel DataContext="{Binding Backup}" Margin="8">
+                <StackPanel DockPanel.Dock="Top" MaxWidth="820" HorizontalAlignment="Left">
+                    <TextBlock Text="Sicherungsordner" FontSize="16" FontWeight="SemiBold" />
+                    <DockPanel Margin="0,6,0,0">
+                        <Button DockPanel.Dock="Right" Content="Öffnen" Command="{Binding OpenFolderCommand}" Padding="10,2" Margin="4,0,0,0" />
+                        <Button DockPanel.Dock="Right" Content="Standard" Command="{Binding ResetFolderCommand}" Padding="10,2" Margin="4,0,0,0"
+                                ToolTip="Wieder den PixFix-Datenordner verwenden" />
+                        <Button DockPanel.Dock="Right" Content="Ändern …" Command="{Binding ChangeFolderCommand}" Padding="10,2" Margin="8,0,0,0" />
+                        <TextBox Text="{Binding BackupFolder, Mode=OneWay}" IsReadOnly="True" Padding="3,2" />
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                               Text="Hier landen die automatischen Sicherungen, „Jetzt sichern“ und die Sicherung vor jeder Wiederherstellung. Ein OneDrive-Ordner schützt zusätzlich vor einem Rechnerausfall." />
+
+                    <CheckBox Content="Automatisch sichern" IsChecked="{Binding AutoBackupEnabled}" Margin="0,14,0,0" FontWeight="SemiBold" />
+                    <TextBlock Margin="20,4,0,0" Foreground="Gray" TextWrapping="Wrap"
+                               Text="Eine Sicherung pro Tag (AUTO-Datum.pixfix), höchstens alle 4 Stunden aktualisiert und nur, wenn du PixFix gerade nicht benutzt. Tagessicherungen werden 7 Tage aufbewahrt." />
+                    <TextBlock Margin="20,4,0,0" Text="{Binding LastAutoBackupText}" TextWrapping="Wrap" />
+
+                    <WrapPanel Margin="0,16,0,0">
+                        <Button Content="Jetzt sichern" Command="{Binding BackupNowCommand}" Padding="12,4" Margin="0,0,6,6" FontWeight="SemiBold" />
+                        <Button Content="Sichern unter …" Command="{Binding BackupAsCommand}" Padding="12,4" Margin="0,0,6,6" />
+                        <Button Content="Sicherung prüfen …" Command="{Binding VerifyCommand}" Padding="12,4" Margin="0,0,6,6" />
+                        <Button Content="Sicherung wiederherstellen …" Command="{Binding RestoreCommand}" Padding="12,4" Margin="0,0,6,6" />
+                    </WrapPanel>
+                    <TextBlock Foreground="Gray" TextWrapping="Wrap"
+                               Text="Wiederherstellen liest PixFix-Sicherungen und Sicherungen aus PixFix 69 (Format 3.0). Die Sicherung wird vorher vollständig geprüft; erst danach werden die Daten ausgetauscht." />
+                    <Grid Margin="0,12,0,0" Height="22">
+                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
+                        <TextBlock Text="{Binding ProgressPercent, StringFormat='{}{0} %'}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                    <TextBlock Text="{Binding Status}" Margin="0,6,0,0" TextWrapping="Wrap" />
+                </StackPanel>
+                <TextBox Margin="0,12,0,0" Text="{Binding ReportText, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas"
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap" />
+            </DockPanel>
+        </TabItem>
         <TabItem Header="Import aus PixFix 69">
                 <!-- Import aus PixFix 69 (SPEC F12) -->
                 <DockPanel DataContext="{Binding Import}" Margin="8">
                     <StackPanel DockPanel.Dock="Top">
                         <TextBlock Text="Daten aus PixFix 69 übernehmen" FontSize="16" FontWeight="SemiBold" />
                         <TextBlock Margin="0,4,0,8" TextWrapping="Wrap"
-                                   Text="Liest Datenbank, Bilder, Dokumente, PDFs, Fax-Dokumente und Vorlagen aus einem PixFix-69-Ordner. Die Altdaten werden nicht verändert. Stimmt eine Anzahl nicht, wird nichts übernommen." />
+                                   Text="Liest Datenbank, Bilder, Dokumente, PDFs, Fax-Dokumente und Vorlagen aus einem PixFix-69-Ordner. Die Altdaten werden nicht verändert. Stimmt eine Anzahl nicht, wird nichts übernommen. Sind in PixFix schon Daten vorhanden, werden sie nach Rückfrage ersetzt und vorher gesichert." />
                         <Button Content="PixFix-69-Ordner wählen und importieren …"
                                 Command="{Binding ImportCommand}"
                                 HorizontalAlignment="Left"

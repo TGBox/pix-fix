@@ -2,23 +2,33 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using PixFix.App.Backup;
+using PixFix.Infrastructure.Backup;
+using PixFix.Infrastructure.Data;
 using PixFix.Infrastructure.Legacy;
 
 namespace PixFix.App.Settings;
 
-/// <summary>Übernahme des Datenbestands aus PixFix 69 (SPEC F12).</summary>
+/// <summary>
+/// Übernahme des Datenbestands aus einem PixFix-69-Ordner (SPEC F12). Sind schon Daten vorhanden, werden sie nach Rückfrage
+/// ersetzt; der bisherige Stand wird vorher gesichert.
+/// </summary>
 public sealed partial class ImportViewModel : ObservableObject
 {
-    private readonly LegacyImporter importer;
+    private readonly RestoreService restore;
+    private readonly BackupCoordinator coordinator;
+    private readonly PixFixDatabase database;
     private readonly ILogger<ImportViewModel> logger;
     private bool isBusy;
     private string status = "Noch kein Import durchgeführt.";
     private string reportText = string.Empty;
     private int progressPercent;
 
-    public ImportViewModel(LegacyImporter importer, ILogger<ImportViewModel> logger)
+    public ImportViewModel(RestoreService restore, BackupCoordinator coordinator, PixFixDatabase database, ILogger<ImportViewModel> logger)
     {
-        this.importer = importer;
+        this.restore = restore;
+        this.coordinator = coordinator;
+        this.database = database;
         this.logger = logger;
         ImportCommand = new AsyncRelayCommand(ImportAsync, () => !IsBusy);
     }
@@ -71,6 +81,23 @@ public sealed partial class ImportViewModel : ObservableObject
         }
 
         var folder = dialog.FolderName;
+        if (HasData()
+            && System.Windows.MessageBox.Show(
+                System.Windows.Application.Current?.MainWindow!,
+                "PixFix enthält bereits Daten. Sollen sie durch den Stand aus PixFix 69 ersetzt werden?\n\nDer aktuelle Stand wird vorher automatisch gesichert in:\n" + coordinator.Folder,
+                "PixFix – Import aus PixFix 69",
+                System.Windows.MessageBoxButton.OKCancel,
+                System.Windows.MessageBoxImage.Warning) != System.Windows.MessageBoxResult.OK)
+        {
+            return;
+        }
+
+        if (!coordinator.TryEnter())
+        {
+            Status = "Gerade läuft eine Sicherung – bitte gleich noch einmal versuchen.";
+            return;
+        }
+
         IsBusy = true;
         ReportText = string.Empty;
         ProgressPercent = 0;
@@ -83,7 +110,7 @@ public sealed partial class ImportViewModel : ObservableObject
                 ProgressPercent = p.Percent;
                 Status = p.Message;
             });
-            var report = await Task.Run(() => importer.Import(folder, progress)).ConfigureAwait(true);
+            var report = await Task.Run(() => restore.ImportLegacyFolder(folder, coordinator.Folder, progress)).ConfigureAwait(true);
 
             ReportText = report.ToText();
             Status = report.Succeeded ? "Import erfolgreich abgeschlossen." : "Import abgebrochen – es wurde nichts übernommen.";
@@ -99,7 +126,14 @@ public sealed partial class ImportViewModel : ObservableObject
         }
         finally
         {
+            coordinator.Exit();
             IsBusy = false;
         }
+    }
+
+    private bool HasData()
+    {
+        using var db = database.Open();
+        return PixFixDatabase.GetSchemaVersion(db) > 0 && !PixFixDatabase.HasNoUserData(db);
     }
 }
