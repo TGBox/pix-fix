@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using PixFix.App.Editing;
 using PixFix.Infrastructure.Images;
 
 namespace PixFix.App.Knowledge;

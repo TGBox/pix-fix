@@ -3,9 +3,11 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
+using PixFix.App.Editing;
 using PixFix.Core.Knowledge;
 using PixFix.Infrastructure.Knowledge;
 using PixFix.Infrastructure.Ocr;
@@ -23,7 +25,7 @@ public sealed record KnowledgeHit(string Id, string Title, string SectionName, s
 }
 
 /// <summary>Wissensdatenbank: nachschlagen, suchen und bearbeiten (SPEC F1/F2).</summary>
-public sealed class KnowledgeViewModel : ObservableObject
+public sealed class KnowledgeViewModel : ObservableObject, IDocumentEditorHost
 {
     private static readonly TimeSpan SearchDelay = TimeSpan.FromMilliseconds(250);
 
@@ -44,7 +46,7 @@ public sealed class KnowledgeViewModel : ObservableObject
     private bool showArchived;
     private KnowledgeHit? selectedHit;
     private KnowledgeListItem? selectedEntry;
-    private KnowledgeDocument? document;
+    private EditorDocument? document;
     private bool isLoadingDocument;
     private string editTitle = string.Empty;
     private string editSection = string.Empty;
@@ -98,6 +100,10 @@ public sealed class KnowledgeViewModel : ObservableObject
     public RelayCommand MoveDownCommand { get; }
     public RelayCommand<CopyAction> CopyCommand { get; }
     public RelayCommand<CopyAction> DeleteCopyActionCommand { get; }
+
+    ICommand IDocumentEditorHost.CopyCommand => CopyCommand;
+
+    ICommand IDocumentEditorHost.DeleteCopyActionCommand => DeleteCopyActionCommand;
 
     public ObservableCollection<KnowledgeHit> Results { get; } = [];
 
@@ -283,7 +289,7 @@ public sealed class KnowledgeViewModel : ObservableObject
     }
 
     /// <summary>Aktuell angezeigtes Dokument; die Ansicht lädt es in den Editor.</summary>
-    public KnowledgeDocument? Document
+    public EditorDocument? Document
     {
         get => document;
         private set => SetProperty(ref document, value);
@@ -427,13 +433,14 @@ public sealed class KnowledgeViewModel : ObservableObject
             var loaded = await Task.Run(() => documents.Load(hit.Id)).ConfigureAwait(true);
             if (request == documentRequest)
             {
-                Document = loaded;
+                Document = loaded is null ? null : new EditorDocument(hit.Id, loaded.Format, loaded.Text, loaded.PictureAssetIds);
             }
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or FormatException or InvalidOperationException)
         {
             logger.LogError(ex, "Dokument {EntryId} konnte nicht geladen werden", hit.Id);
-            Document = new KnowledgeDocument("text", "Das Dokument konnte nicht geladen werden: " + ex.Message, []);
+            // Ohne Eintrags-Id: Die Fehlermeldung wird nie über den echten Inhalt gespeichert.
+            Document = new EditorDocument(null, "text", "Das Dokument konnte nicht geladen werden: " + ex.Message, []);
         }
         finally
         {

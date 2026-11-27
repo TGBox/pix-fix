@@ -1,0 +1,156 @@
+<UserControl x:Class="PixFix.App.Workspaces.WorkspacesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:editing="clr-namespace:PixFix.App.Editing">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" MinWidth="200" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" MinWidth="360" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Bereich, Suche, Reiter nach Abschnitten -->
+        <DockPanel Grid.Column="0" Margin="0,0,8,0">
+            <DockPanel DockPanel.Dock="Top">
+                <Button DockPanel.Dock="Right" Content="…" Width="28" Margin="4,0,0,0" Command="{Binding ManageWorkspacesCommand}"
+                        ToolTip="Bereiche anlegen, umbenennen, sortieren, schützen" />
+                <ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" FontSize="14">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Icon}" Margin="0,0,6,0" />
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                <TextBlock Text=" 🔒" Foreground="Gray">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsProtected}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </DockPanel>
+            <Grid DockPanel.Dock="Top" Margin="0,6,0,0">
+                <TextBox x:Name="SearchBox" Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=250}" Padding="4,3"
+                         ToolTip="Sucht in Titel, Abschnitt und Inhalt der Reiter dieses Bereichs. Esc leert die Suche.">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Escape" Command="{Binding ClearSearchCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+                <TextBlock Text="Im Bereich suchen …" Margin="7,4,0,0" Foreground="Gray" IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,6,0,6">
+                <Button Content="+ Reiter" Command="{Binding NewEntryCommand}" Padding="8,1"
+                        ToolTip="Neuen Reiter im Abschnitt des ausgewählten Reiters anlegen" />
+                <Button Content="Abschnitt ↑" Command="{Binding MoveSectionUpCommand}" Padding="6,1" Margin="4,0,0,0"
+                        ToolTip="Abschnitt des ausgewählten Reiters nach oben" />
+                <Button Content="Abschnitt ↓" Command="{Binding MoveSectionDownCommand}" Padding="6,1" Margin="2,0,0,0"
+                        ToolTip="Abschnitt des ausgewählten Reiters nach unten" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding EntriesView}" SelectedItem="{Binding SelectedItem}"
+                     DisplayMemberPath="Title" HorizontalContentAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.ContainerStyle>
+                            <Style TargetType="GroupItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="GroupItem">
+                                            <!-- Ein-/Ausklappen gilt für den ganzen Abschnitt und wird gespeichert -->
+                                            <Expander IsExpanded="{Binding Items[0].IsExpanded, Mode=TwoWay}" Margin="0,2,0,2">
+                                                <Expander.Header>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                                </Expander.Header>
+                                                <ItemsPresenter Margin="12,0,0,0" />
+                                            </Expander>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GroupStyle.ContainerStyle>
+                    </GroupStyle>
+                </ListBox.GroupStyle>
+            </ListBox>
+        </DockPanel>
+
+        <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" />
+
+        <!-- Reiter -->
+        <DockPanel Grid.Column="2" Margin="8,0,0,0">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,6" IsEnabled="{Binding SelectedItem, Converter={x:Static editing:NotNullConverter.Instance}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding EditTitle}" IsReadOnly="{Binding IsReadOnly}"
+                         FontSize="18" FontWeight="SemiBold" BorderThickness="0,0,0,1" ToolTip="Titel des Reiters" />
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
+                    <ToggleButton Content="🔒" Width="30" IsChecked="{Binding SelectedItem.Item.IsProtected, Mode=OneWay}"
+                                  Command="{Binding ToggleProtectedCommand}" ToolTip="Geschützt: nicht bearbeitbar und nicht löschbar" />
+                    <Button Content="↑" Width="26" Margin="8,0,0,0" Command="{Binding MoveUpCommand}" ToolTip="Reiter im Abschnitt nach oben" />
+                    <Button Content="↓" Width="26" Margin="2,0,0,0" Command="{Binding MoveDownCommand}" ToolTip="Reiter im Abschnitt nach unten" />
+                    <Button Content="Löschen" Padding="6,0" Margin="8,0,0,0" Command="{Binding DeleteCommand}" ToolTip="Reiter löschen" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBlock Text="Abschnitt" VerticalAlignment="Center" Foreground="Gray" Margin="0,0,6,0" />
+                    <ComboBox Width="220" IsEditable="True" ItemsSource="{Binding SectionNames}" Text="{Binding EditSection}"
+                              IsEnabled="{Binding CanEdit}" ToolTip="Abschnitt wählen oder neuen Namen eintippen" />
+                    <Button Content="PDF anhängen …" Padding="8,1" Margin="12,0,0,0" Command="{Binding AddAttachmentCommand}" />
+                </StackPanel>
+                <!-- PDF-Anhänge -->
+                <ItemsControl Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding Attachments}" Margin="0,6,0,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Margin="0,0,4,2" Padding="6,1"
+                                    Command="{Binding DataContext.OpenAttachmentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" ToolTip="PDF öffnen">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Anhang entfernen"
+                                                  Command="{Binding PlacementTarget.Tag.RemoveAttachmentCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                  CommandParameter="{Binding}" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                                <Button.Tag>
+                                    <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                </Button.Tag>
+                                <TextBlock Text="{Binding DisplayName, StringFormat='📄 {0}'}" />
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <editing:DocumentEditor x:Name="EditorPanel" />
+        </DockPanel>
+    </Grid>
+</UserControl>

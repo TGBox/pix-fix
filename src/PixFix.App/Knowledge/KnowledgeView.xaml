@@ -1,17 +1,10 @@
 <UserControl x:Class="PixFix.App.Knowledge.KnowledgeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:PixFix.App.Knowledge">
+             xmlns:local="clr-namespace:PixFix.App.Knowledge"
+             xmlns:editing="clr-namespace:PixFix.App.Editing">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-        <Style x:Key="ToolButton" TargetType="Button">
-            <Setter Property="MinWidth" Value="28" />
-            <Setter Property="Height" Value="26" />
-            <Setter Property="Margin" Value="0,0,2,0" />
-            <Setter Property="Padding" Value="6,0" />
-            <Setter Property="CommandTarget" Value="{Binding ElementName=Editor}" />
-            <Setter Property="Focusable" Value="False" />
-        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -94,7 +87,7 @@
         <!-- Eintrag -->
         <DockPanel Grid.Column="2" Margin="8,0,0,0">
             <!-- Kopf: Titel, Abschnitt, Tags, Zustände -->
-            <Grid DockPanel.Dock="Top" Margin="0,0,0,6" IsEnabled="{Binding SelectedEntry, Converter={x:Static local:NotNullConverter.Instance}}">
+            <Grid DockPanel.Dock="Top" Margin="0,0,0,6" IsEnabled="{Binding SelectedEntry, Converter={x:Static editing:NotNullConverter.Instance}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -130,88 +123,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- Formatleiste -->
-            <DockPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" x:Name="HitNavigation" Visibility="Collapsed">
-                    <TextBlock x:Name="HitCounter" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="Gray" />
-                    <Button Content="▲" Width="28" Click="OnPreviousHit" Focusable="False" ToolTip="Vorheriger Treffer (Umschalt+F3)" />
-                    <Button Content="▼" Width="28" Margin="2,0,0,0" Click="OnNextHit" Focusable="False" ToolTip="Nächster Treffer (F3)" />
-                </StackPanel>
-                <WrapPanel IsEnabled="{Binding CanEdit}">
-                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleBold" FontWeight="Bold" Content="F" ToolTip="Fett (Strg+B)" />
-                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleItalic" FontStyle="Italic" Content="K" ToolTip="Kursiv (Strg+I)" />
-                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleUnderline" Content="U" ToolTip="Unterstrichen (Strg+U)" />
-                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.IncreaseFontSize" Content="A+" ToolTip="Schrift größer (Strg+])" />
-                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.DecreaseFontSize" Content="A−" ToolTip="Schrift kleiner (Strg+[)" />
-                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleBullets" Content="•" ToolTip="Aufzählung" />
-                    <Button Style="{StaticResource ToolButton}" Command="EditingCommands.ToggleNumbering" Content="1." ToolTip="Nummerierung" />
-                    <Button Style="{StaticResource ToolButton}" Command="ApplicationCommands.Undo" Content="↶" ToolTip="Rückgängig (Strg+Z)" />
-                    <Button Style="{StaticResource ToolButton}" Command="ApplicationCommands.Redo" Content="↷" ToolTip="Wiederholen (Strg+Y)" />
-                    <Button Style="{StaticResource ToolButton}" Content="Bild einfügen …" Click="OnInsertImage"
-                            ToolTip="Bilddatei einfügen. Screenshots einfach mit Strg+V einfügen oder Dateien hineinziehen." />
-                    <Button Style="{StaticResource ToolButton}" Content="Kopier-Button" Click="OnAddCopyAction"
-                            ToolTip="Aus dem markierten Text einen Kopier-Button machen, z. B. für Befehle oder Pfade" />
-                    <TextBlock Text="{Binding Status}" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0" />
-                </WrapPanel>
-            </DockPanel>
-
-            <!-- Kopier-Buttons des Eintrags -->
-            <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-                <WrapPanel.Style>
-                    <Style TargetType="WrapPanel">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding CopyActions.Count}" Value="0">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </WrapPanel.Style>
-                <TextBlock Text="Kopieren:" Foreground="Gray" VerticalAlignment="Center" Margin="0,0,6,0" />
-                <ItemsControl ItemsSource="{Binding CopyActions}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button MaxWidth="320" Margin="0,0,4,2" Padding="6,1" FontFamily="Consolas"
-                                    Command="{Binding DataContext.CopyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}"
-                                    ToolTip="{Binding Text}">
-                                <Button.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem Header="Kopier-Button löschen"
-                                                  Command="{Binding PlacementTarget.Tag.DeleteCopyActionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
-                                                  CommandParameter="{Binding}" />
-                                    </ContextMenu>
-                                </Button.ContextMenu>
-                                <Button.Tag>
-                                    <Binding Path="DataContext" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                                </Button.Tag>
-                                <!-- TextBlock statt Content-Text: Unterstriche (z. B. in Pfaden) sonst als Tastenkürzel verschluckt -->
-                                <TextBlock Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
-                            </Button>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </WrapPanel>
-
-            <Grid>
-                <RichTextBox x:Name="Editor"
-                             IsReadOnly="{Binding IsReadOnly}"
-                             IsDocumentEnabled="True"
-                             IsInactiveSelectionHighlightEnabled="True"
-                             AcceptsTab="True"
-                             SpellCheck.IsEnabled="True"
-                             Language="de-DE"
-                             VerticalScrollBarVisibility="Auto"
-                             AllowDrop="True"
-                             BorderThickness="1" />
-                <TextBlock Text="Dokument wird geladen …"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray"
-                           Visibility="{Binding IsLoadingDocument, Converter={StaticResource BoolToVisibility}}" />
-            </Grid>
+            <editing:DocumentEditor x:Name="EditorPanel" />
         </DockPanel>
     </Grid>
 </UserControl>

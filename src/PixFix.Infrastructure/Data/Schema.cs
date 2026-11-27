@@ -192,6 +192,15 @@ internal static class Schema
             center_histogram BLOB NOT NULL,
             center_aspect REAL NOT NULL);
         """,
+
+        // 4 – Bilder in Schreibbereichen (Phase 4): welche Dateien ein Reiter verwendet
+        """
+        CREATE TABLE information_entry_images(
+            entry_id TEXT NOT NULL REFERENCES information_entries(id) ON DELETE CASCADE,
+            ordinal INTEGER NOT NULL,
+            asset_id TEXT NOT NULL REFERENCES assets(id),
+            PRIMARY KEY(entry_id, ordinal));
+        """,
     ];
 
     /// <summary>Tabellen mit Nutzdaten – ein Import ist nur in eine Datenbank erlaubt, in der diese leer sind.</summary>

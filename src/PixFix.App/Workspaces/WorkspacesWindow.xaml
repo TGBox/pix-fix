@@ -1,0 +1,42 @@
+<Window x:Class="PixFix.App.Workspaces.WorkspacesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Schreibbereiche verwalten"
+        Width="560" Height="440"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <DockPanel Margin="12">
+        <TextBlock DockPanel.Dock="Top" Margin="0,0,0,8" TextWrapping="Wrap" Foreground="Gray"
+                   Text="Bereiche wie „Aktuelle Fehler“ oder „Werkzeuge“. Löschen geht nur bei leeren, ungeschützten Bereichen." />
+        <TextBlock x:Name="Error" DockPanel.Dock="Bottom" Foreground="Firebrick" TextWrapping="Wrap" Margin="0,8,0,0" />
+        <Grid DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="IconBox" Grid.Column="0" Width="40" ToolTip="Symbol, z. B. ⚠ oder 🛠" VerticalContentAlignment="Center" />
+            <TextBox x:Name="NameBox" Grid.Column="1" Margin="6,0,0,0" ToolTip="Name des Bereichs" VerticalContentAlignment="Center" />
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="6,0,0,0">
+                <CheckBox x:Name="ProtectedBox" Content="Geschützt" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <Button Content="Übernehmen" Padding="10,2" Click="OnSave" IsDefault="True" />
+                <Button Content="Neu" Padding="10,2" Margin="6,0,0,0" Click="OnCreate" ToolTip="Neuen Bereich mit diesem Namen anlegen" />
+            </StackPanel>
+        </Grid>
+        <StackPanel DockPanel.Dock="Right" Margin="8,0,0,0">
+            <Button Content="↑ Nach oben" Padding="8,2" Click="OnMoveUp" />
+            <Button Content="↓ Nach unten" Padding="8,2" Margin="0,4,0,0" Click="OnMoveDown" />
+            <Button Content="Löschen" Padding="8,2" Margin="0,16,0,0" Click="OnDelete" />
+            <Button Content="Schließen" Padding="8,2" Margin="0,16,0,0" IsCancel="True" />
+        </StackPanel>
+        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="" Width="40" DisplayMemberBinding="{Binding Icon}" />
+                    <GridViewColumn Header="Bereich" Width="260" DisplayMemberBinding="{Binding Title}" />
+                    <GridViewColumn Header="Geschützt" Width="80" DisplayMemberBinding="{Binding IsProtected}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </DockPanel>
+</Window>

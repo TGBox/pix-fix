@@ -5,7 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Windows.Media.Imaging;
 
-namespace PixFix.App.Knowledge;
+namespace PixFix.App.Editing;
 
 /// <summary>Ergebnis des Speicherns: XAML ohne Bilddaten, Klartext und Bilder in Dokumentreihenfolge.</summary>
 public sealed record SavedDocument(string Xaml, string PlainText, IReadOnlyList<string> ImageAssetIds);

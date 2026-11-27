@@ -13,6 +13,8 @@ using PixFix.Infrastructure.Templates;
 using PixFix.Infrastructure.Images;
 using PixFix.App.Knowledge;
 using PixFix.App.Settings;
+using PixFix.App.Workspaces;
+using PixFix.Infrastructure.Workspaces;
 using Serilog;
 
 namespace PixFix.App;
@@ -60,6 +62,9 @@ public partial class App : Application
         builder.Services.AddSingleton<ImageSearchService>();
         builder.Services.AddSingleton<KnowledgeDocumentService>();
         builder.Services.AddSingleton<KnowledgeViewModel>();
+        builder.Services.AddSingleton(sp => new InformationRepository(
+            sp.GetRequiredService<PixFixDatabase>(), sp.GetRequiredService<AssetStore>()));
+        builder.Services.AddSingleton<WorkspacesViewModel>();
         builder.Services.AddSingleton<ImportViewModel>();
         builder.Services.AddSingleton<MainViewModel>();
         builder.Services.AddSingleton<MainWindow>();

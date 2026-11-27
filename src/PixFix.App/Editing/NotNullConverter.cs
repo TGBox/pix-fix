@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace PixFix.App.Knowledge;
+namespace PixFix.App.Editing;
 
 /// <summary>True, wenn der Wert nicht null ist (z. B. „ein Eintrag ist ausgewählt“).</summary>
 public sealed class NotNullConverter : IValueConverter

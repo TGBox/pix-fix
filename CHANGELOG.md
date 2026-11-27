@@ -39,3 +39,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
   Bild × 250 + Textabdeckung × 100 + Fehlercodes × 160 + Textsuche, höchstens 60 Treffer); Vorschau per Klick,
   Doppelklick/Enter öffnet den Eintrag und springt zum Bild. Bildsuch-Index in der Datenbank (Schema v3), wird beim Start
   und nach einem Import im Hintergrund ergänzt. Vergleichstest gegen den Bildindex von PixFix 69 (PIXFIX_LEGACY_DATA).
+- Phase 4: Schreibbereiche – Bereich wählen, Reiter nach Abschnitten (ein-/ausklappbar, Zustand wird gespeichert),
+  Suche im Bereich mit Markierung im Editor, Reiter anlegen/umbenennen/verschieben/schützen/löschen, Abschnitte
+  verschieben, PDF-Anhänge öffnen/anhängen/entfernen, Kopier-Buttons; Bereiche anlegen, umbenennen, sortieren, schützen
+  und leere löschen. Gelöschte Reiter landen als Abbild im Papierkorb (Wiederherstellen folgt). Schema v4.
+- Editor als gemeinsames Bauteil (`DocumentEditor`) für Wissensdatenbank und Schreibbereiche.
