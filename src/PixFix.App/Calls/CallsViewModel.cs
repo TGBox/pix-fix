@@ -147,6 +147,10 @@ public sealed class CallsViewModel : ObservableObject
         reminderTimer.Start();
     }
 
+    /// <summary>Rückrufe, an die PixFix heute noch erinnern würde (Warnung vor dem Beenden).</summary>
+    public IReadOnlyList<Call> PendingRemindersToday() =>
+        CallRules.PendingRemindersToday(Calls.Select(c => c.Model), DateTimeOffset.UtcNow, TimeZoneInfo.Local);
+
     public void Reload()
     {
         var keep = SelectedCall?.Id;

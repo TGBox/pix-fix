@@ -15,6 +15,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
   „Was ist neu?“, „Programmordner öffnen“ und „Später“; liegt PixFix im Hintergrund, kommt zusätzlich eine
   Windows-Benachrichtigung. Einstellungen → Allgemein → Updates zeigt die installierte Version, sucht sofort und lässt sich
   abschalten. Fehler bei der Abfrage bleiben in der Anzeige und stören PixFix nicht.
+- Schaltfläche „PixFix beenden“ unten in der Navigation: beendet PixFix vollständig, ohne Umweg über das Symbol im
+  Infobereich (das Schließen-Kreuz legt PixFix weiterhin nur in den Infobereich).
+- Warnung vor dem Beenden (Schaltfläche, Infobereich-Menü oder Schließen-Kreuz ohne Infobereich), wenn heute noch
+  Rückruf-Erinnerungen anstehen – mit Liste der Rückrufe (Uhrzeit, L-Nummer, Grund); Standard ist „Nein“. Beim Abmelden
+  oder Herunterfahren von Windows kommt keine Rückfrage.
 - Bereich „Hilfe“ (Strg+6, F1, Infobereich-Menü) mit Kapiteln zu allen Funktionen und „Zum Bereich wechseln“.
 - Einführungstour für neue Mitarbeiter: startet einmalig beim ersten Programmstart, führt durch alle Bereiche und lässt
   sich unter Hilfe jederzeit wiederholen.

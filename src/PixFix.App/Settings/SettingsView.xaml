@@ -15,7 +15,7 @@
                                Text="Wechselt sofort zwischen hellem und dunklem Design oder übernimmt die Windows-Einstellung." />
                     <CheckBox Content="Beim Schließen im Infobereich weiterlaufen" IsChecked="{Binding CloseToTray}" FontWeight="SemiBold" />
                     <TextBlock Margin="20,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                               Text="Rückruf-Erinnerungen, TI-Monitor und automatische Sicherung bleiben aktiv. Beenden über das PixFix-Symbol im Infobereich (rechte Maustaste → PixFix beenden)." />
+                               Text="Rückruf-Erinnerungen, TI-Monitor und automatische Sicherung bleiben aktiv. Ganz beenden über „PixFix beenden“ unten in der Navigation oder das PixFix-Symbol im Infobereich (rechte Maustaste → PixFix beenden)." />
                     <CheckBox Content="Systemweites Tastenkürzel Strg+Alt+P für die Bildsuche" IsChecked="{Binding GlobalHotkey}" Margin="0,12,0,0" FontWeight="SemiBold" />
                     <TextBlock Margin="20,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Screenshot machen (Windows+Umschalt+S), Strg+Alt+P drücken – PixFix sucht sofort nach passenden Einträgen. Änderung wirkt nach dem nächsten Start." />

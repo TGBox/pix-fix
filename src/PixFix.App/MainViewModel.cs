@@ -86,6 +86,9 @@ public sealed class MainViewModel : ObservableObject
         help.TourRequested += (_, _) => TourRequested?.Invoke(this, EventArgs.Empty);
         ShowHelpCommand = new RelayCommand(() => SelectedSection = Sections[HelpContent.Help]);
 
+        // „PixFix beenden“ unten in der Navigation – wie im Menü des Infobereichs.
+        ExitCommand = new RelayCommand(() => ExitRequested?.Invoke(this, EventArgs.Empty));
+
         // Strg+1 … Strg+6 wechselt den Bereich.
         ShowSectionCommand = new RelayCommand<string>(index =>
         {
@@ -98,6 +101,9 @@ public sealed class MainViewModel : ObservableObject
 
     /// <summary>Die Einführungstour soll angezeigt werden (Hilfe → „Einführungstour starten“).</summary>
     public event EventHandler? TourRequested;
+
+    /// <summary>PixFix soll vollständig beendet werden (nicht nur in den Infobereich).</summary>
+    public event EventHandler? ExitRequested;
 
     public ObservableCollection<NavigationSection> Sections { get; }
 
@@ -126,6 +132,8 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand ShowTiCommand { get; }
 
     public RelayCommand ShowHelpCommand { get; }
+
+    public RelayCommand ExitCommand { get; }
 
     public RelayCommand<string> ShowSectionCommand { get; }
 

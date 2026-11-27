@@ -62,7 +62,8 @@ public static class HelpContent
                 new("PixFix läuft im Hintergrund weiter", [
                     "Das Schließen-Kreuz beendet PixFix nicht, sondern legt es in den Infobereich (unten rechts neben der Uhr). "
                     + "So bleiben Rückruf-Erinnerungen, TI-Monitor und automatische Sicherung aktiv.",
-                    "Wirklich beenden: Rechtsklick auf das PixFix-Symbol im Infobereich → „PixFix beenden“.",
+                    "Wirklich beenden: „PixFix beenden“ unten in der Navigation oder Rechtsklick auf das PixFix-Symbol im "
+                    + "Infobereich → „PixFix beenden“.",
                     "Strg+Alt+P holt PixFix aus jedem Programm nach vorn und startet die Bildsuche.",
                 ]),
                 new("Deine Daten", [
@@ -158,7 +159,8 @@ public static class HelpContent
                     "Bei „Später erneut anrufen“ und „Morgen erneut anrufen“ fragt PixFix, wann du erinnert werden willst.",
                     "Ist der Rückruf fällig, erscheint ein Erinnerungsfenster und die Taskleiste blinkt. „OK“ setzt den Anruf auf "
                     + "„In Bearbeitung“, „Erneut erinnern“ verschiebt die Erinnerung.",
-                    "Die Erinnerung kommt auch, wenn PixFix im Infobereich liegt – deshalb PixFix nicht beenden.",
+                    "Die Erinnerung kommt auch, wenn PixFix im Infobereich liegt – deshalb PixFix nicht beenden. Stehen heute "
+                    + "noch Rückrufe an, warnt PixFix vor dem Beenden.",
                 ]),
                 new("Telefonieren, Fernwartung, E-Mail", [
                     "„📞 Anrufen“ wählt die Nummer aus „Rückruf an“, „Auflegen“ beendet das aktive Gespräch.",
@@ -220,7 +222,7 @@ public static class HelpContent
             [
                 new("Neue Version installieren", [
                     "Im Hinweis auf „Herunterladen“ klicken – der Browser lädt die neue PixFix.exe herunter.",
-                    "PixFix beenden: Rechtsklick auf das Symbol im Infobereich → „PixFix beenden“.",
+                    "PixFix beenden: „PixFix beenden“ unten in der Navigation (oder über das Symbol im Infobereich).",
                     "„Programmordner öffnen“ zeigt, wo deine PixFix.exe liegt. Ersetze sie durch die heruntergeladene Datei "
                     + "und starte PixFix neu.",
                     "Deine Daten liegen getrennt vom Programm und bleiben beim Update unverändert.",
@@ -278,7 +280,8 @@ public static class HelpContent
             Settings),
         new(
             "Im Hintergrund und immer aktuell",
-            "Das Schließen-Kreuz legt PixFix in den Infobereich, damit Erinnerungen weiterlaufen. Gibt es eine neue Version, "
+            "Das Schließen-Kreuz legt PixFix in den Infobereich, damit Erinnerungen weiterlaufen – ganz beenden geht über "
+            + "„PixFix beenden“ unten links. Gibt es eine neue Version, "
             + "erscheint oben im Fenster ein Hinweis mit Download-Link.",
             null),
         new(

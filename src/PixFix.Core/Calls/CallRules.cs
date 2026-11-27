@@ -226,6 +226,24 @@ public static partial class CallRules
             .OrderBy(c => c.ReminderUtc)
             .FirstOrDefault();
 
+    /// <summary>
+    /// Aktive Rückruf-Erinnerungen, die bis zum Ende des heutigen Tages (Ortszeit) fällig werden – einschließlich bereits
+    /// fälliger, noch nicht erledigter. Grundlage für die Warnung vor dem Beenden; sortiert nach Zeitpunkt.
+    /// </summary>
+    public static IReadOnlyList<Call> PendingRemindersToday(IEnumerable<Call> calls, DateTimeOffset nowUtc, TimeZoneInfo zone)
+    {
+        ArgumentNullException.ThrowIfNull(calls);
+        ArgumentNullException.ThrowIfNull(zone);
+        var tomorrowLocal = TimeZoneInfo.ConvertTime(nowUtc, zone).Date.AddDays(1);
+        var endOfTodayUtc = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(tomorrowLocal, zone), TimeSpan.Zero);
+        return
+        [
+            .. calls
+                .Where(c => c.ReminderActive && c.Status != CallStatus.Done && c.ReminderUtc is { } at && at < endOfTodayUtc)
+                .OrderBy(c => c.ReminderUtc),
+        ];
+    }
+
     /// <summary>„OK“ in der Erinnerung: Erinnerung beenden, Status „In Bearbeitung“.</summary>
     public static Call AcknowledgeReminder(Call call, DateTimeOffset nowUtc)
     {

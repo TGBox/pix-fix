@@ -103,6 +103,36 @@
                         </TextBlock.Style>
                     </TextBlock>
                 </DockPanel>
+                <!-- PixFix wirklich beenden (das Schließen-Kreuz legt es standardmäßig nur in den Infobereich) -->
+                <Button DockPanel.Dock="Bottom" Command="{Binding ExitCommand}"
+                        HorizontalContentAlignment="Left" Padding="8,6" Background="Transparent" BorderThickness="0"
+                        ToolTip="PixFix vollständig beenden. Danach gibt es keine Rückruf-Erinnerungen, keinen TI-Monitor und keine automatische Sicherung mehr, bis PixFix wieder gestartet wird.">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                            <Setter Property="Margin" Value="4,0,4,2" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                    <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE7E8;" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                   Width="22" TextAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Text="PixFix beenden" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Button>
                 <TextBlock DockPanel.Dock="Bottom" Margin="8" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11" TextWrapping="Wrap"
                            Text="{Binding DataDirectory, StringFormat='Daten: {0}'}">
                     <TextBlock.Style>

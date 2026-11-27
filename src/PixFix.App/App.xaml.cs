@@ -36,6 +36,7 @@ public partial class App : Application
     private IHost? host;
     private GlobalHotkey? hotkey;
     private bool exiting;
+    private bool sessionEnding;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -226,9 +227,11 @@ public partial class App : Application
         });
         tray.OpenRequested += (_, _) => Open();
         tray.ExitRequested += (_, _) => ExitApplication();
+        main.ExitRequested += (_, _) => ExitApplication();
         tray.Show();
 
         // Schließen-Kreuz: im Infobereich weiterlaufen, damit Erinnerungen und TI-Monitor aktiv bleiben.
+        // Wird PixFix wirklich beendet und stehen heute noch Rückrufe an, vorher warnen (nicht beim Abmelden von Windows).
         window.Closing += (_, e) =>
         {
             if (!exiting && settings.GetFlag(SettingKeys.CloseToTray, true))
@@ -236,9 +239,24 @@ public partial class App : Application
                 e.Cancel = true;
                 window.Hide();
                 tray.NotifyMinimizedOnce();
+                return;
             }
+
+            if (!sessionEnding && !ConfirmExitWithPendingCallbacks(window, calls))
+            {
+                e.Cancel = true;
+                exiting = false;
+                return;
+            }
+
+            hotkey?.Dispose();
+            hotkey = null;
         };
-        SessionEnding += (_, _) => exiting = true;
+        SessionEnding += (_, _) =>
+        {
+            sessionEnding = true;
+            exiting = true;
+        };
 
         // Windows-Benachrichtigungen nur, wenn PixFix gerade nicht im Vordergrund ist.
         calls.ReminderDue += (_, text) =>
@@ -278,13 +296,48 @@ public partial class App : Application
         }
     }
 
-    /// <summary>Wirklich beenden (Menü im Infobereich): offene Eingaben speichern lassen und schließen.</summary>
+    /// <summary>Wirklich beenden (Menü im Infobereich oder „PixFix beenden“ in der Navigation): offene Eingaben speichern lassen und schließen.</summary>
     private void ExitApplication()
     {
         exiting = true;
-        hotkey?.Dispose();
-        hotkey = null;
         MainWindow?.Close();
+    }
+
+    /// <summary>
+    /// Warnung vor dem Beenden, wenn heute noch Rückruf-Erinnerungen anstehen (auch bereits fällige). <c>true</c> = beenden.
+    /// </summary>
+    private static bool ConfirmExitWithPendingCallbacks(Window window, CallsViewModel calls)
+    {
+        var pending = calls.PendingRemindersToday();
+        if (pending.Count == 0)
+        {
+            return true;
+        }
+
+        const int MaxListed = 5;
+        var lines = pending.Take(MaxListed).Select(call =>
+        {
+            var time = call.ReminderUtc!.Value.ToLocalTime().ToString("HH:mm", System.Globalization.CultureInfo.CurrentCulture);
+            var customer = string.IsNullOrWhiteSpace(call.CustomerNumber) ? "ohne L-Nummer" : "L-Nummer " + call.CustomerNumber.Trim();
+            var reason = call.ReasonText.Trim().Split('\n', 2)[0].Trim();
+            if (reason.Length > 50)
+            {
+                reason = reason[..50] + "…";
+            }
+
+            return "•  " + time + "  " + customer + (reason.Length > 0 ? " – " + reason : string.Empty);
+        });
+        var more = pending.Count > MaxListed ? $"\n•  … und {pending.Count - MaxListed} weitere" : string.Empty;
+        var heading = pending.Count == 1 ? "Heute steht noch ein Rückruf an:" : $"Heute stehen noch {pending.Count} Rückrufe an:";
+        var text = heading + "\n\n" + string.Join("\n", lines) + more
+            + "\n\nWenn PixFix beendet ist, wirst du daran nicht erinnert.\n\nPixFix trotzdem beenden?";
+
+        Log.Information("Beenden mit {Count} offenen Rückrufen für heute – Rückfrage angezeigt", pending.Count);
+        var owner = window.IsVisible ? window : null;
+        var answer = owner is null
+            ? MessageBox.Show(text, "PixFix beenden", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No)
+            : MessageBox.Show(owner, text, "PixFix beenden", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+        return answer == MessageBoxResult.Yes;
     }
 
     protected override void OnExit(ExitEventArgs e)

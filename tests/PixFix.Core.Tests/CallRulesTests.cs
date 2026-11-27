@@ -131,4 +131,19 @@ public class CallRulesTests
         Assert.Equal(Now.AddMinutes(10), snoozed.ReminderUtc);
         Assert.Equal(CallStatus.CallBackLater, snoozed.Status);
     }
+
+    [Fact]
+    public void PendingRemindersTodayIncludesOverdueAndLaterTodayButNotTomorrow()
+    {
+        // Now = 27.11. 10:00 UTC = 11:00 in Berlin; der Tag endet um 23:00 UTC.
+        var overdue = NewCall() with { Id = "overdue", ReminderActive = true, ReminderUtc = Now.AddHours(-2), Status = CallStatus.CallBackLater };
+        var evening = NewCall() with { Id = "evening", ReminderActive = true, ReminderUtc = Now.AddHours(12).AddMinutes(59), Status = CallStatus.CallBackLater };
+        var tomorrow = NewCall() with { Id = "tomorrow", ReminderActive = true, ReminderUtc = Now.AddHours(13), Status = CallStatus.CallBackTomorrow };
+        var inactive = NewCall() with { Id = "inactive", ReminderActive = false, ReminderUtc = Now.AddHours(1) };
+        var done = NewCall() with { Id = "done", ReminderActive = true, ReminderUtc = Now.AddHours(1), Status = CallStatus.Done };
+
+        var pending = CallRules.PendingRemindersToday(new[] { evening, tomorrow, inactive, done, overdue }, Now, Berlin);
+
+        Assert.Equal(new[] { "overdue", "evening" }, pending.Select(c => c.Id));
+    }
 }
