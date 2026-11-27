@@ -40,8 +40,9 @@ public sealed class LegacyImporter
         this.timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public ImportReport Import(string legacyFolder, IProgress<string>? progress = null)
+    public ImportReport Import(string legacyFolder, IProgress<ImportProgress>? progress = null)
     {
+        var tracker = new ImportProgressTracker(progress);
         var report = new ImportReport(legacyFolder);
         var startedUtc = timeProvider.GetUtcNow();
         string? tempDirectory = null;
@@ -49,7 +50,7 @@ public sealed class LegacyImporter
         try
         {
             var layout = LegacyLayout.Resolve(legacyFolder);
-            progress?.Report("Datenbank wird vorbereitet …");
+            tracker.Report(0, "Datenbank wird vorbereitet …");
             database.Migrate();
 
             using var target = database.Open();
@@ -59,12 +60,12 @@ public sealed class LegacyImporter
                     "Die PixFix-Datenbank enthält bereits Daten. Ein Import aus PixFix 69 ist nur in eine leere Datenbank möglich.");
             }
 
-            progress?.Report("PixFix-69-Datenbank wird kopiert und geprüft …");
+            tracker.Report(2, "PixFix-69-Datenbank wird kopiert und geprüft …");
             tempDirectory = Path.Combine(Path.GetTempPath(), "pixfix-import-" + Guid.NewGuid().ToString("N"));
             using (var source = OpenLegacyCopy(layout, tempDirectory))
             {
                 CheckLegacyDatabase(source);
-                RunImport(new Context(source, target, layout, report, startedUtc) { Zone = legacyTimeZone }, progress);
+                RunImport(new Context(source, target, layout, report, startedUtc) { Zone = legacyTimeZone, Progress = tracker });
             }
 
             WriteImportLog(target, report, startedUtc);
@@ -82,24 +83,27 @@ public sealed class LegacyImporter
             DeleteTempDirectory(tempDirectory, report);
         }
 
-        progress?.Report(report.Succeeded ? "Import abgeschlossen." : "Import abgebrochen.");
+        tracker.Report(100, report.Succeeded ? "Import abgeschlossen." : "Import abgebrochen – es wurde nichts übernommen.");
         return report;
     }
 
-    private void RunImport(Context ctx, IProgress<string>? progress)
+    private void RunImport(Context ctx)
     {
         using var transaction = ctx.Target.BeginTransaction();
         ctx.Transaction = transaction;
 
-        progress?.Report("Wissensdatenbank wird übernommen …");
+        // Gesamtzahl der Arbeitsschritte für den Fortschrittsbalken (+1 für Vorlagen/Einstellungen).
+        ctx.Progress.SetTotal(
+            ctx.SourceCount("fix_entries") + ctx.SourceCount("entry_images") + ctx.SourceCount("information_entries") +
+            ctx.SourceCount("information_pdf_attachments") + ctx.SourceCount("calls") +
+            ctx.SourceCount("deleted_calls") + ctx.SourceCount("deleted_fix_entries") + 1);
+
         ImportKnowledge(ctx);
-        progress?.Report("Schreibbereiche werden übernommen …");
         ImportWorkspaces(ctx);
-        progress?.Report("Anrufe werden übernommen …");
         ImportCalls(ctx);
         ImportTrash(ctx);
-        progress?.Report("Vorlagen und Einstellungen werden übernommen …");
         ImportSettings(ctx);
+        ctx.Progress.Report(99, "Soll/Ist-Abgleich und Speichern …");
 
         if (ctx.Report.Errors.Count > 0 || ctx.Report.Counts.Exists(c => !c.Matches))
         {
@@ -149,10 +153,12 @@ public sealed class LegacyImporter
 
         var copyActionsExpected = 0;
         var entryIds = new HashSet<string>(StringComparer.Ordinal);
+        ctx.Progress.BeginPhase("Einträge und Dokumente werden übernommen", ctx.SourceCount("fix_entries"));
         using (var reader = ctx.Read("SELECT * FROM fix_entries ORDER BY category_order, page_order, id;"))
         {
             while (reader.Read())
             {
+                ctx.Progress.Step();
                 var id = reader.GetText("id");
                 var title = reader.GetText("title");
                 var category = reader.GetText("category");
@@ -189,10 +195,12 @@ public sealed class LegacyImporter
         }
 
         var missingImages = 0L;
+        ctx.Progress.BeginPhase("Bilder werden übernommen", ctx.SourceCount("entry_images"));
         using (var reader = ctx.Read("SELECT entry_id, ordinal, relative_path, is_primary FROM entry_images ORDER BY entry_id, ordinal;"))
         {
             while (reader.Read())
             {
+                ctx.Progress.Step();
                 var entryId = reader.GetText("entry_id");
                 var relative = reader.GetText("relative_path");
                 if (!entryIds.Contains(entryId))
@@ -280,10 +288,12 @@ public sealed class LegacyImporter
         ctx.Compare("Schreibbereiche", ctx.SourceCount("writing_workspaces"), "workspaces");
 
         var copyActionsExpected = 0;
+        ctx.Progress.BeginPhase("Schreibbereiche werden übernommen", ctx.SourceCount("information_entries"));
         using (var reader = ctx.Read("SELECT * FROM information_entries ORDER BY workspace_id, section_order, item_order, id;"))
         {
             while (reader.Read())
             {
+                ctx.Progress.Step();
                 var id = reader.GetText("id");
                 var workspaceId = reader.GetText("workspace_id");
                 if (!workspaceIds.Contains(workspaceId))
@@ -324,10 +334,12 @@ public sealed class LegacyImporter
         }
 
         var missingPdfs = 0L;
+        ctx.Progress.BeginPhase("PDF-Anhänge werden übernommen", ctx.SourceCount("information_pdf_attachments"));
         using (var reader = ctx.Read("SELECT * FROM information_pdf_attachments ORDER BY information_entry_id, ordinal;"))
         {
             while (reader.Read())
             {
+                ctx.Progress.Step();
                 var relative = reader.GetText("relative_path");
                 var name = reader.GetText("name");
                 var asset = ctx.ImportFile(
@@ -374,10 +386,12 @@ public sealed class LegacyImporter
 
     private static void ImportCalls(Context ctx)
     {
+        ctx.Progress.BeginPhase("Anrufe werden übernommen", ctx.SourceCount("calls"));
         using (var reader = ctx.Read("SELECT * FROM calls ORDER BY created_at, id;"))
         {
             while (reader.Read())
             {
+                ctx.Progress.Step();
                 var legacyStatus = reader.GetText("status");
                 var status = CallStatusText.ParseLegacy(legacyStatus);
                 if (status == CallStatus.Open && legacyStatus.Length > 0 && legacyStatus != CallStatus.Open.ToDisplayName())
@@ -442,6 +456,7 @@ public sealed class LegacyImporter
 
     private static void ImportTrash(Context ctx)
     {
+        ctx.Progress.BeginPhase("Papierkorb wird übernommen", ctx.SourceCount("deleted_calls") + ctx.SourceCount("deleted_fix_entries"));
         ImportTrashTable(ctx, "SELECT call_id AS original_id, deleted_at, snapshot_xml FROM deleted_calls ORDER BY id;", "call");
         ImportTrashTable(ctx, "SELECT entry_id AS original_id, deleted_at, snapshot_xml FROM deleted_fix_entries ORDER BY deleted_at;", "knowledge");
         ctx.Compare("Papierkorb", ctx.SourceCount("deleted_calls") + ctx.SourceCount("deleted_fix_entries"), "trash");
@@ -456,6 +471,7 @@ public sealed class LegacyImporter
         using var reader = ctx.Read(sql);
         while (reader.Read())
         {
+            ctx.Progress.Step();
             var xml = XDocument.Parse(reader.GetText("snapshot_xml"));
             var values = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var element in xml.Root?.Elements() ?? [])
@@ -497,6 +513,8 @@ public sealed class LegacyImporter
 
     private void ImportSettings(Context ctx)
     {
+        ctx.Progress.BeginPhase("Vorlagen und Einstellungen werden übernommen", 1);
+        ctx.Progress.Step();
         if (!File.Exists(ctx.Layout.SettingsFile))
         {
             ctx.Report.Warnings.Add("settings.xml nicht gefunden – Vorlagen und Einstellungen wurden nicht übernommen.");
@@ -702,6 +720,7 @@ public sealed class LegacyImporter
         public DateTimeOffset NowUtc { get; } = nowUtc;
         public SqliteTransaction? Transaction { get; set; }
         public TimeZoneInfo Zone { get; init; } = TimeZoneInfo.Local;
+        public ImportProgressTracker Progress { get; init; } = new(null);
 
         public SqliteDataReader Read(string sql)
         {

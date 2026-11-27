@@ -49,6 +49,29 @@ public sealed class LegacyImporterTests : IDisposable
     }
 
     [Fact]
+    public void ReportsSteadyProgressUpTo100Percent()
+    {
+        fixture.WithDefaultData();
+        var progress = new RecordingProgress();
+
+        importer.Import(fixture.ProgramDirectory, progress);
+
+        Assert.NotEmpty(progress.Reports);
+        var percents = progress.Reports.Select(p => p.Percent).ToList();
+        Assert.Equal(percents.OrderBy(p => p), percents);
+        Assert.Equal(100, percents[^1]);
+        Assert.Contains(progress.Reports, p => p.Message.StartsWith("Bilder werden übernommen (3 von 3)", StringComparison.Ordinal));
+    }
+
+    /// <summary>Synchroner Empfänger – <see cref="Progress{T}"/> würde asynchron zustellen.</summary>
+    private sealed class RecordingProgress : IProgress<ImportProgress>
+    {
+        public List<ImportProgress> Reports { get; } = [];
+
+        public void Report(ImportProgress value) => Reports.Add(value);
+    }
+
+    [Fact]
     public void IdenticalFilesAreStoredOnce()
     {
         fixture.WithDefaultData();

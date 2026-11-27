@@ -14,6 +14,7 @@ public sealed partial class ImportViewModel : ObservableObject
     private bool isBusy;
     private string status = "Noch kein Import durchgeführt.";
     private string reportText = string.Empty;
+    private int progressPercent;
 
     public ImportViewModel(LegacyImporter importer, ILogger<ImportViewModel> logger)
     {
@@ -42,6 +43,13 @@ public sealed partial class ImportViewModel : ObservableObject
         private set => SetProperty(ref status, value);
     }
 
+    /// <summary>Fortschritt 0–100 für den Ladebalken.</summary>
+    public int ProgressPercent
+    {
+        get => progressPercent;
+        private set => SetProperty(ref progressPercent, value);
+    }
+
     public string ReportText
     {
         get => reportText;
@@ -62,10 +70,16 @@ public sealed partial class ImportViewModel : ObservableObject
         var folder = dialog.FolderName;
         IsBusy = true;
         ReportText = string.Empty;
+        ProgressPercent = 0;
+        Status = "Import wird gestartet …";
         try
         {
             logger.LogInformation("Import aus PixFix 69 gestartet: {Folder}", folder);
-            var progress = new Progress<string>(message => Status = message);
+            var progress = new Progress<ImportProgress>(p =>
+            {
+                ProgressPercent = p.Percent;
+                Status = p.Message;
+            });
             var report = await Task.Run(() => importer.Import(folder, progress)).ConfigureAwait(true);
 
             ReportText = report.ToText();
