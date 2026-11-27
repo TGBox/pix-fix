@@ -69,3 +69,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 - Automatische Sicherung: eine Datei pro Tag (`AUTO-Datum.pixfix`), höchstens alle 4 Stunden aktualisiert, nur wenn der
   Benutzer mindestens 1 Minute untätig ist, 7 Tage Aufbewahrung; Fehler nur im Log und in den Einstellungen.
 - Import aus PixFix 69 funktioniert jetzt auch, wenn schon Daten vorhanden sind (nach Rückfrage, mit Sicherung vorher).
+- Phase 6b: PixFix-69-Sicherungen im Format 2.1 (XML, vor der SQLite-Umstellung) wiederherstellen. Die XML-Dateien werden
+  Feld für Feld wie in der SQLite-Erstmigration von 69.74.178 in eine PixFix-69-Datenbank umgewandelt, gegen die Anzahlen
+  im Manifest geprüft und dann wie eine 3.0-Sicherung übernommen.

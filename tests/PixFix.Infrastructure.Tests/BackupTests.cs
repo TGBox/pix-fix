@@ -133,6 +133,45 @@ public sealed class BackupTests : IDisposable
     }
 
     [Fact]
+    public void PixFix69BackupFormat21IsImported()
+    {
+        var file = Path.Combine(fixture.Root, "PixFix69-xml.pixfix");
+        CreateLegacy21Backup(file);
+
+        var info = BackupArchive.Verify(file);
+        Assert.Equal(BackupKind.Legacy21, info.Kind);
+
+        var report = restore.RestoreArchive(file, BackupFolder);
+
+        Assert.True(report.Succeeded, report.ToText());
+        using var db = database.Open();
+        Assert.Equal(1, db.Count("knowledge_entries"));
+        Assert.Equal(2, db.Count("knowledge_entry_images"));
+        Assert.Equal(1, db.Count("calls"));
+        Assert.Equal(1, db.Count("trash"));
+        Assert.Equal(1, db.Count("workspaces"));
+        Assert.Equal(1, db.Count("information_entries"));
+        Assert.Equal(1, db.Count("information_attachments"));
+        Assert.Equal(1, db.Count("fax_documents"));
+        var call = Assert.Single(new CallRepository(database).LoadAll());
+        Assert.Equal("00074", call.CustomerNumber);
+        Assert.Equal(Core.Calls.CallStatus.Done, call.Status);
+        Assert.True(call.IsBillable);
+    }
+
+    [Fact]
+    public void Format21WithWrongCountsIsRejected()
+    {
+        var file = Path.Combine(fixture.Root, "PixFix69-xml.pixfix");
+        CreateLegacy21Backup(file, manifestCalls: 5);
+
+        var report = restore.RestoreArchive(file, BackupFolder);
+
+        Assert.False(report.Succeeded);
+        Assert.Contains(report.Errors, e => e.Contains("Anrufe", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void LegacyFolderCanReplaceExistingData()
     {
         ImportFixture();
@@ -172,12 +211,70 @@ public sealed class BackupTests : IDisposable
     }
 
     /// <summary>Sicherung wie PixFix 69 sie schreibt: Datenordner im Wurzelverzeichnis, Programmordner unter __PixFixProgram.</summary>
-    private void CreateLegacy30Backup(string file)
+    private void CreateLegacy30Backup(string file) =>
+        CreateLegacyBackup(file, "3.0", "Sqlite", "<Calls>2</Calls>", _ => true);
+
+    /// <summary>Sicherung 2.1: dieselben Dateien, aber XML statt pixfix.db (Aufbau wie XmlSerializer in PixFix 69).</summary>
+    private void CreateLegacy21Backup(string file, int manifestCalls = 1)
+    {
+        var a = LegacyFixture.EntryA;
+        File.WriteAllText(Path.Combine(fixture.DataDirectory, "pixfix.xml"), $$"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <ArrayOfFixEntry xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+              <FixEntry><Id>{{a}}</Id><Title>Drucker</Title><Category>Fehlermeldungen</Category><Ocr>OCR A</Ocr><Solution>Drucker Lösung</Solution>
+                <Html>&lt;p&gt;a&lt;/p&gt;</Html><Rtf /><NativeDoc>documents\{{a}}.rtf</NativeDoc><Image>images\{{a}}-1.png</Image>
+                <Images>images\{{a}}-1.png|images\{{a}}-2.png</Images><Tags>druck</Tags><CopyActions /><Created>2026-09-23T16:12:06</Created>
+                <Updated /><NativeFormat>3</NativeFormat><NativeMarkerVersion>1</NativeMarkerVersion><CategoryOrder>0</CategoryOrder><PageOrder>0</PageOrder>
+                <ScrollX>0</ScrollX><ScrollY>0</ScrollY><LastOpen>false</LastOpen><Favorite>true</Favorite><Protected>false</Protected><Archived>false</Archived></FixEntry>
+            </ArrayOfFixEntry>
+            """);
+        File.WriteAllText(Path.Combine(fixture.DataDirectory, "anrufe.xml"), """
+            <?xml version="1.0" encoding="utf-8"?>
+            <ArrayOfCallEntry>
+              <CallEntry><Id>c1</Id><CustomerNumber>00074</CustomerNumber><CallIdentifier>1888</CallIdentifier><Phone1>0351000000</Phone1>
+                <Reason>Frage KIM</Reason><WorkPerformed>Erklärt</WorkPerformed><Status>Erledigt</Status><ReceivedAt>2026-11-06T14:01:22</ReceivedAt>
+                <BillingStart>2026-11-06T14:01:00</BillingStart><BillingEnd>2026-11-06T14:08:00</BillingEnd><CreatedAt>2026-11-06T14:01:22</CreatedAt>
+                <CallbackTargets>Tel.</CallbackTargets><IsBillable>true</IsBillable><IsCollapsed>false</IsCollapsed><ReminderActive>false</ReminderActive></CallEntry>
+            </ArrayOfCallEntry>
+            """);
+        File.WriteAllText(Path.Combine(fixture.DataDirectory, "anrufe-geloescht.xml"), """
+            <?xml version="1.0" encoding="utf-8"?>
+            <ArrayOfDeletedCallEntry>
+              <DeletedCallEntry><Entry><Id>c0</Id><CustomerNumber>00001</CustomerNumber><Status>Erledigt</Status></Entry><DeletedAt>2026-10-09T10:29:34</DeletedAt></DeletedCallEntry>
+            </ArrayOfDeletedCallEntry>
+            """);
+        File.WriteAllText(Path.Combine(fixture.DataDirectory, "schreibbereiche.xml"), """
+            <?xml version="1.0" encoding="utf-8"?>
+            <ArrayOfWritingWorkspace><WritingWorkspace><Id>werkzeuge</Id><Title>Werkzeuge</Title><IconGlyph>🛠</IconGlyph><Order>2</Order></WritingWorkspace></ArrayOfWritingWorkspace>
+            """);
+        File.WriteAllText(Path.Combine(fixture.DataDirectory, "informationen.xml"), """
+            <?xml version="1.0" encoding="utf-8"?>
+            <ArrayOfInformationEntry>
+              <InformationEntry><Id>i1</Id><WorkspaceId>werkzeuge</WorkspaceId><Section>KIM</Section><Title>KIM öffnen</Title><Content>https://localhost:8000</Content>
+                <Rtf>{\rtf1 KIM}</Rtf><CreatedAt>2026-10-01T11:01:35</CreatedAt><SectionOrder>2</SectionOrder><Order>1</Order>
+                <PdfAttachments><InformationPdfAttachment><Id>p1</Id><Name>Anleitung.pdf</Name><RelativePath>Anleitung.pdf</RelativePath><AddedAt>2026-10-13T10:53:43</AddedAt></InformationPdfAttachment></PdfAttachments>
+              </InformationEntry>
+            </ArrayOfInformationEntry>
+            """);
+
+        CreateLegacyBackup(
+            file,
+            "2.1",
+            "LegacyXml",
+            $"<Entries>1</Entries><Calls>{manifestCalls}</Calls><DeletedCalls>1</DeletedCalls><WritingWorkspaces>1</WritingWorkspaces><InformationEntries>1</InformationEntries><PdfAttachments>1</PdfAttachments>",
+            path => path != "pixfix.db");
+    }
+
+    private void CreateLegacyBackup(string file, string version, string storageMode, string counts, Func<string, bool> include)
     {
         var files = new List<(string Path, string Source)>();
         foreach (var source in Directory.GetFiles(fixture.DataDirectory, "*", SearchOption.AllDirectories))
         {
-            files.Add((Path.GetRelativePath(fixture.DataDirectory, source).Replace('\\', '/'), source));
+            var relative = Path.GetRelativePath(fixture.DataDirectory, source).Replace('\\', '/');
+            if (include(relative) && (version != "3.0" || !relative.EndsWith(".xml", StringComparison.Ordinal) || relative == "settings.xml"))
+            {
+                files.Add((relative, source));
+            }
         }
 
         foreach (var folder in new[] { "Fax-Dokumente", "PDF-Dokumente" })
@@ -188,8 +285,8 @@ public sealed class BackupTests : IDisposable
             }
         }
 
-        var manifest = new StringBuilder("<?xml version=\"1.0\"?><PixFixBackupManifest><Format>PixFix-Komplettsicherung</Format><Version>3.0</Version>"
-            + "<Created>2026-11-05T14:55:23</Created><StorageMode>Sqlite</StorageMode><SchemaVersion>1</SchemaVersion><Calls>2</Calls><Files>");
+        var manifest = new StringBuilder($"<?xml version=\"1.0\"?><PixFixBackupManifest><Format>PixFix-Komplettsicherung</Format><Version>{version}</Version>"
+            + $"<Created>2026-11-05T14:55:23</Created><StorageMode>{storageMode}</StorageMode>{counts}<Files>");
         using var zip = ZipFile.Open(file, ZipArchiveMode.Create);
         foreach (var (path, source) in files)
         {

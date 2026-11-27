@@ -39,11 +39,11 @@ public sealed class RestoreService(
                     StageCurrent(zip, info, stage, report, progress);
                     break;
                 case BackupKind.Legacy30:
-                    StageLegacy30(zip, info, stage, report, progress);
+                    ImportLegacy(ExtractLegacy(zip, info, progress), stage, report, progress, 20);
                     break;
                 default:
-                    throw new BackupException(
-                        $"Sicherungen im Format {info.Version} (PixFix 69 vor der SQLite-Umstellung) können noch nicht eingelesen werden.");
+                    StageLegacy21(zip, info, stage, report, progress);
+                    break;
             }
         });
         return report;
@@ -154,8 +154,11 @@ public sealed class RestoreService(
         }
     }
 
-    /// <summary>PixFix-69-Sicherung 3.0: Archiv als PixFix-69-Ordner auspacken und dann wie einen Ordner importieren.</summary>
-    private void StageLegacy30(System.IO.Compression.ZipArchive zip, BackupInfo info, AppPaths stage, ImportReport report, IProgress<ImportProgress>? progress)
+    /// <summary>
+    /// PixFix-69-Sicherung (2.1/3.0) als PixFix-69-Ordner auspacken: Datenordner im Wurzelverzeichnis des Archivs,
+    /// Programmordner (Fax-/PDF-Dokumente) unter <c>__PixFixProgram/</c>.
+    /// </summary>
+    private string ExtractLegacy(System.IO.Compression.ZipArchive zip, BackupInfo info, IProgress<ImportProgress>? progress)
     {
         const string ProgramPrefix = "__PixFixProgram/";
         var legacyRoot = Path.Combine(paths.DataDirectory, LegacyFolder);
@@ -167,9 +170,46 @@ public sealed class RestoreService(
                 ? Path.Combine(legacyRoot, relative[ProgramPrefix.Length..].Replace('/', Path.DirectorySeparatorChar))
                 : Path.Combine(legacyRoot, LegacyLayout.DataFolderName, relative.Replace('/', Path.DirectorySeparatorChar)),
             (done, total) => progress?.Report(new ImportProgress(1 + (19 * done / Math.Max(1, total)), $"Sicherung wird entpackt und geprüft ({done} von {total}) …")));
+        Directory.CreateDirectory(Path.Combine(legacyRoot, LegacyLayout.DataFolderName));
         Directory.CreateDirectory(Path.Combine(legacyRoot, "Fax-Dokumente"));
         Directory.CreateDirectory(Path.Combine(legacyRoot, "PDF-Dokumente"));
-        ImportLegacy(legacyRoot, stage, report, progress, 20);
+        return legacyRoot;
+    }
+
+    /// <summary>
+    /// PixFix-69-Sicherung 2.1 (XML): auspacken, daraus eine PixFix-69-Datenbank (Schema 1) erzeugen wie die
+    /// SQLite-Erstmigration von 69.74.178, Anzahlen mit dem Manifest abgleichen und dann wie 3.0 importieren.
+    /// </summary>
+    private void StageLegacy21(System.IO.Compression.ZipArchive zip, BackupInfo info, AppPaths stage, ImportReport report, IProgress<ImportProgress>? progress)
+    {
+        var legacyRoot = ExtractLegacy(zip, info, progress);
+        progress?.Report(new ImportProgress(20, "XML-Daten aus PixFix 69 werden umgewandelt …"));
+        Dictionary<string, long> converted;
+        try
+        {
+            converted = Legacy21Converter.CreateDatabase(Path.Combine(legacyRoot, LegacyLayout.DataFolderName));
+        }
+        catch (LegacyImportException ex)
+        {
+            throw new BackupException(ex.Message, ex);
+        }
+
+        foreach (var (name, expected) in info.Counts)
+        {
+            if (converted.TryGetValue(name, out var actual))
+            {
+                report.Counts.Add(new ImportCount("Sicherung: " + name, expected, actual));
+                if (actual != expected)
+                {
+                    report.Errors.Add($"Anzahl „{name}“ im Manifest ({expected}) passt nicht zu den XML-Daten ({actual}).");
+                }
+            }
+        }
+
+        if (report.Errors.Count == 0)
+        {
+            ImportLegacy(legacyRoot, stage, report, progress, 25);
+        }
     }
 
     private void ImportLegacy(string folder, AppPaths stage, ImportReport report, IProgress<ImportProgress>? progress, int startPercent)

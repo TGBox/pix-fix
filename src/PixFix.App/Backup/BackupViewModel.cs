@@ -337,11 +337,6 @@ public sealed class BackupViewModel : ObservableObject
             .AppendLine(CultureInfo.CurrentCulture, $"Erstellt: {info.Created}")
             .AppendLine(CultureInfo.CurrentCulture, $"Inhalt:   {info.Files.Count} Dateien, {info.TotalLength / 1024.0 / 1024.0:0.0} MB")
             .AppendLine();
-        if (info.Kind == BackupKind.Legacy21)
-        {
-            text.AppendLine("Hinweis: Sicherungen im Format 2.1 lassen sich prüfen, aber noch nicht wiederherstellen.").AppendLine();
-        }
-
         return text.Append(CountsText(info.Counts)).ToString();
     }
 

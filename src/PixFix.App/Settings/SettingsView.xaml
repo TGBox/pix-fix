@@ -70,7 +70,7 @@
                         <Button Content="Sicherung wiederherstellen …" Command="{Binding RestoreCommand}" Padding="12,4" Margin="0,0,6,6" />
                     </WrapPanel>
                     <TextBlock Foreground="Gray" TextWrapping="Wrap"
-                               Text="Wiederherstellen liest PixFix-Sicherungen und Sicherungen aus PixFix 69 (Format 3.0). Die Sicherung wird vorher vollständig geprüft; erst danach werden die Daten ausgetauscht." />
+                               Text="Wiederherstellen liest PixFix-Sicherungen und Sicherungen aus PixFix 69 (Format 2.1 und 3.0). Die Sicherung wird vorher vollständig geprüft; erst danach werden die Daten ausgetauscht." />
                     <Grid Margin="0,12,0,0" Height="22">
                         <ProgressBar Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" />
                         <TextBlock Text="{Binding ProgressPercent, StringFormat='{}{0} %'}" HorizontalAlignment="Center" VerticalAlignment="Center" />

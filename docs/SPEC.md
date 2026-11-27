@@ -168,7 +168,8 @@ Weg über py-connect oder Portierung der UI-Automatisierung.
 - Abgeleitete Daten (Bildindex, Suchindex) werden nicht gesichert, sondern neu aufgebaut.
 - *Umsetzung 6a:* Format 4.0 (`manifest.json`), Wiederherstellung 4.0 und 3.0, automatische Sicherung. Sicherungen werden
   nicht verschlüsselt (Entscheidung); der Sicherungsordner ist einstellbar, Standard ist `Datenordner\backups`.
-  Aufbewahrung der Tagessicherungen 7 Tage (PixFix 69: heute und gestern). Format 2.1 folgt in 6b.
+  Aufbewahrung der Tagessicherungen 7 Tage (PixFix 69: heute und gestern).
+- *Umsetzung 6b:* Format 2.1 wird über eine Umwandlung XML → PixFix-69-Datenbank (Schema 1, wie 69.74.178) gelesen.
 
 ### F12 – Datenübernahme aus PixFix 69 · M
 
@@ -290,7 +291,7 @@ durch das im Metafile enthaltene Bitmap als PNG. Geprüft am echten Bestand: 662
 | 3 | Bildsuche + OCR (F2-Bild) mit Vergleichstests | Trefferqualität = PixFix 69 – **umgesetzt** |
 | 4 | Schreibbereiche (F3) | **umgesetzt** (Papierkorb für Reiter: nur Abbild, Wiederherstellen offen) |
 | 5 | Anrufe, Erinnerungen, Vorlagen, Telefonie (F4–F7) | Parallelbetrieb im Alltag möglich – **umgesetzt** (offen: Schnelltextbausteine im Editor einfügen) |
-| 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 – 6a (Sicherung 4.0/3.0, automatische Sicherung) **umgesetzt**; offen: 6b Format 2.1, 6c Fernwartung und TI-Monitor |
+| 6 | Sicherung/Import (F11), Fernwartung, TI-Monitor (F8, F9) | **Version 1.0**, Ablösung PixFix 69 – 6a/6b (Sicherung 4.0, Wiederherstellung 4.0/3.0/2.1, automatische Sicherung) **umgesetzt**; offen: 6c Fernwartung und TI-Monitor |
 | 7 | Cobra-Anbindung (F10) | nach Entscheidung |
 
 Bis Phase 6 läuft PixFix 69 produktiv weiter; die neue Version liest dessen Daten nur.
