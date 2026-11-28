@@ -49,6 +49,10 @@ public sealed class TrashListWindow : Window
         var deleteButton = new Button { Content = "Endgültig _löschen", Padding = new Thickness(10, 2, 10, 2), Margin = new Thickness(0, 0, 6, 0) };
         deleteButton.Click += (_, _) => DeleteSelected();
         var close = new Button { Content = "Schließen", Padding = new Thickness(10, 2, 10, 2), IsCancel = true };
+        restoreButton.SetResourceReference(StyleProperty, "ActionButton");
+        ActionButton.SetRole(restoreButton, ActionRole.Create);
+        deleteButton.SetResourceReference(StyleProperty, "ActionButton");
+        ActionButton.SetRole(deleteButton, ActionRole.Danger);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
         buttons.Children.Add(restoreButton);
         buttons.Children.Add(deleteButton);

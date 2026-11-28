@@ -32,7 +32,7 @@
         <ListBox.ItemTemplate>
           <DataTemplate>
             <StackPanel Orientation="Horizontal">
-              <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="15"
+              <TextBlock Text="{Binding Icon}" FontFamily="{DynamicResource AppIconFont}" FontSize="18"
                          Width="22" TextAlignment="Center" VerticalAlignment="Center" />
               <TextBlock Text="{Binding Title}" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
             </StackPanel>

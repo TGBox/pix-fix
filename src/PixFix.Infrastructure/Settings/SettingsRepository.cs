@@ -27,6 +27,17 @@ public static class SettingKeys
     public const string ThemeDark = "dark";
     public const string ThemeSystem = "system";
 
+    /// <summary>Schaltflächen: "icon_text" (Symbol und Text, Standard), "icon" (nur Symbol) oder "text" (nur Text).</summary>
+    public const string ButtonStyle = "ui.button_style";
+    public const string ButtonStyleIcon = "icon";
+    public const string ButtonStyleIconText = "icon_text";
+    public const string ButtonStyleText = "text";
+
+    /// <summary>Farbgebung der Schaltflächen: "subtle" (dezent, Standard) oder "colorful" (farbig nach Bedeutung).</summary>
+    public const string ColorMode = "ui.color_mode";
+    public const string ColorModeSubtle = "subtle";
+    public const string ColorModeColorful = "colorful";
+
     /// <summary>Whether the left navigation sidebar is collapsed to compact icon mode (default: false).</summary>
     public const string SidebarCollapsed = "ui.sidebar_collapsed";
 
@@ -55,6 +66,16 @@ public static class SettingKeys
 
     /// <summary>Betreff der Rechnungs-Mail, solange keiner eingerichtet ist (wie PixFix 69).</summary>
     public const string BillingMailSubjectDefault = "Kostenpflichtiger Support";
+
+    /// <summary>Text der Rechnungs-Mail, solange keiner eingerichtet ist; Platzhalter wie in den E-Mail-Vorlagen.</summary>
+    public const string BillingMailBodyDefault =
+        "Hallo,\r\n\r\n"
+        + "bitte für den folgenden kostenpflichtigen Support eine Rechnung erstellen.\r\n\r\n"
+        + "L-Nummer: {LNUM}\r\n"
+        + "ID: {ID}\r\n\r\n"
+        + "Anliegen: {WARUM}\r\n"
+        + "Durchgeführt: {LOESUNG}\r\n\r\n"
+        + "Vielen Dank!";
 
     /// <summary>Wert von <see cref="DialMethod"/> für die Windows-Wählhilfe (<c>dialer.exe</c>); sonst <c>tel:</c>.</summary>
     public const string DialMethodTapi = "Windows-TAPI-Wählhilfe";

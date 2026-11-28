@@ -29,6 +29,8 @@
   <ItemGroup>
     <!-- Dasselbe Symbol als WPF-Ressource für Fenster und Infobereich -->
     <Resource Include="..\..\assets\pix-fix.ico" Link="pix-fix.ico" />
+    <!-- Symbolschrift (Auszug aus Fluent UI System Icons, MIT) – erzeugt von scripts/build-icon-font.py -->
+    <Resource Include="Assets\Fonts\PixFixIcons.ttf" />
   </ItemGroup>
   <ItemGroup>
     <Using Remove="System.Windows.Forms" />

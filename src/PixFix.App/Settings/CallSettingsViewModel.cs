@@ -64,7 +64,7 @@ public sealed class CallSettingsViewModel : ObservableObject
 
     public string BillingMailBody
     {
-        get => settings.Get(SettingKeys.BillingMailBody);
+        get => settings.Get(SettingKeys.BillingMailBody, SettingKeys.BillingMailBodyDefault);
         set => Set(SettingKeys.BillingMailBody, value);
     }
 

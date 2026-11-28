@@ -113,6 +113,13 @@ public partial class App : Application
         LayoutMemory.Initialize(host.Services.GetRequiredService<SettingsRepository>());
         host.Services.GetRequiredService<ThemeService>().ApplySaved();
 
+        // Schaltflächen-Stile erst nach dem Fluent-Theme laden, damit BasedOn den Fluent-Stil findet (SPEC F16).
+        Appearance.Current.Load(host.Services.GetRequiredService<SettingsRepository>());
+        Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("pack://application:,,,/Themes/Controls.xaml", UriKind.Absolute),
+        });
+
         // Lösungsbausteine im Editor (Wissensdatenbank und Schreibbereiche).
         var startupServices = host.Services;
         var templateStore = startupServices.GetRequiredService<TemplateRepository>();
@@ -128,6 +135,17 @@ public partial class App : Application
         };
 
         Log.Information("PixFix gestartet, Datenordner {DataDirectory}", paths.DataDirectory);
+        // Assembly.Location ist in der Einzeldatei-Veröffentlichung leer. Beim Entwickeln zeigt PixFix.dll den Bauzeitpunkt
+        // (die .exe davor wird nicht bei jedem Bauen neu geschrieben), veröffentlicht steckt alles in der .exe.
+        var programPath = Environment.ProcessPath ?? string.Empty;
+        var dllPath = Path.Combine(AppContext.BaseDirectory, "PixFix.dll");
+        var buildFile = File.Exists(dllPath) ? dllPath : programPath;
+        Log.Information(
+            "Programmstand {Version}, Prozess {ProcessId}, Programmdatei {Path}, gebaut {BuildTime:yyyy-MM-dd HH:mm:ss}",
+            UpdateViewModel.CurrentVersion,
+            Environment.ProcessId,
+            programPath,
+            buildFile.Length > 0 ? File.GetLastWriteTime(buildFile) : DateTime.MinValue);
 
         var window = host.Services.GetRequiredService<MainWindow>();
         MainWindow = window;
@@ -296,7 +314,7 @@ public partial class App : Application
         }
     }
 
-    /// <summary>Wirklich beenden (Menü im Infobereich oder „PixFix beenden“ in der Navigation): offene Eingaben speichern lassen und schließen.</summary>
+    /// <summary>Wirklich beenden (Menü im Infobereich oder „Beenden“ in der Navigation): offene Eingaben speichern lassen und schließen.</summary>
     private void ExitApplication()
     {
         exiting = true;

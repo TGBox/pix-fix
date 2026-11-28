@@ -481,7 +481,7 @@ public sealed class CallsViewModel : ObservableObject
         OpenMail(
             recipient,
             CallRules.ApplyTemplate(item.Model, settings.Get(SettingKeys.BillingMailSubject, SettingKeys.BillingMailSubjectDefault)),
-            CallRules.ApplyTemplate(item.Model, settings.Get(SettingKeys.BillingMailBody)));
+            CallRules.ApplyTemplate(item.Model, settings.Get(SettingKeys.BillingMailBody, SettingKeys.BillingMailBodyDefault)));
     }
 
     private void OpenMail(string to, string subject, string body)

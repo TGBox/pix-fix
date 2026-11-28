@@ -13,7 +13,7 @@ using PixFix.Infrastructure.Templates;
 namespace PixFix.App.Settings;
 
 /// <summary>Art einer Vorlage, wie sie im Vorlagenfenster angeboten wird.</summary>
-public sealed record TemplateKindOption(string Kind, string Title, bool HasSubject, string Hint);
+public sealed record TemplateKindOption(string Kind, string Title, bool HasSubject, string Hint, bool HasPlaceholders = false);
 
 /// <summary>
 /// Pflege der Vorlagen (SPEC F6): alle Vorlagenarten, Cobra-Schnelltexte und Fax-Dokumente. Änderungen werden sofort
@@ -21,7 +21,7 @@ public sealed record TemplateKindOption(string Kind, string Title, bool HasSubje
 /// </summary>
 public sealed class TemplatesViewModel : ObservableObject
 {
-    private const string PlaceholderHint = "Platzhalter: {LNUM} L-Nummer, {ID} ID, {WARUM} Anrufgrund, {LOESUNG} Lösung, {EMAIL} E-Mail, {FAX} Fax.";
+    private const string PlaceholderHint = "Platzhalter anklicken, um sie an der Cursorposition einzufügen.";
 
     private readonly TemplateRepository templates;
     private readonly CobraQuickTextRepository quickTexts;
@@ -39,10 +39,10 @@ public sealed class TemplatesViewModel : ObservableObject
 
         Kinds =
         [
-            new(TemplateKind.Email, "E-Mail-Vorlagen", true, PlaceholderHint),
-            new(TemplateKind.CallReason, "Anrufgründe", false, PlaceholderHint + " Wird an „Warum wird angerufen?“ angehängt."),
-            new(TemplateKind.CallSolution, "Lösungstexte", false, PlaceholderHint + " Wird an „Lösung“ angehängt."),
-            new(TemplateKind.Fax, "Fax-Vorlagen", false, PlaceholderHint),
+            new(TemplateKind.Email, "E-Mail-Vorlagen", true, PlaceholderHint, HasPlaceholders: true),
+            new(TemplateKind.CallReason, "Anrufgründe", false, PlaceholderHint + " Wird an „Warum wird angerufen?“ angehängt.", HasPlaceholders: true),
+            new(TemplateKind.CallSolution, "Lösungstexte", false, PlaceholderHint + " Wird an „Lösung“ angehängt.", HasPlaceholders: true),
+            new(TemplateKind.Fax, "Fax-Vorlagen", false, PlaceholderHint, HasPlaceholders: true),
             new(TemplateKind.Snippet, "Schnelltextbausteine", false, "Kurze Texte zum Einfügen."),
             new(TemplateKind.CodeSnippet, "Schnelltextbausteine (Code)", false, "Befehle und Code, werden unverändert eingefügt."),
             new(TemplateKind.Entry, "Eintragsvorlagen (Wissensdatenbank)", false, "Startinhalt für neue Einträge der Wissensdatenbank."),

@@ -1,3 +1,5 @@
+using PixFix.App.Common;
+
 namespace PixFix.App.Help;
 
 /// <summary>Ein Kapitel im Bereich „Hilfe“. <paramref name="SectionIndex"/> = Bereich der Navigation (0-basiert) oder <c>null</c>.</summary>
@@ -48,7 +50,7 @@ public static class HelpContent
     public static IReadOnlyList<HelpTopic> Topics { get; } =
     [
         new(
-            "",
+            IconGlyphs.Home,
             "Erste Schritte",
             "PixFix ist dein Arbeitswerkzeug für die Data-Cur-Hotline: Fehlerbilder nachschlagen, Anrufe festhalten, "
             + "Rückrufe nicht vergessen und die TI im Blick behalten – alles in einem Fenster.",
@@ -57,12 +59,13 @@ public static class HelpContent
                     "Links ist die Navigation mit den Bereichen Wissensdatenbank, Schreibbereiche, Anrufe, TI-Monitor, "
                     + "Einstellungen und Hilfe. Mit Strg+1 bis Strg+6 wechselst du direkt.",
                     "Die Schaltfläche ☰ oben links klappt die Navigation auf Symbole zusammen.",
-                    "Fast alle Schaltflächen erklären sich per Tooltip, wenn du kurz mit der Maus darauf bleibst.",
+                    "Die Schaltflächen zeigen Symbol und Namen. Bleib kurz mit der Maus darauf – der Tooltip nennt zusätzlich das "
+                    + "Tastenkürzel. Unter Einstellungen → Allgemein → „Schaltflächen“ geht es auch kompakter („Nur Symbol“).",
                 ]),
                 new("PixFix läuft im Hintergrund weiter", [
                     "Das Schließen-Kreuz beendet PixFix nicht, sondern legt es in den Infobereich (unten rechts neben der Uhr). "
                     + "So bleiben Rückruf-Erinnerungen, TI-Monitor und automatische Sicherung aktiv.",
-                    "Wirklich beenden: „PixFix beenden“ unten in der Navigation oder Rechtsklick auf das PixFix-Symbol im "
+                    "Wirklich beenden: „Beenden“ unten in der Navigation oder Rechtsklick auf das PixFix-Symbol im "
                     + "Infobereich → „PixFix beenden“.",
                     "Strg+Alt+P holt PixFix aus jedem Programm nach vorn und startet die Bildsuche.",
                 ]),
@@ -74,7 +77,7 @@ public static class HelpContent
             ],
             null),
         new(
-            "",
+            IconGlyphs.Knowledge,
             "Wissensdatenbank",
             "Gesammelte Fehlerbilder mit Screenshot, Beschreibung und Lösung. Hier schaust du nach, wenn ein Kunde mit einer "
             + "Fehlermeldung anruft.",
@@ -88,13 +91,14 @@ public static class HelpContent
                     "Archivierte Einträge erscheinen nur, wenn „Archiv“ eingeschaltet ist.",
                 ]),
                 new("Einträge anlegen und bearbeiten", [
-                    "„+ Neu ▾“ (Strg+N) legt einen Eintrag an – leer oder aus einer Eintragsvorlage.",
+                    "„Neu“ (Dokument mit Plus, Strg+N) legt einen Eintrag an – leer oder aus einer Eintragsvorlage.",
                     "Titel, Abschnitt und Tags stehen oben. Tags sind Stichwörter für die Suche, z. B. Fehlernummern oder Programmnamen.",
                     "Screenshots fügst du mit Strg+V ein oder ziehst Bilddateien hinein. Der Text im Bild wird automatisch "
                     + "erkannt und ist danach durchsuchbar.",
                     "Gespeichert wird automatisch (Strg+S speichert sofort).",
-                    "★ markiert Favoriten, 🔒 schützt einen Eintrag vor Änderungen und Löschen.",
-                    "Mit ↑/↓ bzw. Alt+↑/Alt+↓ sortierst du Einträge im Abschnitt, „Abschnitte …“ benennt Abschnitte um und sortiert sie.",
+                    "Stern = Favorit, Schloss = geschützt vor Änderungen und Löschen, Archiv = aus der normalen Suche nehmen.",
+                    "Mit den Pfeilen (oder Alt+↑/Alt+↓) sortierst du Einträge im Abschnitt; „Abschnitte …“ benennt Abschnitte um und "
+                    + "sortiert sie.",
                 ]),
                 new("Editor-Werkzeuge", [
                     "„Kopier-Button“: Text markieren (z. B. einen Pfad oder Befehl) und daraus einen Button machen – "
@@ -105,7 +109,7 @@ public static class HelpContent
             ],
             Knowledge),
         new(
-            "",
+            IconGlyphs.ImageSearch,
             "Bildsuche",
             "Der Kunde schickt einen Screenshot oder du siehst die Meldung per Fernwartung? Die Bildsuche findet ähnliche "
             + "gespeicherte Fehlerbilder – auch wenn du nicht weißt, wonach du tippen sollst.",
@@ -123,16 +127,17 @@ public static class HelpContent
             ],
             Knowledge),
         new(
-            "",
+            IconGlyphs.Workspaces,
             "Schreibbereiche",
             "Freie Notizbücher für alles, was kein Fehlerbild ist: Anleitungen, aktuelle Störungen, Werkzeuge, Textvorlagen "
             + "– jeweils mit Abschnitten, Reitern und PDF-Anhängen.",
             [
                 new("Bereiche und Reiter", [
-                    "Oben wählst du den Bereich. Über „…“ legst du Bereiche an, benennst sie um, sortierst und schützt sie.",
-                    "„+ Reiter“ (Strg+N) legt eine neue Seite im Abschnitt des ausgewählten Reiters an. Einen neuen Abschnitt "
+                    "Oben wählst du den Bereich. Über „Bereiche …“ daneben legst du Bereiche an, benennst sie um, sortierst und "
+                    + "schützt sie.",
+                    "„Neuer Reiter“ (Strg+N) legt eine neue Seite im Abschnitt des ausgewählten Reiters an. Einen neuen Abschnitt "
                     + "erzeugst du, indem du im Feld „Abschnitt“ einen neuen Namen eintippst.",
-                    "Reiter und Abschnitte sortierst du mit ↑/↓ bzw. „Abschnitt ↑“/„Abschnitt ↓“.",
+                    "Reiter sortierst du mit den Pfeilen über dem Reiter, Abschnitte mit den Pfeilen über der Liste.",
                     "„Im Bereich suchen …“ durchsucht alle Reiter des Bereichs.",
                 ]),
                 new("PDFs und Weitergeben", [
@@ -142,13 +147,13 @@ public static class HelpContent
             ],
             Workspaces),
         new(
-            "",
+            IconGlyphs.Calls,
             "Anrufe und Rückrufe",
             "Für jeden Anruf eine Anrufkarte: Kundendaten, Grund, Lösung, Status – und eine Erinnerung, damit kein Rückruf "
             + "verloren geht.",
             [
                 new("Einen Anruf festhalten", [
-                    "„+ Neuer Anruf“ (Strg+N) legt eine Anrufkarte an. Trage L-Nummer, ID und die Telefonnummern ein.",
+                    "„Neuer Anruf“ (Telefon mit Plus, Strg+N) legt eine Anrufkarte an. Trage L-Nummer, ID und die Telefonnummern ein.",
                     "„Warum wird angerufen?“ und „Lösung / Was wurde gemacht?“ sind formatierte Felder – Screenshots sind erlaubt. "
                     + "Über „Vorlage ▾“ fügst du häufige Gründe und Lösungen ein.",
                     "„Cobra-Text kopieren“ legt „Grund --> Lösung“ in die Zwischenablage, damit du ihn in Cobra einfügen kannst.",
@@ -163,9 +168,9 @@ public static class HelpContent
                     + "noch Rückrufe an, warnt PixFix vor dem Beenden.",
                 ]),
                 new("Telefonieren, Fernwartung, E-Mail", [
-                    "„📞 Anrufen“ wählt die Nummer aus „Rückruf an“, „Auflegen“ beendet das aktive Gespräch.",
+                    "„Anrufen“ (Alt+A) wählt die Nummer aus „Rückruf an“, „Auflegen“ (Alt+L) beendet das aktive Gespräch.",
                     "„AnyDesk“ und „TeamViewer“ öffnen die Fernwartung bzw. holen sie nach vorn.",
-                    "„✉ E-Mail“ und „Fax“ erzeugen Nachrichten aus deinen Vorlagen, die Kundendaten werden eingesetzt.",
+                    "„E-Mail“ und „Fax“ erzeugen Nachrichten aus deinen Vorlagen, die Kundendaten werden eingesetzt.",
                 ]),
                 new("Kostenpflichtiger Support", [
                     "„Kostenpflichtig“ anhaken und Start- und Endzeit eintragen („Jetzt“ setzt die aktuelle Uhrzeit).",
@@ -175,7 +180,7 @@ public static class HelpContent
             ],
             Calls),
         new(
-            "",
+            IconGlyphs.Ti,
             "TI-Monitor",
             "Zeigt, ob die Telematikinfrastruktur gerade gestört ist (E-Rezept, ePA, KIM, VSDM, TI-Anschluss …). Praktisch, "
             + "wenn plötzlich viele Praxen mit demselben Problem anrufen.",
@@ -192,12 +197,13 @@ public static class HelpContent
             ],
             Ti),
         new(
-            "",
+            IconGlyphs.Settings,
             "Einstellungen und Sicherung",
             "Hier richtest du PixFix für deinen Arbeitsplatz ein und kümmerst dich um Sicherungen.",
             [
                 new("Einmal einrichten", [
-                    "Allgemein: Farbschema (hell, dunkel, wie Windows), Verhalten beim Schließen, Strg+Alt+P.",
+                    "Allgemein: Farbschema (hell, dunkel, wie Windows), Schaltflächen (nur Symbol, Symbol und Text, nur Text), "
+                    + "Farbgebung (dezent oder farbig nach Bedeutung), Verhalten beim Schließen, Strg+Alt+P.",
                     "Anrufe: wie Nummern gewählt werden (z. B. Unify Phone über tel:), welches E-Mail-Programm genutzt wird, "
                     + "Empfänger und Text der Rechnungs-Mail.",
                     "„Vorlagen, Cobra-Schnelltexte und Fax-Dokumente bearbeiten …“ pflegt alle Textvorlagen.",
@@ -216,13 +222,13 @@ public static class HelpContent
             ],
             Settings),
         new(
-            "",
+            IconGlyphs.Update,
             "Updates",
             "PixFix sucht beim Start und alle 6 Stunden nach einer neuen Version und zeigt dann oben im Fenster einen Hinweis.",
             [
                 new("Neue Version installieren", [
                     "Im Hinweis auf „Herunterladen“ klicken – der Browser lädt die neue PixFix.exe herunter.",
-                    "PixFix beenden: „PixFix beenden“ unten in der Navigation (oder über das Symbol im Infobereich).",
+                    "PixFix beenden: „Beenden“ unten in der Navigation (oder über das Symbol im Infobereich).",
                     "„Programmordner öffnen“ zeigt, wo deine PixFix.exe liegt. Ersetze sie durch die heruntergeladene Datei "
                     + "und starte PixFix neu.",
                     "Deine Daten liegen getrennt vom Programm und bleiben beim Update unverändert.",
@@ -235,7 +241,7 @@ public static class HelpContent
             ],
             Settings),
         new(
-            "\uE765",
+            IconGlyphs.Keyboard,
             "Tastenkürzel",
             "Mit diesen Tasten geht die tägliche Arbeit schneller. Die Liste steht auch unter Einstellungen → Allgemein.",
             [new("Übersicht", [.. Shortcuts.Select(s => s.Key + ":  " + s.Value)])],
@@ -252,7 +258,7 @@ public static class HelpContent
         new(
             "Wissensdatenbank",
             "Hier sind die bekannten Fehlerbilder mit Lösung gesammelt. Tippe oben ins Suchfeld – gesucht wird auch im Text "
-            + "der Screenshots. Mit „+ Neu“ legst du selbst Einträge an, Screenshots fügst du mit Strg+V ein.",
+            + "der Screenshots. Mit „Neu“ legst du selbst Einträge an, Screenshots fügst du mit Strg+V ein.",
             Knowledge),
         new(
             "Bildsuche mit Strg+Alt+P",
@@ -262,7 +268,7 @@ public static class HelpContent
         new(
             "Schreibbereiche",
             "Notizbücher für Anleitungen, aktuelle Fehler und Werkzeuge – mit Abschnitten, Reitern und PDF-Anhängen. "
-            + "Über „…“ legst du eigene Bereiche an.",
+            + "Über „Bereiche …“ legst du eigene Bereiche an.",
             Workspaces),
         new(
             "Anrufe",
@@ -276,12 +282,13 @@ public static class HelpContent
         new(
             "Einstellungen",
             "Richte hier einmal Telefonie und E-Mail-Programm ein. Unter „Sicherung“ kannst du einen OneDrive-Ordner für "
-            + "die automatischen Sicherungen wählen.",
+            + "die automatischen Sicherungen wählen. Unter „Allgemein“ stellst du ein, wie Schaltflächen aussehen – etwa "
+            + "kompakt nur mit Symbol, sobald du sie kennst.",
             Settings),
         new(
             "Im Hintergrund und immer aktuell",
             "Das Schließen-Kreuz legt PixFix in den Infobereich, damit Erinnerungen weiterlaufen – ganz beenden geht über "
-            + "„PixFix beenden“ unten links. Gibt es eine neue Version, "
+            + "„Beenden“ unten links. Gibt es eine neue Version, "
             + "erscheint oben im Fenster ein Hinweis mit Download-Link.",
             null),
         new(

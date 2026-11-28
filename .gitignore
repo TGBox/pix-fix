@@ -16,3 +16,6 @@ TestResults/
 *.zip
 PixFix-Daten/
 logs/
+
+# Vollständige Symbolschrift (~3 MB) nur lokal für scripts/build-icon-font.py; eingecheckt wird der Auszug in src/
+assets/fonts/

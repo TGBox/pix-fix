@@ -13,8 +13,9 @@
         <!-- Bereich, Suche, Reiter nach Abschnitten -->
         <DockPanel Grid.Column="0" Margin="0,0,8,0">
             <DockPanel DockPanel.Dock="Top">
-                <Button DockPanel.Dock="Right" Content="…" MinWidth="32" Padding="6,4" Margin="4,0,0,0" Command="{Binding ManageWorkspacesCommand}"
-                        ToolTip="Bereiche anlegen, umbenennen, sortieren, schützen" />
+                <Button DockPanel.Dock="Right" Style="{StaticResource ActionButton}" Content="Bereiche …" Margin="4,0,0,0" Command="{Binding ManageWorkspacesCommand}"
+                        common:ActionButton.Icon="{StaticResource Icon.Edit}"
+                        common:ActionButton.Description="Bereiche anlegen, umbenennen, sortieren und schützen" />
                 <ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding SelectedWorkspace}" FontSize="14">
                     <ComboBox.ItemTemplate>
                         <DataTemplate>
@@ -58,16 +59,20 @@
                     </TextBlock.Style>
                 </TextBlock>
             </Grid>
-            <WrapPanel DockPanel.Dock="Top" Margin="0,6,0,2">
-                <Button Content="+ _Reiter" Command="{Binding NewEntryCommand}" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Neuen Reiter im Abschnitt des ausgewählten Reiters anlegen" />
-                <Button Content="Abschnitt ↑" Command="{Binding MoveSectionUpCommand}" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Abschnitt des ausgewählten Reiters nach oben" />
-                <Button Content="Abschnitt ↓" Command="{Binding MoveSectionDownCommand}" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Abschnitt des ausgewählten Reiters nach unten" />
-                <Button Content="Papier_korb" Command="{Binding ShowTrashCommand}" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Gelöschte Reiter wiederherstellen" />
-            </WrapPanel>
+            <common:ActionBar DockPanel.Dock="Top" Margin="0,6,0,2">
+                <Button Style="{StaticResource ActionButton}" Content="Neuer _Reiter" Command="{Binding NewEntryCommand}" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.NewTab}" common:ActionButton.Role="Create"
+                        common:ActionButton.Description="Neuen Reiter im Abschnitt des ausgewählten Reiters anlegen (Strg+N)" />
+                <Button Style="{StaticResource ActionButton}" Content="Abschnitt hoch" Command="{Binding MoveSectionUpCommand}" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.MoveUp}"
+                        common:ActionButton.Description="Abschnitt des ausgewählten Reiters nach oben" />
+                <Button Style="{StaticResource ActionButton}" Content="Abschnitt runter" Command="{Binding MoveSectionDownCommand}" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.MoveDown}"
+                        common:ActionButton.Description="Abschnitt des ausgewählten Reiters nach unten" />
+                <Button Style="{StaticResource ActionButton}" Content="Papier_korb" Command="{Binding ShowTrashCommand}" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.Trash}" common:ActionButton.Role="Danger"
+                        common:ActionButton.Description="Gelöschte Reiter wiederherstellen" />
+            </common:ActionBar>
             <ListBox ItemsSource="{Binding EntriesView}" SelectedItem="{Binding SelectedItem}"
                      Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1"
                      DisplayMemberPath="Title" HorizontalContentAlignment="Stretch"
@@ -113,10 +118,41 @@
                     </Style.Triggers>
                 </Style>
             </StackPanel.Style>
-            <TextBlock Text="Kein Reiter ausgewählt" FontSize="18" FontWeight="SemiBold" />
-            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                       Text="Wähle links einen Reiter aus oder lege mit „+ Reiter“ eine neue Seite an. Neue Bereiche legst du oben über „…“ an." />
-            <Button Content="Neuen Reiter anlegen" Command="{Binding NewEntryCommand}" HorizontalAlignment="Left" Margin="0,14,0,0" Padding="12,4" />
+            <!-- Noch kein Bereich: Reiter gibt es erst in einem Bereich, also zuerst dorthin führen -->
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedWorkspace}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Text="Noch kein Bereich vorhanden" FontSize="18" FontWeight="SemiBold" />
+                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="Reiter liegen immer in einem Bereich, z. B. „Aktuelle Fehler“ oder „Werkzeuge“. Lege zuerst einen Bereich an, danach kannst du darin Reiter anlegen." />
+                <Button Content="Bereich anlegen …" Command="{Binding ManageWorkspacesCommand}" HorizontalAlignment="Left" Margin="0,14,0,0" Padding="12,4"
+                        Style="{StaticResource ActionButton}" common:ActionButton.Role="Primary" />
+            </StackPanel>
+            <!-- Bereich vorhanden, nur kein Reiter ausgewählt -->
+            <StackPanel>
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedWorkspace}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Text="Kein Reiter ausgewählt" FontSize="18" FontWeight="SemiBold" />
+                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="Wähle links einen Reiter aus oder lege mit „Neuer Reiter“ eine neue Seite an. Weitere Bereiche legst du oben über „Bereiche …“ an." />
+                <Button Content="Neuen Reiter anlegen" Command="{Binding NewEntryCommand}" HorizontalAlignment="Left" Margin="0,14,0,0" Padding="12,4"
+                        Style="{StaticResource ActionButton}" common:ActionButton.Role="Primary" />
+            </StackPanel>
         </StackPanel>
 
         <!-- Reiter -->
@@ -145,20 +181,27 @@
                 <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding EditTitle}" IsReadOnly="{Binding IsReadOnly}"
                          FontSize="18" FontWeight="SemiBold" BorderThickness="0,0,0,1" ToolTip="Titel des Reiters" />
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
-                    <ToggleButton Content="🔒" MinWidth="32" Padding="6,4" IsChecked="{Binding SelectedItem.Item.IsProtected, Mode=OneWay}"
-                                  Command="{Binding ToggleProtectedCommand}" ToolTip="Geschützt: nicht bearbeitbar und nicht löschbar" />
-                    <Button Content="↑" MinWidth="30" Padding="6,4" Margin="8,0,0,0" Command="{Binding MoveUpCommand}" ToolTip="Reiter im Abschnitt nach oben" />
-                    <Button Content="↓" MinWidth="30" Padding="6,4" Margin="2,0,0,0" Command="{Binding MoveDownCommand}" ToolTip="Reiter im Abschnitt nach unten" />
-                    <Button Content="Löschen" Padding="8,4" Margin="8,0,0,0" Command="{Binding DeleteCommand}" ToolTip="Reiter löschen" />
+                    <ToggleButton Style="{StaticResource ActionToggleButton}" Content="Geschützt" IsChecked="{Binding SelectedItem.Item.IsProtected, Mode=OneWay}"
+                                  Command="{Binding ToggleProtectedCommand}" common:ActionButton.Icon="{StaticResource Icon.Protected}"
+                                  common:ActionButton.Description="Nicht bearbeitbar und nicht löschbar" />
+                    <Button Style="{StaticResource ActionButton}" Content="Nach oben" Margin="8,0,0,0" Command="{Binding MoveUpCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.MoveUp}" common:ActionButton.Description="Reiter im Abschnitt nach oben" />
+                    <Button Style="{StaticResource ActionButton}" Content="Nach unten" Margin="2,0,0,0" Command="{Binding MoveDownCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.MoveDown}" common:ActionButton.Description="Reiter im Abschnitt nach unten" />
+                    <Button Style="{StaticResource ActionButton}" Content="Löschen" Margin="8,0,0,0" Command="{Binding DeleteCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger"
+                            common:ActionButton.Description="Reiter in den Papierkorb verschieben (Entf in der Liste)" />
                 </StackPanel>
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBlock Text="Abschnitt" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,6,0" />
                     <ComboBox Width="220" IsEditable="True" ItemsSource="{Binding SectionNames}" Text="{Binding EditSection}"
                               IsEnabled="{Binding CanEdit}" ToolTip="Abschnitt wählen oder neuen Namen eintippen" />
-                    <Button Content="Per _Mail …" Padding="8,3" Margin="12,0,0,0" Click="OnSendMail"
-                            ToolTip="Reiter als Outlook-Entwurf öffnen – mit Formatierung, Bildern und PDF-Anhängen" />
-                    <Button Content="_PDF anhängen …" Padding="8,3" Margin="6,0,0,0" Command="{Binding AddAttachmentCommand}"
-                            ToolTip="PDF auswählen – oder PDF-Dateien aus dem Explorer auf den Kopf des Reiters ziehen" />
+                    <Button Style="{StaticResource ActionButton}" Content="Per _Mail …" Margin="12,0,0,0" Click="OnSendMail"
+                            common:ActionButton.Icon="{StaticResource Icon.Mail}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="Reiter als Outlook-Entwurf öffnen – mit Formatierung, Bildern und PDF-Anhängen" />
+                    <Button Style="{StaticResource ActionButton}" Content="_PDF anhängen …" Margin="6,0,0,0" Command="{Binding AddAttachmentCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.Attach}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="PDF auswählen – oder PDF-Dateien aus dem Explorer auf den Kopf des Reiters ziehen" />
                 </StackPanel>
                 <!-- PDF-Anhänge -->
                 <ItemsControl Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{Binding Attachments}" Margin="0,6,0,0">

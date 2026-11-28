@@ -18,8 +18,7 @@
             <Setter Property="Margin" Value="0,4,10,0" />
             <Setter Property="Padding" Value="3,2" />
         </Style>
-        <Style x:Key="Tool" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Padding" Value="8,2" />
+        <Style x:Key="Tool" TargetType="Button" BasedOn="{StaticResource ActionButton}">
             <Setter Property="Margin" Value="0,0,4,4" />
         </Style>
         <Style TargetType="RichTextBox" BasedOn="{StaticResource {x:Type RichTextBox}}">
@@ -42,18 +41,29 @@
 
         <!-- Anrufliste -->
         <DockPanel Grid.Column="0" Margin="0,0,8,0">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
-                <Button Content="+ _Neuer Anruf" ToolTip="Neuen Anruf anlegen (Strg+N)" Command="{Binding NewCallCommand}" Style="{StaticResource Tool}" FontWeight="SemiBold" />
-                <Button Content="_Papierkorb" Command="{Binding ShowTrashCommand}" Style="{StaticResource Tool}" />
-            </StackPanel>
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,6">
-                <Button Content="Any_Desk" Command="{Binding OpenAnyDeskCommand}" Padding="12,3" Margin="0,0,6,0"
-                        Background="#DC2626" Foreground="White" FontWeight="SemiBold" BorderThickness="0"
-                        ToolTip="AnyDesk über die normale Windows-Verknüpfung öffnen bzw. in den Vordergrund holen" />
-                <Button Content="_TeamViewer" Command="{Binding OpenTeamViewerCommand}" Padding="12,3"
-                        Background="#2563EB" Foreground="White" FontWeight="SemiBold" BorderThickness="0"
-                        ToolTip="TeamViewer öffnen bzw. in den Vordergrund holen" />
-            </StackPanel>
+            <common:ActionBar DockPanel.Dock="Top" Margin="0,0,0,6">
+                <Button Content="_Neuer Anruf" Command="{Binding NewCallCommand}" Style="{StaticResource Tool}"
+                        common:ActionButton.Icon="{StaticResource Icon.NewCall}" common:ActionButton.Role="Primary"
+                        common:ActionButton.Description="Neue Anrufkarte anlegen (Strg+N)" />
+                <Button Content="_Papierkorb" Command="{Binding ShowTrashCommand}" Style="{StaticResource Tool}"
+                        common:ActionButton.Icon="{StaticResource Icon.Trash}" common:ActionButton.Role="Danger"
+                        common:ActionButton.Description="Gelöschte Anrufe wiederherstellen oder endgültig löschen" />
+            </common:ActionBar>
+            <common:ActionBar DockPanel.Dock="Top" Margin="0,0,0,6">
+                <!-- Markenfarben und Logos, unabhängig von der Farbgebung -->
+                <Button Content="Any_Desk" Command="{Binding OpenAnyDeskCommand}" Margin="0,0,4,4" FontWeight="SemiBold"
+                        Style="{StaticResource ActionButton}" Template="{StaticResource RoleButtonTemplate}"
+                        Background="{DynamicResource AppBrandAnyDeskBackground}" Foreground="{DynamicResource AppBrandAnyDeskForeground}"
+                        BorderBrush="{DynamicResource AppBrandAnyDeskBorder}"
+                        common:ActionButton.IconGeometry="{StaticResource Logo.AnyDesk}"
+                        common:ActionButton.Description="AnyDesk über die normale Windows-Verknüpfung öffnen bzw. in den Vordergrund holen" />
+                <Button Content="_TeamViewer" Command="{Binding OpenTeamViewerCommand}" Margin="0,0,4,4" FontWeight="SemiBold"
+                        Style="{StaticResource ActionButton}" Template="{StaticResource RoleButtonTemplate}"
+                        Background="{DynamicResource AppBrandTeamViewerBackground}" Foreground="{DynamicResource AppBrandTeamViewerForeground}"
+                        BorderBrush="{DynamicResource AppBrandTeamViewerBorder}"
+                        common:ActionButton.IconGeometry="{StaticResource Logo.TeamViewer}"
+                        common:ActionButton.Description="TeamViewer öffnen bzw. in den Vordergrund holen" />
+            </common:ActionBar>
             <CheckBox DockPanel.Dock="Top" Content="Erledigte anzeigen" IsChecked="{Binding ShowDone}" Margin="0,0,0,6" />
             <TextBlock DockPanel.Dock="Bottom" Text="{Binding Status}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
             <ListBox x:Name="CallList" ItemsSource="{Binding CallList}" SelectedItem="{Binding SelectedCall}"
@@ -90,7 +100,7 @@
         <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="calls.splitter" />
 
         <!-- Anrufkarte -->
-        <TextBlock Grid.Column="2" Margin="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Kein Anruf ausgewählt. Mit „+ Neuer Anruf“ eine Anrufkarte anlegen.">
+        <TextBlock Grid.Column="2" Margin="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Text="Kein Anruf ausgewählt. Mit „Neuer Anruf“ eine Anrufkarte anlegen.">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -115,17 +125,30 @@
             </ScrollViewer.Style>
             <StackPanel>
                 <WrapPanel Margin="0,0,0,6">
-                    <Button Content="📞 _Anrufen" Command="{Binding DialCommand}" Style="{StaticResource Tool}" />
+                    <Button Content="_Anrufen" Command="{Binding DialCommand}" Style="{StaticResource Tool}"
+                            common:ActionButton.Icon="{StaticResource Icon.Call}" common:ActionButton.Role="Primary"
+                            common:ActionButton.Description="Nummer aus „Rückruf an“ wählen" />
                     <Button Content="Auf_legen" Command="{Binding HangUpCommand}" Style="{StaticResource Tool}"
-                            ToolTip="Beendet das eine aktive lokale TAPI-Gespräch" />
-                    <Button Content="✉ _E-Mail" Command="{Binding EmailCommand}" Style="{StaticResource Tool}" />
-                    <Button Content="Fa_x" Command="{Binding FaxCommand}" Style="{StaticResource Tool}" />
+                            common:ActionButton.Icon="{StaticResource Icon.HangUp}" common:ActionButton.Role="Warning"
+                            common:ActionButton.Description="Beendet das eine aktive lokale TAPI-Gespräch" />
+                    <Button Content="_E-Mail" Command="{Binding EmailCommand}" Style="{StaticResource Tool}"
+                            common:ActionButton.Icon="{StaticResource Icon.Mail}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="E-Mail aus einer Vorlage an den Kunden" />
+                    <Button Content="Fa_x" Command="{Binding FaxCommand}" Style="{StaticResource Tool}"
+                            common:ActionButton.Icon="{StaticResource Icon.Fax}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="Fax aus einer Vorlage an den Kunden" />
                     <Button Content="_Rechnungs-Mail" Command="{Binding BillingMailCommand}" Style="{StaticResource Tool}"
-                            ToolTip="E-Mail für kostenpflichtigen Support öffnen" />
+                            common:ActionButton.Icon="{StaticResource Icon.Invoice}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="E-Mail für kostenpflichtigen Support öffnen" />
                     <Button Content="_Cobra-Text kopieren" Command="{Binding CopyCobraCommand}" Style="{StaticResource Tool}"
-                            ToolTip="„Warum wird angerufen? --> Lösung“ in die Zwischenablage" />
-                    <Button Content="_Schnelltexte ▾" Click="OnQuickTexts" Style="{StaticResource Tool}" />
-                    <Button Content="Löschen" Command="{Binding DeleteCommand}" Style="{StaticResource Tool}" Margin="12,0,4,4" ToolTip="Anruf in den Papierkorb (Entf in der Liste)" />
+                            common:ActionButton.Icon="{StaticResource Icon.Copy}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="„Warum wird angerufen? --> Lösung“ in die Zwischenablage" />
+                    <Button Content="_Schnelltexte ▾" Click="OnQuickTexts" Style="{StaticResource Tool}"
+                            common:ActionButton.Icon="{StaticResource Icon.QuickTexts}"
+                            common:ActionButton.Description="Cobra-Schnelltext in die Zwischenablage kopieren" />
+                    <Button Content="Löschen" Command="{Binding DeleteCommand}" Style="{StaticResource Tool}" Margin="12,0,4,4"
+                            common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger"
+                            common:ActionButton.Description="Anruf in den Papierkorb (Entf in der Liste)" />
                 </WrapPanel>
 
                 <Grid DataContext="{Binding SelectedCall}">
@@ -189,7 +212,9 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                    <Button Content="Er_innerung ändern …" Command="{Binding EditReminderCommand}" Padding="8,3" Margin="0,4,8,0" />
+                    <Button Content="Er_innerung ändern …" Command="{Binding EditReminderCommand}" Margin="0,4,8,0"
+                            Style="{StaticResource ActionButton}" common:ActionButton.Icon="{StaticResource Icon.Reminder}" common:ActionButton.Role="Warning"
+                            common:ActionButton.Description="Zeitpunkt der Rückruf-Erinnerung ändern" />
                     <TextBlock Text="{Binding SelectedCall.ReminderText}" Foreground="{DynamicResource SystemFillColorCautionBrush}" VerticalAlignment="Center" Margin="0,4,0,0" />
                 </DockPanel>
 
@@ -198,11 +223,13 @@
                     <CheckBox Content="Kostenpflichtig" IsChecked="{Binding IsBillable}" MinWidth="132" VerticalAlignment="Center" Margin="0,4,10,0" />
                     <TextBlock Text="von" Style="{StaticResource FieldLabel}" />
                     <TextBox Width="64" Text="{Binding BillingStartText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
-                    <Button Content="Jetzt" Padding="8,3" Margin="0,4,10,0"
+                    <Button Content="Jetzt" Margin="0,4,10,0" Style="{StaticResource ActionButton}"
+                            common:ActionButton.Icon="{StaticResource Icon.Clock}" common:ActionButton.Description="Aktuelle Uhrzeit als Beginn eintragen"
                             Command="{Binding DataContext.BillingStartNowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                     <TextBlock Text="bis" Style="{StaticResource FieldLabel}" />
                     <TextBox Width="64" Text="{Binding BillingEndText, UpdateSourceTrigger=LostFocus}" Margin="0,4,2,0" ToolTip="HH:mm" />
-                    <Button Content="Jetzt" Padding="8,3" Margin="0,4,10,0"
+                    <Button Content="Jetzt" Margin="0,4,10,0" Style="{StaticResource ActionButton}"
+                            common:ActionButton.Icon="{StaticResource Icon.Clock}" common:ActionButton.Description="Aktuelle Uhrzeit als Ende eintragen"
                             Command="{Binding DataContext.BillingEndNowCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                     <TextBlock Text="{Binding Duration}" VerticalAlignment="Center" Margin="0,4,0,0" FontWeight="SemiBold" />
                 </DockPanel>
@@ -211,13 +238,15 @@
                 <TextBox Text="{Binding SelectedCall.Notes, UpdateSourceTrigger=LostFocus}" Margin="0,2,0,0" />
 
                 <DockPanel Margin="0,10,0,2">
-                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,3" Click="OnReasonTemplates" />
+                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Click="OnReasonTemplates" Style="{StaticResource ActionButton}"
+                            common:ActionButton.Icon="{StaticResource Icon.Template}" common:ActionButton.Description="Häufigen Anrufgrund einfügen" />
                     <TextBlock Text="Warum wird angerufen?" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </DockPanel>
                 <RichTextBox x:Name="ReasonBox" MinHeight="140" TextChanged="OnTextChanged" LostKeyboardFocus="OnTextLostFocus" />
 
                 <DockPanel Margin="0,10,0,2">
-                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Padding="8,3" Click="OnSolutionTemplates" />
+                    <Button DockPanel.Dock="Right" Content="Vorlage ▾" Click="OnSolutionTemplates" Style="{StaticResource ActionButton}"
+                            common:ActionButton.Icon="{StaticResource Icon.Template}" common:ActionButton.Description="Häufige Lösung einfügen" />
                     <TextBlock Text="Lösung / Was wurde gemacht?" FontWeight="SemiBold" VerticalAlignment="Center" />
                 </DockPanel>
                 <RichTextBox x:Name="SolutionBox" MinHeight="140" TextChanged="OnTextChanged" LostKeyboardFocus="OnTextLostFocus" />

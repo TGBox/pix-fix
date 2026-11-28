@@ -205,6 +205,35 @@ Weg über py-connect oder Portierung der UI-Automatisierung.
 - Bereich „Hilfe“ mit Kapiteln je Funktion und Einführungstour; die Tour startet einmalig beim ersten Start
   (`help.tour_completed`). Texte in `src/PixFix.App/Help/HelpContent.cs` bei Funktionsänderungen mitpflegen.
 
+### F16 – Darstellung · S
+
+Ziel: PixFix erschließt sich auf den ersten Blick; jeder Mitarbeiter stellt die Darstellung selbst ein (Einstellungen →
+Allgemein, wirkt sofort, je Nutzer in `settings`).
+
+- **Schaltflächen** (`ui.button_style`): „Symbol und Text“ (`icon_text`, Standard), „Nur Symbol“ (`icon`), „Nur Text“
+  (`text`). Gilt für Werkzeugleisten und wiederkehrende Aktionen (Neu, Löschen, Papierkorb, ↑/↓, Bereiche verwalten,
+  Bildsuche, Editor-Werkzeuge …). Knöpfe, die einen Dialog abschließen („Schließen“, „Umbenennen“, „Weiter“), bleiben
+  beschriftet. Die Knöpfe der Spalten-Leisten (`ActionBar`) nutzen in jeder Stufe die volle Spaltenbreite (gleich breit, wenn
+  jeder in ein gleiches Feld passt); reicht der Platz nicht, brechen sie um, und jede Zeile wird für sich gestreckt.
+- **Tooltips** zeigen immer Beschriftung, Alt-Kürzel und Beschreibung („Anrufen (Alt+A)“). Alt-Kürzel funktionieren in
+  allen drei Stufen (in „Nur Symbol“ bleibt die Beschriftung mit Breite 0 im Baum, damit die Taste registriert bleibt).
+- **Farbgebung** (`ui.color_mode`): „Dezent“ (`subtle`, Standard) – einheitlich, nur die Hauptaktion einer Leiste in
+  Akzentfarbe; „Farbig“ (`colorful`) – nach Bedeutung: Grün = neu/bestätigen, Rot = löschen und Papierkorb, Orange = Vorsicht
+  (archivieren, auflegen, Erinnerung), Blau = Aktion (suchen, kopieren, öffnen, Mail). Aktionen ohne besondere Bedeutung (Ordnen,
+  Bearbeiten, Abschnitte …) sind grau; Umschalter und Navigation bleiben neutral, nur „Beenden“ unten in der Navigation wird
+  in „Farbig“ rot. Status-Anzeigen (TI-Monitor, Erinnerungen) sind in beiden Modi farbig, ebenso die
+  Fernwartungs-Knöpfe in Markenfarben mit Logo (AnyDesk #EF443B, TeamViewer #050A52; `ActionButton.IconGeometry`). Keine Farben je
+  Bereich, keine frei wählbaren Farben.
+- Beide Modi funktionieren in Hell und Dunkel; Text auf farbigen Flächen mindestens 4,5:1, Fläche oder Rahmen gegen den
+  Fensterhintergrund mindestens 3:1 (`ThemePaletteContrastTests`).
+- **Symbole:** Fluent UI System Icons (Microsoft, MIT-Lizenz) als eingebettete Teilschrift
+  `src/PixFix.App/Assets/Fonts/PixFixIcons.ttf`; Zuordnung `Icon.<Name>` in `Themes/Icons.xaml`. Beides erzeugt
+  `scripts/build-icon-font.py` – neue Symbole nur dort eintragen.
+- **Umsetzung:** Stile `ActionButton`/`ActionToggleButton` in `Themes/Controls.xaml` mit den angehängten Eigenschaften
+  `ActionButton.Icon`, `.Role` (Neutral, Primary, Create, Danger, Warning, Action) und `.Description`.
+- **Vorlagen:** Platzhalter erscheinen als anklickbare Pills und werden an der Cursorposition des zuletzt bearbeiteten
+  Feldes eingefügt. Die Rechnungs-Mail hat einen Standardtext, solange keiner eingerichtet ist.
+
 ---
 
 1. Nicht-funktionale Anforderungen
