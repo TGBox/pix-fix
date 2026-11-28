@@ -101,8 +101,35 @@
 
         <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="workspaces.splitter" />
 
+        <!-- Ohne Auswahl: Hinweis statt eines leeren, scheinbar beschreibbaren Editors -->
+        <StackPanel Grid.Column="2" Margin="20,16" MaxWidth="480" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedItem}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <TextBlock Text="Kein Reiter ausgewählt" FontSize="18" FontWeight="SemiBold" />
+            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="Wähle links einen Reiter aus oder lege mit „+ Reiter“ eine neue Seite an. Neue Bereiche legst du oben über „…“ an." />
+            <Button Content="Neuen Reiter anlegen" Command="{Binding NewEntryCommand}" HorizontalAlignment="Left" Margin="0,14,0,0" Padding="12,4" />
+        </StackPanel>
+
         <!-- Reiter -->
         <DockPanel Grid.Column="2" Margin="8,0,0,0">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedItem}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
             <!-- PDF-Dateien aus dem Explorer hierher ziehen = anhängen -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,6" IsEnabled="{Binding SelectedItem, Converter={x:Static editing:NotNullConverter.Instance}}"
                   AllowDrop="True" Background="Transparent" DragOver="OnAttachmentDragOver" Drop="OnAttachmentDrop">

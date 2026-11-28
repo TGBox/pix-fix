@@ -6,6 +6,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 
 ### Behoben
 
+- Wissensdatenbank und Schreibbereiche ohne ausgewählten Eintrag bzw. Reiter zeigen einen Hinweis mit „Neuen Eintrag
+  anlegen“ / „Neuen Reiter anlegen“ statt eines leeren Editors, der beim Klicken aufleuchtete, aber keine Eingabe annahm.
 - `SQLitePCLRaw.lib.e_sqlite3` auf 2.1.14 festgelegt (Sicherheitslücke GHSA-2m69-gcr7-jv3q in 2.1.11).
 
 ### Hinzugefügt

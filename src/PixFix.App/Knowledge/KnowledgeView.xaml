@@ -93,8 +93,35 @@
 
         <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="knowledge.splitter" />
 
+        <!-- Ohne Auswahl: Hinweis statt eines leeren, scheinbar beschreibbaren Editors -->
+        <StackPanel Grid.Column="2" Margin="20,16" MaxWidth="480" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedEntry}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <TextBlock Text="Kein Eintrag ausgewählt" FontSize="18" FontWeight="SemiBold" />
+            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="Wähle links einen Eintrag aus oder lege mit „+ Neu“ einen neuen an. Ein Fehlerbild findest du auch über „Bildsuche …“ (Strg+Umschalt+B)." />
+            <Button Content="Neuen Eintrag anlegen" Command="{Binding NewEntryCommand}" HorizontalAlignment="Left" Margin="0,14,0,0" Padding="12,4" />
+        </StackPanel>
+
         <!-- Eintrag -->
         <DockPanel Grid.Column="2" Margin="8,0,0,0">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedEntry}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
             <!-- Kopf: Titel, Abschnitt, Tags, Zustände -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,6" IsEnabled="{Binding SelectedEntry, Converter={x:Static editing:NotNullConverter.Instance}}">
                 <Grid.ColumnDefinitions>
