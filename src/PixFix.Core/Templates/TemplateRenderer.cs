@@ -11,6 +11,23 @@ public static class TemplatePlaceholders
     public const string Solution = "LOESUNG";
     public const string Email = "EMAIL";
     public const string Fax = "FAX";
+
+    /// <summary>Alle Platzhalter in Anzeigereihenfolge – für die Pills in den Vorlagen-Editoren.</summary>
+    public static IReadOnlyList<PlaceholderInfo> All { get; } =
+    [
+        new(CustomerNumber, "L-Nummer"),
+        new(Id, "ID"),
+        new(Reason, "Anrufgrund"),
+        new(Solution, "Lösung"),
+        new(Email, "E-Mail"),
+        new(Fax, "Fax"),
+    ];
+}
+
+/// <summary>Ein Platzhalter mit Beschreibung; <see cref="Token"/> ist der Text, der in die Vorlage eingefügt wird.</summary>
+public sealed record PlaceholderInfo(string Name, string Description)
+{
+    public string Token => "{" + Name + "}";
 }
 
 /// <summary>Ersetzt Platzhalter der Form <c>{NAME}</c> in Vorlagentexten.</summary>

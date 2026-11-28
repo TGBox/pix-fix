@@ -6,7 +6,7 @@ using PixFix.Infrastructure.Settings;
 
 namespace PixFix.App.Settings;
 
-/// <summary>Reiter „Allgemein“: Darstellung, Verhalten beim Schließen, systemweites Tastenkürzel und Updates.</summary>
+/// <summary>Reiter „Allgemein“: Farbschema, Schaltflächen-Darstellung, Verhalten beim Schließen, systemweites Tastenkürzel und Updates.</summary>
 public sealed class GeneralSettingsViewModel(SettingsRepository settings, ThemeService themeService, UpdateViewModel updates)
     : ObservableObject
 {
@@ -24,6 +24,42 @@ public sealed class GeneralSettingsViewModel(SettingsRepository settings, ThemeS
             if (value is not null && value.Key != themeService.CurrentKey)
             {
                 themeService.SetTheme(value.Key);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public IReadOnlyList<AppearanceOption> LabelModes => Appearance.LabelModes;
+
+    /// <summary>Schaltflächen: Nur Symbol / Symbol und Text / Nur Text – wirkt sofort.</summary>
+    public AppearanceOption SelectedLabelMode
+    {
+        get
+        {
+            var key = Appearance.LabelModeKey(Appearance.Current.LabelMode);
+            return LabelModes.FirstOrDefault(option => option.Key == key) ?? LabelModes[0];
+        }
+        set
+        {
+            if (value is not null)
+            {
+                Appearance.Current.SetLabelMode(settings, value.Key);
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public IReadOnlyList<AppearanceOption> ColorModes => Appearance.ColorModes;
+
+    /// <summary>Farbgebung: dezent oder farbig nach Bedeutung – wirkt sofort.</summary>
+    public AppearanceOption SelectedColorMode
+    {
+        get => Appearance.Current.IsColorful ? ColorModes[1] : ColorModes[0];
+        set
+        {
+            if (value is not null)
+            {
+                Appearance.Current.SetColorful(settings, value.Key);
                 OnPropertyChanged();
             }
         }
@@ -59,7 +95,10 @@ public sealed class GeneralSettingsViewModel(SettingsRepository settings, ThemeS
     public void Reload()
     {
         themeService.ApplySaved();
+        Appearance.Current.Load(settings);
         OnPropertyChanged(nameof(SelectedTheme));
+        OnPropertyChanged(nameof(SelectedLabelMode));
+        OnPropertyChanged(nameof(SelectedColorMode));
         OnPropertyChanged(nameof(CloseToTray));
         OnPropertyChanged(nameof(GlobalHotkey));
         updates.Reload();

@@ -31,6 +31,13 @@ public partial class SectionsWindow : Window
         Error.Text = string.Empty;
     }
 
+    private void OnListSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Rand, Rahmen und senkrechte Bildlaufleiste abziehen; der Name bekommt den Rest, mindestens 120 px.
+        var available = Items.ActualWidth - CountColumn.Width - SystemParameters.VerticalScrollBarWidth - 12;
+        NameColumn.Width = Math.Max(120, available);
+    }
+
     private void OnRename(object sender, RoutedEventArgs e) =>
         Apply(section => viewModel.ChangeSections(r => r.RenameSection(section.Id, NameBox.Text)));
 

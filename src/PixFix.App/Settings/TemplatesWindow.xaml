@@ -8,8 +8,7 @@
         common:LayoutMemory.Key="templates">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="Visible" />
-        <Style x:Key="ListButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="Padding" Value="8,3" />
+        <Style x:Key="ListButton" TargetType="Button" BasedOn="{StaticResource ActionButton}">
             <Setter Property="Margin" Value="0,0,4,0" />
         </Style>
         <Style x:Key="Label" TargetType="TextBlock">
@@ -36,12 +35,16 @@
                     </Grid.ColumnDefinitions>
                     <DockPanel Margin="0,0,12,0">
                         <ComboBox DockPanel.Dock="Top" ItemsSource="{Binding Kinds}" SelectedItem="{Binding SelectedKind}" DisplayMemberPath="Title" />
-                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
-                            <Button Content="+ Neu" Command="{Binding NewTemplateCommand}" Style="{StaticResource ListButton}" />
-                            <Button Content="Löschen" Command="{Binding DeleteTemplateCommand}" Style="{StaticResource ListButton}" />
-                            <Button Content="↑" Command="{Binding MoveTemplateUpCommand}" Style="{StaticResource ListButton}" ToolTip="Nach oben" />
-                            <Button Content="↓" Command="{Binding MoveTemplateDownCommand}" Style="{StaticResource ListButton}" ToolTip="Nach unten" />
-                        </StackPanel>
+                        <common:ActionBar DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                            <Button Content="Neu" Command="{Binding NewTemplateCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.Add}" common:ActionButton.Role="Create" />
+                            <Button Content="Löschen" Command="{Binding DeleteTemplateCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger" />
+                            <Button Content="Nach oben" Command="{Binding MoveTemplateUpCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.MoveUp}" />
+                            <Button Content="Nach unten" Command="{Binding MoveTemplateDownCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.MoveDown}" />
+                        </common:ActionBar>
                         <ListBox ItemsSource="{Binding Templates}" SelectedItem="{Binding SelectedTemplate}" DisplayMemberPath="Name" Margin="0,6,0,0"
                                  Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" />
                     </DockPanel>
@@ -60,12 +63,16 @@
                         <StackPanel DockPanel.Dock="Top"
                                     Visibility="{Binding DataContext.SelectedKind.HasSubject, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource Visible}}">
                             <TextBlock Text="Betreff" Style="{StaticResource Label}" />
-                            <TextBox Text="{Binding Subject, UpdateSourceTrigger=PropertyChanged, Delay=500}" Padding="3,2" />
+                            <TextBox Text="{Binding Subject, UpdateSourceTrigger=PropertyChanged, Delay=500}" Padding="3,2"
+                                     common:PlaceholderBar.AcceptsPlaceholders="True" />
                         </StackPanel>
                         <TextBlock DockPanel.Dock="Top" Text="Text" Style="{StaticResource Label}" />
-                        <TextBlock DockPanel.Dock="Bottom" Margin="0,6,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                        <TextBlock DockPanel.Dock="Bottom" Margin="0,2,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                    Text="{Binding DataContext.SelectedKind.Hint, RelativeSource={RelativeSource AncestorType=Window}}" />
-                        <TextBox Text="{Binding Body, UpdateSourceTrigger=PropertyChanged, Delay=500}" Style="{StaticResource Multi}" />
+                        <common:PlaceholderBar DockPanel.Dock="Bottom" Margin="0,8,0,0"
+                                               Visibility="{Binding DataContext.SelectedKind.HasPlaceholders, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource Visible}}" />
+                        <TextBox Text="{Binding Body, UpdateSourceTrigger=PropertyChanged, Delay=500}" Style="{StaticResource Multi}"
+                                 common:PlaceholderBar.AcceptsPlaceholders="True" />
                     </DockPanel>
                 </Grid>
             </TabItem>
@@ -78,12 +85,16 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <DockPanel Margin="0,0,12,0">
-                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
-                            <Button Content="+ Neu" Command="{Binding NewQuickTextCommand}" Style="{StaticResource ListButton}" />
-                            <Button Content="Löschen" Command="{Binding DeleteQuickTextCommand}" Style="{StaticResource ListButton}" />
-                            <Button Content="↑" Command="{Binding MoveQuickTextUpCommand}" Style="{StaticResource ListButton}" ToolTip="Nach oben" />
-                            <Button Content="↓" Command="{Binding MoveQuickTextDownCommand}" Style="{StaticResource ListButton}" ToolTip="Nach unten" />
-                        </StackPanel>
+                        <common:ActionBar DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                            <Button Content="Neu" Command="{Binding NewQuickTextCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.Add}" common:ActionButton.Role="Create" />
+                            <Button Content="Löschen" Command="{Binding DeleteQuickTextCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger" />
+                            <Button Content="Nach oben" Command="{Binding MoveQuickTextUpCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.MoveUp}" />
+                            <Button Content="Nach unten" Command="{Binding MoveQuickTextDownCommand}" Style="{StaticResource ListButton}"
+                                    common:ActionButton.Icon="{StaticResource Icon.MoveDown}" />
+                        </common:ActionBar>
                         <ListBox ItemsSource="{Binding QuickTexts}" SelectedItem="{Binding SelectedQuickText}" DisplayMemberPath="Name"
                                  Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1" />
                     </DockPanel>
@@ -117,13 +128,19 @@
                 <DockPanel Margin="8">
                     <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,0,8"
                                Text="Beim Klick auf „Fax“ im Anruf wählst du eines dieser Dokumente aus; PixFix öffnet eine Kopie mit dem zugeordneten Programm (z. B. Word). Die Originale bleiben unverändert in der PixFix-Ablage und gehören zur Sicherung." />
-                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
-                        <Button Content="+ Hinzufügen …" Command="{Binding AddFaxCommand}" Style="{StaticResource ListButton}" />
-                        <Button Content="Öffnen" Command="{Binding OpenFaxCommand}" Style="{StaticResource ListButton}" />
-                        <Button Content="Entfernen" Command="{Binding RemoveFaxCommand}" Style="{StaticResource ListButton}" />
-                        <Button Content="↑" Command="{Binding MoveFaxUpCommand}" Style="{StaticResource ListButton}" ToolTip="Nach oben" />
-                        <Button Content="↓" Command="{Binding MoveFaxDownCommand}" Style="{StaticResource ListButton}" ToolTip="Nach unten" />
-                    </StackPanel>
+                    <common:ActionBar DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                        <Button Content="Hinzufügen …" Command="{Binding AddFaxCommand}" Style="{StaticResource ListButton}"
+                                common:ActionButton.Icon="{StaticResource Icon.Add}" common:ActionButton.Role="Create"
+                                common:ActionButton.Description="Dokument auswählen – oder per Drag &amp; Drop aus dem Explorer" />
+                        <Button Content="Öffnen" Command="{Binding OpenFaxCommand}" Style="{StaticResource ListButton}"
+                                common:ActionButton.Icon="{StaticResource Icon.Open}" common:ActionButton.Role="Action" />
+                        <Button Content="Entfernen" Command="{Binding RemoveFaxCommand}" Style="{StaticResource ListButton}"
+                                common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger" />
+                        <Button Content="Nach oben" Command="{Binding MoveFaxUpCommand}" Style="{StaticResource ListButton}"
+                                common:ActionButton.Icon="{StaticResource Icon.MoveUp}" />
+                        <Button Content="Nach unten" Command="{Binding MoveFaxDownCommand}" Style="{StaticResource ListButton}"
+                                common:ActionButton.Icon="{StaticResource Icon.MoveDown}" />
+                    </common:ActionBar>
                     <DockPanel DockPanel.Dock="Bottom" Margin="0,6,0,0" DataContext="{Binding SelectedFax}">
                         <TextBlock Text="Anzeigename" VerticalAlignment="Center" Margin="0,0,8,0" />
                         <TextBox Text="{Binding Name, UpdateSourceTrigger=LostFocus}" Padding="3,2" />

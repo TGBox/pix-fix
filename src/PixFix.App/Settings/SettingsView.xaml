@@ -1,6 +1,7 @@
 <UserControl x:Class="PixFix.App.Settings.SettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:PixFix.App.Common">
     <TabControl>
         <TabItem Header="Allgemein">
             <DockPanel DataContext="{Binding General}" Margin="8">
@@ -11,11 +12,41 @@
                         <ComboBox ItemsSource="{Binding Themes}" SelectedItem="{Binding SelectedTheme}"
                                   DisplayMemberPath="Label" Width="220" HorizontalAlignment="Left" />
                     </DockPanel>
-                    <TextBlock Margin="0,4,0,14" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Wechselt sofort zwischen hellem und dunklem Design oder übernimmt die Windows-Einstellung." />
+                    <DockPanel Margin="0,10,0,0">
+                        <TextBlock Text="Schaltflächen" Width="180" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding LabelModes}" SelectedItem="{Binding SelectedLabelMode}"
+                                  DisplayMemberPath="Label" Width="220" HorizontalAlignment="Left" />
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                               Text="„Symbol und Text“ zeigt neben jedem Symbol, was es tut. „Nur Symbol“ ist am kompaktesten – die Bedeutung steht dann im Tooltip. Alt-Tastenkürzel funktionieren in jeder Darstellung." />
+                    <DockPanel Margin="0,10,0,0">
+                        <TextBlock Text="Farbgebung" Width="180" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding ColorModes}" SelectedItem="{Binding SelectedColorMode}"
+                                  DisplayMemberPath="Label" Width="360" HorizontalAlignment="Left" />
+                    </DockPanel>
+                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                               Text="Farbig: Grün = neu/bestätigen, Rot = löschen, Orange = Vorsicht, Blau = Aktion. Status-Anzeigen wie der TI-Monitor sind immer farbig." />
+                    <!-- Vorschau: zeigt die gewählte Darstellung sofort (ohne Funktion) -->
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,14">
+                        <TextBlock Text="Vorschau" Width="180" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                        <Button Style="{StaticResource ActionButton}" Content="Neuer Anruf" Focusable="False" Margin="0,0,6,0"
+                                ui:ActionButton.Icon="{StaticResource Icon.NewCall}" ui:ActionButton.Role="Primary" />
+                        <Button Style="{StaticResource ActionButton}" Content="Neu" Focusable="False" Margin="0,0,6,0"
+                                ui:ActionButton.Icon="{StaticResource Icon.Add}" ui:ActionButton.Role="Create" />
+                        <Button Style="{StaticResource ActionButton}" Content="Kopieren" Focusable="False" Margin="0,0,6,0"
+                                ui:ActionButton.Icon="{StaticResource Icon.Copy}" ui:ActionButton.Role="Action" />
+                        <Button Style="{StaticResource ActionButton}" Content="Archivieren" Focusable="False" Margin="0,0,6,0"
+                                ui:ActionButton.Icon="{StaticResource Icon.Archive}" ui:ActionButton.Role="Warning" />
+                        <Button Style="{StaticResource ActionButton}" Content="Löschen" Focusable="False" Margin="0,0,6,0"
+                                ui:ActionButton.Icon="{StaticResource Icon.Delete}" ui:ActionButton.Role="Danger" />
+                        <Button Style="{StaticResource ActionButton}" Content="Nach oben" Focusable="False"
+                                ui:ActionButton.Icon="{StaticResource Icon.MoveUp}" />
+                    </StackPanel>
                     <CheckBox Content="Beim Schließen im Infobereich weiterlaufen" IsChecked="{Binding CloseToTray}" FontWeight="SemiBold" />
                     <TextBlock Margin="20,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                               Text="Rückruf-Erinnerungen, TI-Monitor und automatische Sicherung bleiben aktiv. Ganz beenden über „PixFix beenden“ unten in der Navigation oder das PixFix-Symbol im Infobereich (rechte Maustaste → PixFix beenden)." />
+                               Text="Rückruf-Erinnerungen, TI-Monitor und automatische Sicherung bleiben aktiv. Ganz beenden über „Beenden“ unten in der Navigation oder das PixFix-Symbol im Infobereich (rechte Maustaste → PixFix beenden)." />
                     <CheckBox Content="Systemweites Tastenkürzel Strg+Alt+P für die Bildsuche" IsChecked="{Binding GlobalHotkey}" Margin="0,12,0,0" FontWeight="SemiBold" />
                     <TextBlock Margin="20,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                Text="Screenshot machen (Windows+Umschalt+S), Strg+Alt+P drücken – PixFix sucht sofort nach passenden Einträgen. Änderung wirkt nach dem nächsten Start." />
@@ -75,15 +106,18 @@
                     </DockPanel>
                     <DockPanel Margin="0,6,0,0">
                         <TextBlock Text="Betreff" Width="180" VerticalAlignment="Center" />
-                        <TextBox Text="{Binding BillingMailSubject, UpdateSourceTrigger=LostFocus}" Padding="3,2" />
+                        <TextBox Text="{Binding BillingMailSubject, UpdateSourceTrigger=LostFocus}" Padding="3,2"
+                                 ui:PlaceholderBar.AcceptsPlaceholders="True" />
                     </DockPanel>
                     <DockPanel Margin="0,6,0,0">
                         <TextBlock Text="Text" Width="180" VerticalAlignment="Top" Margin="0,3,0,0" />
                         <TextBox Text="{Binding BillingMailBody, UpdateSourceTrigger=LostFocus}" Height="140" Padding="3"
-                                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+                                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                 ui:PlaceholderBar.AcceptsPlaceholders="True" />
                     </DockPanel>
-                    <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                               Text="Platzhalter: {LNUM}, {ID}, {WARUM}, {LOESUNG}, {EMAIL}, {FAX}. Die Mail öffnet sich über den Button „Rechnungs-Mail“ und wenn du einen kostenpflichtigen Anruf auf „Erledigt“ setzt und sie noch nicht versendet wurde." />
+                    <ui:PlaceholderBar Margin="180,8,0,0" />
+                    <TextBlock Margin="180,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                               Text="Platzhalter anklicken, um sie an der Cursorposition einzufügen. Die Mail öffnet sich über „Rechnungs-Mail“ im Anruf und wenn du einen kostenpflichtigen Anruf auf „Erledigt“ setzt und sie noch nicht versendet wurde." />
 
                     <TextBlock Text="Vorlagen" FontSize="16" FontWeight="SemiBold" Margin="0,18,0,0" />
                     <Button Content="Vorlagen, Cobra-Schnelltexte und Fax-Dokumente bearbeiten …" Command="{Binding OpenTemplatesCommand}"

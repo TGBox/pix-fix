@@ -6,10 +6,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
 
 ### Behoben
 
+- Schreibbereiche ohne einen einzigen Bereich zeigen „Noch kein Bereich vorhanden“ mit „Bereich anlegen …“ statt eines
+  Hinweises auf Reiter, die sich noch gar nicht anlegen lassen.
+- Dialog „Schreibbereiche verwalten“: Spalte „Geschützt“ wird vollständig angezeigt (ja/nein), der Name nutzt die
+  restliche Breite.
+- „Beenden“ unten in der Navigation nutzt die volle Breite der Seitenleiste.
+- Dialog „Abschnitte“: Spalte „Einträge“ wird vollständig angezeigt, die Namensspalte nutzt die restliche Breite;
+  Fenstergröße wird gemerkt.
+- Wissensdatenbank und Schreibbereiche ohne ausgewählten Eintrag bzw. Reiter zeigen einen Hinweis mit „Neuen Eintrag
+  anlegen“ / „Neuen Reiter anlegen“ statt eines leeren Editors, der beim Klicken aufleuchtete, aber keine Eingabe annahm.
 - `SQLitePCLRaw.lib.e_sqlite3` auf 2.1.14 festgelegt (Sicherheitslücke GHSA-2m69-gcr7-jv3q in 2.1.11).
 
 ### Hinzugefügt
 
+- Darstellung je Nutzer (Einstellungen → Allgemein, wirkt sofort): Schaltflächen „Symbol und Text“ (Standard), „Nur
+  Symbol“ oder „Nur Text“; Farbgebung „Dezent“ (Standard, nur die Hauptaktion farbig) oder „Farbig“ nach Bedeutung
+  (Grün = neu, Rot = löschen, Orange = Vorsicht, Blau = Aktion), in Hell und Dunkel. Tooltips nennen Funktion und
+  Alt-Kürzel; die Alt-Kürzel funktionieren in jeder Darstellung. Vorschau in den Einstellungen.
+- Einheitliche Symbole aus Fluent UI System Icons (Microsoft, MIT) als eingebettete Teilschrift (13 KB), erzeugt mit
+  `scripts/build-icon-font.py`; ersetzt Emojis und Segoe-MDL2-Zeichen. „Neuer Anruf“ ist jetzt eine hervorgehobene
+  Schaltfläche mit Telefonsymbol, „…“ bei den Schreibbereichen heißt „Bereiche …“.
+- Die Knöpfe der Leisten in Wissensdatenbank, Schreibbereichen, Anrufen und im Vorlagen-Fenster füllen in jeder Darstellung
+  die Spaltenbreite aus, statt klein am Rand zu stehen; reicht der Platz nicht, brechen sie um und jede Zeile wird gestreckt.
+- AnyDesk und TeamViewer in Markenfarben (#EF443B bzw. #050A52) mit Programm-Logo; „Papierkorb“ in der Farbgebung
+  „Farbig“ rot wie „Löschen“.
+- Platzhalter in Vorlagen und Rechnungs-Mail als anklickbare Pills, die an der Cursorposition einfügen.
+- Standardtext für die Rechnungs-Mail, solange keiner eingerichtet ist.
 - pre-push-Hook fragt nach dem gewünschten SemVer-Sprung (Patch/Minor/Major) und zeigt dazu das neueste Release-Tag und die
   jeweils entstehende Version. Passt die Wahl nicht zu den Commit-Typen des Branches, wird der Push mit Korrekturhinweis
   abgebrochen. Ohne Terminal nur Hinweis; Vorgabe per `PIXFIX_BUMP=patch|minor|major`.
@@ -18,8 +40,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/), Versionen nach
   „Was ist neu?“, „Programmordner öffnen“ und „Später“; liegt PixFix im Hintergrund, kommt zusätzlich eine
   Windows-Benachrichtigung. Einstellungen → Allgemein → Updates zeigt die installierte Version, sucht sofort und lässt sich
   abschalten. Fehler bei der Abfrage bleiben in der Anzeige und stören PixFix nicht.
-- Schaltfläche „PixFix beenden“ unten in der Navigation: beendet PixFix vollständig, ohne Umweg über das Symbol im
-  Infobereich (das Schließen-Kreuz legt PixFix weiterhin nur in den Infobereich).
+- Schaltfläche „Beenden“ unten in der Navigation: beendet PixFix vollständig, ohne Umweg über das Symbol im
+  Infobereich (das Schließen-Kreuz legt PixFix weiterhin nur in den Infobereich). In der Farbgebung „Farbig“ ist sie rot.
+- Farbgebung „Farbig“: Schaltflächen ohne besondere Bedeutung (Ordnen, Bearbeiten, Abschnitte …) sind grau statt weiß, in
+  Hell und Dunkel.
 - Warnung vor dem Beenden (Schaltfläche, Infobereich-Menü oder Schließen-Kreuz ohne Infobereich), wenn heute noch
   Rückruf-Erinnerungen anstehen – mit Liste der Rückrufe (Uhrzeit, L-Nummer, Grund); Standard ist „Nein“. Beim Abmelden
   oder Herunterfahren von Windows kommt keine Rückfrage.

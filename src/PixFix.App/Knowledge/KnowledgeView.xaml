@@ -43,16 +43,20 @@
                           ToolTip="Archivierte Einträge mit anzeigen" />
                 <TextBlock Text="{Binding Summary}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
             </DockPanel>
-            <WrapPanel DockPanel.Dock="Top" Margin="0,0,0,4">
-                <Button Content="+ _Neu ▾" Click="OnNewEntry" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Neuen Eintrag im Abschnitt des ausgewählten Eintrags anlegen – leer oder aus einer Vorlage" />
-                <Button Content="Ab_schnitte …" Command="{Binding ManageSectionsCommand}" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Abschnitte umbenennen, sortieren oder leere Abschnitte löschen" />
-                <Button Content="_Bildsuche …" Command="{Binding ImageSearchCommand}" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Ähnliche Fehlerbilder zu einem Screenshot finden (Strg+Umschalt+B)" />
-                <Button Content="_Papierkorb" Command="{Binding ShowTrashCommand}" Padding="8,3" Margin="0,0,4,4"
-                        ToolTip="Gelöschte Einträge wiederherstellen oder endgültig löschen" />
-            </WrapPanel>
+            <common:ActionBar DockPanel.Dock="Top" Margin="0,0,0,4">
+                <Button Style="{StaticResource ActionButton}" Content="_Neu ▾" Click="OnNewEntry" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.NewEntry}" common:ActionButton.Role="Create"
+                        common:ActionButton.Description="Neuen Eintrag im Abschnitt des ausgewählten Eintrags anlegen – leer oder aus einer Vorlage (Strg+N)" />
+                <Button Style="{StaticResource ActionButton}" Content="_Bildsuche …" Command="{Binding ImageSearchCommand}" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.ImageSearch}" common:ActionButton.Role="Action"
+                        common:ActionButton.Description="Ähnliche Fehlerbilder zu einem Screenshot finden (Strg+Umschalt+B)" />
+                <Button Style="{StaticResource ActionButton}" Content="Ab_schnitte …" Command="{Binding ManageSectionsCommand}" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.Sections}"
+                        common:ActionButton.Description="Abschnitte umbenennen, sortieren oder leere Abschnitte löschen" />
+                <Button Style="{StaticResource ActionButton}" Content="_Papierkorb" Command="{Binding ShowTrashCommand}" Margin="0,0,4,4"
+                        common:ActionButton.Icon="{StaticResource Icon.Trash}" common:ActionButton.Role="Danger"
+                        common:ActionButton.Description="Gelöschte Einträge wiederherstellen oder endgültig löschen" />
+            </common:ActionBar>
             <ListBox ItemsSource="{Binding ResultsView}"
                      SelectedItem="{Binding SelectedHit}"
                      Background="{DynamicResource AppSurfaceBackground}"
@@ -93,8 +97,36 @@
 
         <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch" common:LayoutMemory.Key="knowledge.splitter" />
 
+        <!-- Ohne Auswahl: Hinweis statt eines leeren, scheinbar beschreibbaren Editors -->
+        <StackPanel Grid.Column="2" Margin="20,16" MaxWidth="480" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedEntry}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+            <TextBlock Text="Kein Eintrag ausgewählt" FontSize="18" FontWeight="SemiBold" />
+            <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="Wähle links einen Eintrag aus oder lege mit „Neu“ einen neuen an. Ein Fehlerbild findest du auch über „Bildsuche …“ (Strg+Umschalt+B)." />
+            <Button Content="Neuen Eintrag anlegen" Command="{Binding NewEntryCommand}" HorizontalAlignment="Left" Margin="0,14,0,0" Padding="12,4"
+                    Style="{StaticResource ActionButton}" common:ActionButton.Role="Primary" />
+        </StackPanel>
+
         <!-- Eintrag -->
         <DockPanel Grid.Column="2" Margin="8,0,0,0">
+            <DockPanel.Style>
+                <Style TargetType="DockPanel">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedEntry}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Hidden" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DockPanel.Style>
             <!-- Kopf: Titel, Abschnitt, Tags, Zustände -->
             <Grid DockPanel.Dock="Top" Margin="0,0,0,6" IsEnabled="{Binding SelectedEntry, Converter={x:Static editing:NotNullConverter.Instance}}">
                 <Grid.ColumnDefinitions>
@@ -108,18 +140,22 @@
                 <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding EditTitle}" IsReadOnly="{Binding IsReadOnly}"
                          FontSize="18" FontWeight="SemiBold" BorderThickness="0,0,0,1" ToolTip="Titel" />
                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="8,0,0,0">
-                    <ToggleButton Content="★" MinWidth="32" Padding="6,4" IsChecked="{Binding SelectedEntry.IsFavorite, Mode=OneWay}"
-                                  Command="{Binding ToggleFavoriteCommand}" ToolTip="Favorit" />
-                    <ToggleButton Content="🔒" MinWidth="32" Padding="6,4" Margin="2,0,0,0" IsChecked="{Binding SelectedEntry.IsProtected, Mode=OneWay}"
-                                  Command="{Binding ToggleProtectedCommand}" ToolTip="Geschützt: nicht bearbeitbar und nicht löschbar" />
-                    <ToggleButton Content="Archiv" Padding="8,4" Margin="2,0,0,0" IsChecked="{Binding SelectedEntry.IsArchived, Mode=OneWay}"
-                                  Command="{Binding ToggleArchivedCommand}" ToolTip="Archivierte Einträge erscheinen nicht in der normalen Suche" />
-                    <Button Content="↑" MinWidth="30" Padding="6,4" Margin="8,0,0,0" Command="{Binding MoveUpCommand}"
-                            ToolTip="Eintrag im Abschnitt nach oben (Alt+↑)" />
-                    <Button Content="↓" MinWidth="30" Padding="6,4" Margin="2,0,0,0" Command="{Binding MoveDownCommand}"
-                            ToolTip="Eintrag im Abschnitt nach unten (Alt+↓)" />
-                    <Button Content="Löschen" Padding="8,4" Margin="8,0,0,0" Command="{Binding DeleteCommand}"
-                            ToolTip="In den Papierkorb verschieben" />
+                    <ToggleButton Style="{StaticResource ActionToggleButton}" Content="Favorit" IsChecked="{Binding SelectedEntry.IsFavorite, Mode=OneWay}"
+                                  Command="{Binding ToggleFavoriteCommand}" common:ActionButton.Icon="{StaticResource Icon.Favorite}"
+                                  common:ActionButton.Description="Als Favorit markieren" />
+                    <ToggleButton Style="{StaticResource ActionToggleButton}" Content="Geschützt" Margin="2,0,0,0" IsChecked="{Binding SelectedEntry.IsProtected, Mode=OneWay}"
+                                  Command="{Binding ToggleProtectedCommand}" common:ActionButton.Icon="{StaticResource Icon.Protected}"
+                                  common:ActionButton.Description="Nicht bearbeitbar und nicht löschbar" />
+                    <ToggleButton Style="{StaticResource ActionToggleButton}" Content="Archiv" Margin="2,0,0,0" IsChecked="{Binding SelectedEntry.IsArchived, Mode=OneWay}"
+                                  Command="{Binding ToggleArchivedCommand}" common:ActionButton.Icon="{StaticResource Icon.Archive}"
+                                  common:ActionButton.Description="Archivierte Einträge erscheinen nicht in der normalen Suche" />
+                    <Button Style="{StaticResource ActionButton}" Content="Nach oben" Margin="8,0,0,0" Command="{Binding MoveUpCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.MoveUp}" common:ActionButton.Description="Eintrag im Abschnitt nach oben (Alt+↑)" />
+                    <Button Style="{StaticResource ActionButton}" Content="Nach unten" Margin="2,0,0,0" Command="{Binding MoveDownCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.MoveDown}" common:ActionButton.Description="Eintrag im Abschnitt nach unten (Alt+↓)" />
+                    <Button Style="{StaticResource ActionButton}" Content="Löschen" Margin="8,0,0,0" Command="{Binding DeleteCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger"
+                            common:ActionButton.Description="In den Papierkorb verschieben (Entf in der Liste)" />
                 </StackPanel>
                 <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBlock Text="Abschnitt" VerticalAlignment="Center" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,6,0" />

@@ -34,4 +34,17 @@ public class TemplateRendererTests
 
         Assert.Equal("Fax: ", TemplateRenderer.Render("Fax: {FAX}", values));
     }
+
+    [Fact]
+    public void EveryListedPlaceholderIsReplaced()
+    {
+        var values = TemplatePlaceholders.All.ToDictionary(p => p.Name, p => (string?)("<" + p.Description + ">"));
+        var template = string.Join(" ", TemplatePlaceholders.All.Select(p => p.Token));
+
+        var result = TemplateRenderer.Render(template, values);
+
+        Assert.DoesNotContain("{", result, StringComparison.Ordinal);
+        Assert.Equal(6, TemplatePlaceholders.All.Count);
+        Assert.Equal("{LNUM}", TemplatePlaceholders.All[0].Token);
+    }
 }

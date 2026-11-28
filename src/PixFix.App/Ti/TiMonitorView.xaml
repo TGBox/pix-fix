@@ -1,6 +1,7 @@
 <UserControl x:Class="PixFix.App.Ti.TiMonitorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:common="clr-namespace:PixFix.App.Common"
              xmlns:ti="clr-namespace:PixFix.App.Ti"
              xmlns:tiInfra="clr-namespace:PixFix.Infrastructure.Ti;assembly=PixFix.Infrastructure">
     <UserControl.Resources>
@@ -68,9 +69,15 @@
             <DockPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
                 <TextBlock DockPanel.Dock="Right" Text="{Binding LastCheckedText}" Foreground="{DynamicResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="TI-Status öffnen" Command="{Binding OpenStatusPageCommand}" Padding="12,4" Margin="0,0,6,0" />
-                    <Button Content="TI-Lagebild öffnen" Command="{Binding OpenLagePageCommand}" Padding="12,4" Margin="0,0,6,0" />
-                    <Button Content="Jetzt prüfen" Command="{Binding CheckNowCommand}" Padding="12,4" FontWeight="SemiBold" />
+                    <Button Style="{StaticResource ActionButton}" Content="TI-Status öffnen" Command="{Binding OpenStatusPageCommand}" Margin="0,0,6,0"
+                            common:ActionButton.Icon="{StaticResource Icon.Open}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="Statusseite der gematik im Browser öffnen" />
+                    <Button Style="{StaticResource ActionButton}" Content="TI-Lagebild öffnen" Command="{Binding OpenLagePageCommand}" Margin="0,0,6,0"
+                            common:ActionButton.Icon="{StaticResource Icon.Open}" common:ActionButton.Role="Action"
+                            common:ActionButton.Description="Lagebild der gematik im Browser öffnen" />
+                    <Button Style="{StaticResource ActionButton}" Content="Jetzt prüfen" Command="{Binding CheckNowCommand}"
+                            common:ActionButton.Icon="{StaticResource Icon.Refresh}" common:ActionButton.Role="Primary"
+                            common:ActionButton.Description="TI-Status sofort abfragen (sonst automatisch alle 5 Minuten)" />
                 </StackPanel>
             </DockPanel>
             <ListBox ItemsSource="{Binding Details}" Margin="0,12,0,0" Background="{DynamicResource AppSurfaceBackground}" BorderThickness="1" BorderBrush="{DynamicResource AppBorderBrush}">

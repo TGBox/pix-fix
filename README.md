@@ -57,7 +57,7 @@ Nutzerdaten liegen getrennt vom Programm unter `%LOCALAPPDATA%\PixFix\`
 
 ### Übernahme aus PixFix 69
 
-Unter **Einstellungen → PixFix-69-Ordner wählen und importieren …** den alten Programmordner (oder `PixFix-Daten`) wählen.
+Unter **Einstellungen → Import aus PixFix 69 → „PixFix-69-Ordner wählen und importieren …“** den alten Programmordner (oder `PixFix-Daten`) wählen.
 Der Import ist nur in eine leere Datenbank möglich, verändert die Altdaten nicht und übernimmt nichts, wenn eine Anzahl
 nicht stimmt. Der Bericht steht danach in der Oberfläche und in der Tabelle `import_log`.
 

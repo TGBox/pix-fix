@@ -85,7 +85,7 @@
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
-                        <TextBlock Text="&#xE700;" FontFamily="Segoe MDL2 Assets" FontSize="15" />
+                        <TextBlock Text="{StaticResource Icon.Menu}" FontFamily="{DynamicResource AppIconFont}" FontSize="18" />
                     </Button>
                     <TextBlock Text="Navigation"
                                VerticalAlignment="Center"
@@ -105,22 +105,33 @@
                 </DockPanel>
                 <!-- PixFix wirklich beenden (das Schließen-Kreuz legt es standardmäßig nur in den Infobereich) -->
                 <Button DockPanel.Dock="Bottom" Command="{Binding ExitCommand}"
-                        HorizontalContentAlignment="Left" Padding="8,6" Background="Transparent" BorderThickness="0"
+                        HorizontalContentAlignment="Left" Padding="8,6"
                         ToolTip="PixFix vollständig beenden. Danach gibt es keine Rückruf-Erinnerungen, keinen TI-Monitor und keine automatische Sicherung mehr, bis PixFix wieder gestartet wird.">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                            <Setter Property="Margin" Value="4,0,4,2" />
+                            <!-- Gleicher Randabstand wie TI-Monitor und Datenordner darüber (6 px) -->
+                            <Setter Property="Margin" Value="6,0,6,6" />
+                            <Setter Property="HorizontalAlignment" Value="Stretch" />
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="BorderThickness" Value="0" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
                                     <Setter Property="HorizontalContentAlignment" Value="Center" />
+                                </DataTrigger>
+                                <!-- „Farbig“: rot wie die Papierkorb-Knöpfe (SPEC F16); die Beschriftung folgt nur dem Einklappen -->
+                                <DataTrigger Binding="{Binding IsColorful, Source={x:Static common:Appearance.Current}}" Value="True">
+                                    <Setter Property="Template" Value="{StaticResource RoleButtonTemplate}" />
+                                    <Setter Property="Background" Value="{DynamicResource AppRoleDangerBackground}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource AppRoleDangerForeground}" />
+                                    <Setter Property="BorderBrush" Value="{DynamicResource AppRoleDangerBorder}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
                     </Button.Style>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE7E8;" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                        <TextBlock Text="{StaticResource Icon.Exit}" FontFamily="{DynamicResource AppIconFont}" FontSize="18"
                                    Width="22" TextAlignment="Center" VerticalAlignment="Center" />
-                        <TextBlock Text="PixFix beenden" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                        <TextBlock Text="Beenden" Margin="10,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
@@ -133,7 +144,7 @@
                         </TextBlock>
                     </StackPanel>
                 </Button>
-                <TextBlock DockPanel.Dock="Bottom" Margin="8" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11" TextWrapping="Wrap"
+                <TextBlock DockPanel.Dock="Bottom" Margin="6,4,6,6" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11" TextWrapping="Wrap"
                            Text="{Binding DataDirectory, StringFormat='Daten: {0}'}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -152,11 +163,8 @@
                         Background="{Binding Ti.State, Converter={StaticResource TiBrush}}" BorderThickness="0">
                     <Button.Style>
                         <Style TargetType="Button">
-                            <Setter Property="Margin" Value="8,0,8,6" />
+                            <Setter Property="Margin" Value="6,0,6,6" />
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsSidebarCollapsed}" Value="True">
-                                    <Setter Property="Margin" Value="6,0,6,8" />
-                                </DataTrigger>
                                 <DataTrigger Binding="{Binding Ti.IsBlinking}" Value="True">
                                     <DataTrigger.EnterActions>
                                         <BeginStoryboard x:Name="TiBlink">
@@ -222,7 +230,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="2,1" ToolTip="{Binding Title}">
-                                <TextBlock Text="{Binding Icon}" FontFamily="Segoe MDL2 Assets" FontSize="15"
+                                <TextBlock Text="{Binding Icon}" FontFamily="{DynamicResource AppIconFont}" FontSize="18"
                                            Width="22" TextAlignment="Center" VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding Title}" Margin="10,0,0,0" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis">
@@ -254,7 +262,7 @@
                     BorderBrush="{DynamicResource AppInfoBarBorderBrush}"
                     BorderThickness="1" CornerRadius="6">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Left" Text="&#xE896;" FontFamily="Segoe MDL2 Assets" FontSize="20"
+                    <TextBlock DockPanel.Dock="Left" Text="{StaticResource Icon.Download}" FontFamily="{DynamicResource AppIconFont}" FontSize="22"
                                Foreground="{DynamicResource AccentFillColorDefaultBrush}" VerticalAlignment="Center" Margin="0,0,12,0" />
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                         <Button Content="_Herunterladen" Command="{Binding DownloadCommand}" MinWidth="120" Padding="12,4"

@@ -1,6 +1,7 @@
 <Window x:Class="PixFix.App.Workspaces.WorkspacesWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:common="clr-namespace:PixFix.App.Common"
         Title="Schreibbereiche verwalten"
         Width="560" Height="440"
         Background="{DynamicResource AppWindowBackground}"
@@ -21,22 +22,45 @@
             <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="6,0,0,0">
                 <CheckBox x:Name="ProtectedBox" Content="Geschützt" VerticalAlignment="Center" Margin="0,0,8,0" />
                 <Button Content="Übernehmen" Padding="10,2" Click="OnSave" IsDefault="True" />
-                <Button Content="Neu" Padding="10,2" Margin="6,0,0,0" Click="OnCreate" ToolTip="Neuen Bereich mit diesem Namen anlegen" />
+                <Button Content="Neu" Padding="12,4" Margin="6,0,0,0" Click="OnCreate" Style="{StaticResource ActionButton}" common:ActionButton.Role="Create"
+                        common:ActionButton.Description="Neuen Bereich mit diesem Namen anlegen" />
             </StackPanel>
         </Grid>
         <StackPanel DockPanel.Dock="Right" Margin="8,0,0,0">
-            <Button Content="↑ Nach oben" Padding="8,2" Click="OnMoveUp" />
-            <Button Content="↓ Nach unten" Padding="8,2" Margin="0,4,0,0" Click="OnMoveDown" />
-            <Button Content="Löschen" Padding="8,2" Margin="0,16,0,0" Click="OnDelete" />
-            <Button Content="Schließen" Padding="8,2" Margin="0,16,0,0" IsCancel="True" />
+            <Button Style="{StaticResource ActionButton}" Content="Nach oben" Click="OnMoveUp" HorizontalAlignment="Stretch"
+                    common:ActionButton.Icon="{StaticResource Icon.MoveUp}" common:ActionButton.Description="Markierten Bereich nach oben" />
+            <Button Style="{StaticResource ActionButton}" Content="Nach unten" Margin="0,4,0,0" Click="OnMoveDown" HorizontalAlignment="Stretch"
+                    common:ActionButton.Icon="{StaticResource Icon.MoveDown}" common:ActionButton.Description="Markierten Bereich nach unten" />
+            <Button Style="{StaticResource ActionButton}" Content="Löschen" Margin="0,16,0,0" Click="OnDelete" HorizontalAlignment="Stretch"
+                    common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger"
+                    common:ActionButton.Description="Markierten Bereich löschen – nur leere, ungeschützte Bereiche" />
+            <Button Content="Schließen" Padding="12,4" Margin="0,16,0,0" IsCancel="True" />
         </StackPanel>
-        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged"
+        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged" SizeChanged="OnListSizeChanged"
                   Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="" Width="40" DisplayMemberBinding="{Binding Icon}" />
-                    <GridViewColumn Header="Bereich" Width="260" DisplayMemberBinding="{Binding Title}" />
-                    <GridViewColumn Header="Geschützt" Width="80" DisplayMemberBinding="{Binding IsProtected}" />
+                    <!-- Der Name füllt den Rest (OnListSizeChanged), damit „Geschützt“ immer ganz sichtbar ist -->
+                    <GridViewColumn x:Name="IconColumn" Header="" Width="40" DisplayMemberBinding="{Binding Icon}" />
+                    <GridViewColumn x:Name="NameColumn" Header="Bereich" Width="260" DisplayMemberBinding="{Binding Title}" />
+                    <GridViewColumn x:Name="ProtectedColumn" Header="Geschützt" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="nein" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsProtected}" Value="True">
+                                                    <Setter Property="Text" Value="ja" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

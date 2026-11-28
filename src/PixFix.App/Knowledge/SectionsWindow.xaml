@@ -1,7 +1,9 @@
 <Window x:Class="PixFix.App.Knowledge.SectionsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:common="clr-namespace:PixFix.App.Common"
         Title="Abschnitte – Wissensdatenbank"
+        common:LayoutMemory.Key="sections"
         Width="520" Height="420"
         Background="{DynamicResource AppWindowBackground}"
         WindowStartupLocation="CenterOwner"
@@ -12,20 +14,32 @@
         <TextBlock x:Name="Error" DockPanel.Dock="Bottom" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap" Margin="0,8,0,0" />
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
             <TextBox x:Name="NameBox" Width="220" VerticalContentAlignment="Center" ToolTip="Neuer Name für den markierten Abschnitt" />
-            <Button Content="Umbenennen" Padding="10,2" Margin="6,0,0,0" Click="OnRename" IsDefault="True" />
-            <Button Content="Schließen" Padding="10,2" Margin="6,0,0,0" IsCancel="True" />
+            <Button Content="Umbenennen" Padding="12,4" MinWidth="110" Margin="6,0,0,0" Click="OnRename" IsDefault="True"
+                    ToolTip="Markierten Abschnitt auf den eingegebenen Namen umbenennen (Enter)" />
+            <Button Content="Schließen" Padding="12,4" MinWidth="100" Margin="6,0,0,0" IsCancel="True" />
         </StackPanel>
         <StackPanel DockPanel.Dock="Right" Margin="8,0,0,0">
-            <Button Content="↑ Nach oben" Padding="8,2" Click="OnMoveUp" />
-            <Button Content="↓ Nach unten" Padding="8,2" Margin="0,4,0,0" Click="OnMoveDown" />
-            <Button Content="Löschen" Padding="8,2" Margin="0,16,0,0" Click="OnDelete" />
+            <Button Style="{StaticResource ActionButton}" Content="Nach oben" Click="OnMoveUp" HorizontalAlignment="Stretch"
+                    common:ActionButton.Icon="{StaticResource Icon.MoveUp}" common:ActionButton.Description="Markierten Abschnitt nach oben" />
+            <Button Style="{StaticResource ActionButton}" Content="Nach unten" Click="OnMoveDown" Margin="0,4,0,0" HorizontalAlignment="Stretch"
+                    common:ActionButton.Icon="{StaticResource Icon.MoveDown}" common:ActionButton.Description="Markierten Abschnitt nach unten" />
+            <Button Style="{StaticResource ActionButton}" Content="Löschen" Click="OnDelete" Margin="0,16,0,0" HorizontalAlignment="Stretch"
+                    common:ActionButton.Icon="{StaticResource Icon.Delete}" common:ActionButton.Role="Danger"
+                    common:ActionButton.Description="Markierten Abschnitt löschen – nur wenn er leer ist" />
         </StackPanel>
-        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged"
+        <ListView x:Name="Items" SelectionMode="Single" SelectionChanged="OnSelectionChanged" SizeChanged="OnListSizeChanged"
                   Background="{DynamicResource AppSurfaceBackground}" BorderBrush="{DynamicResource AppBorderBrush}" BorderThickness="1">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Abschnitt" Width="260" DisplayMemberBinding="{Binding Name}" />
-                    <GridViewColumn Header="Einträge" Width="70" DisplayMemberBinding="{Binding EntryCount}" />
+                    <!-- Breite des Namens füllt den Rest (OnListSizeChanged), damit „Einträge“ immer ganz sichtbar ist -->
+                    <GridViewColumn x:Name="NameColumn" Header="Abschnitt" Width="200" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn x:Name="CountColumn" Header="Einträge" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding EntryCount}" TextAlignment="Right" MinWidth="60" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

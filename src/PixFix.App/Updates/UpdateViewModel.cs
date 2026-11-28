@@ -125,7 +125,7 @@ public sealed class UpdateViewModel : ObservableObject
             : $"PixFix {latest.VersionText} ist verfügbar – du verwendest Version {CurrentVersionText}.";
 
     public string InstallHint =>
-        "Nach dem Download PixFix beenden („PixFix beenden“ unten links) und die alte PixFix.exe "
+        "Nach dem Download PixFix beenden („Beenden“ unten links) und die alte PixFix.exe "
         + "durch die neue ersetzen. Deine Daten bleiben erhalten.";
 
     public string StatusText

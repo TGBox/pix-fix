@@ -30,6 +30,11 @@ PixFix ist das persönliche Arbeitswerkzeug für die Hotline (`Windows 10/11`, `
   - Buttons und Container mit `MinWidth` und ausreichendem `Padding` statt enger fester `Width`/`Height`-Werte definieren, damit Beschriftungen im Fluent Theme nicht abgeschnitten werden.
   - Änderungen an `RichTextBox` / `FlowDocument` müssen über `FlowDocumentThemeHelper` verlustfrei für Light/Dark Mode sowie sauber für RTF-Speicherung und Outlook-HTML-Export bleiben.
   - Bei neuen Fenstern/Ansichten Fenstergröße und -position nach Möglichkeit über `LayoutMemory.Key` merken.
+  - Schaltflächen in Werkzeugleisten und Listen mit `Style="{StaticResource ActionButton}"` (Umschalter:
+    `ActionToggleButton`), Symbol `common:ActionButton.Icon="{StaticResource Icon.…}"`, passender
+    `common:ActionButton.Role` und `common:ActionButton.Description` statt `ToolTip` (SPEC F16). Keine Emojis oder
+    Segoe-Zeichen als Symbole; fehlende Symbole in `scripts/build-icon-font.py` ergänzen und das Skript ausführen.
+    Knöpfe, die einen Dialog abschließen, bleiben reine Textknöpfe.
 
 1. Pflicht-Checkliste vor jeder Fertigmeldung
 

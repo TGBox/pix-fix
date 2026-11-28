@@ -65,12 +65,12 @@ public sealed class MainViewModel : ObservableObject
 
         Sections =
         [
-            new("\uE82D", "Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
-            new("\uE70F", "Schreibbereiche", "Notizen, Anleitungen, Werkzeuge und PDF-Anhänge.", workspaces),
-            new("\uE717", "Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
-            new("\uE95E", "TI-Monitor", "Störungen der Telematikinfrastruktur (gematik).", ti),
-            new("\uE713", "Einstellungen", "Anrufe, Vorlagen, Sicherung, Import aus PixFix 69.", settings),
-            new("\uE897", "Hilfe", "Anleitungen zu allen Funktionen und die Einführungstour.", help),
+            new(IconGlyphs.Knowledge, "Wissensdatenbank", "Fehlerbilder und Lösungen nachschlagen.", knowledge),
+            new(IconGlyphs.Workspaces, "Schreibbereiche", "Notizen, Anleitungen, Werkzeuge und PDF-Anhänge.", workspaces),
+            new(IconGlyphs.Calls, "Anrufe", "Anrufkarten, Rückruf-Erinnerungen, Vorlagen und Telefonie.", calls),
+            new(IconGlyphs.Ti, "TI-Monitor", "Störungen der Telematikinfrastruktur (gematik).", ti),
+            new(IconGlyphs.Settings, "Einstellungen", "Anrufe, Vorlagen, Sicherung, Import aus PixFix 69.", settings),
+            new(IconGlyphs.Help, "Hilfe", "Anleitungen zu allen Funktionen und die Einführungstour.", help),
         ];
         selectedSection = Sections[0];
         ToggleSidebarCommand = new RelayCommand(() => IsSidebarCollapsed = !IsSidebarCollapsed);
@@ -86,7 +86,7 @@ public sealed class MainViewModel : ObservableObject
         help.TourRequested += (_, _) => TourRequested?.Invoke(this, EventArgs.Empty);
         ShowHelpCommand = new RelayCommand(() => SelectedSection = Sections[HelpContent.Help]);
 
-        // „PixFix beenden“ unten in der Navigation – wie im Menü des Infobereichs.
+        // „Beenden“ unten in der Navigation – wie im Menü des Infobereichs.
         ExitCommand = new RelayCommand(() => ExitRequested?.Invoke(this, EventArgs.Empty));
 
         // Strg+1 … Strg+6 wechselt den Bereich.

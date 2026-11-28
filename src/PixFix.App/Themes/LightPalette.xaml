@@ -11,6 +11,40 @@
     <SolidColorBrush x:Key="AppInfoBarBackground" Color="#E3EFFA" />
     <SolidColorBrush x:Key="AppInfoBarBorderBrush" Color="#9CC3E8" />
 
+    <!-- Farbige Schaltflächen (Einstellung „Farbig“; Primary = Hauptaktion auch in „Dezent“). Kontrast: ThemePaletteContrastTests -->
+    <!-- Neutral nur in „Farbig“: graue Fläche statt weißer Fluent-Schaltfläche, ohne eine Bedeutung vorzutäuschen -->
+    <SolidColorBrush x:Key="AppRoleNeutralBackground" Color="#616A75" />
+    <SolidColorBrush x:Key="AppRoleNeutralForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppRoleNeutralBorder" Color="#616A75" />
+    <SolidColorBrush x:Key="AppRolePrimaryBackground" Color="#005FB8" />
+    <SolidColorBrush x:Key="AppRolePrimaryForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppRolePrimaryBorder" Color="#005FB8" />
+    <SolidColorBrush x:Key="AppRoleCreateBackground" Color="#0F7B0F" />
+    <SolidColorBrush x:Key="AppRoleCreateForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppRoleCreateBorder" Color="#0F7B0F" />
+    <SolidColorBrush x:Key="AppRoleDangerBackground" Color="#C42B1C" />
+    <SolidColorBrush x:Key="AppRoleDangerForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppRoleDangerBorder" Color="#C42B1C" />
+    <SolidColorBrush x:Key="AppRoleWarningBackground" Color="#F7B32B" />
+    <SolidColorBrush x:Key="AppRoleWarningForeground" Color="#1B1F24" />
+    <SolidColorBrush x:Key="AppRoleWarningBorder" Color="#8A5300" />
+    <SolidColorBrush x:Key="AppRoleActionBackground" Color="#0067C0" />
+    <SolidColorBrush x:Key="AppRoleActionForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppRoleActionBorder" Color="#0067C0" />
+
+    <!-- Fernwartung in Markenfarben, in beiden Darstellungen gleich (AnyDesk #EF443B, TeamViewer #050A52) -->
+    <SolidColorBrush x:Key="AppBrandAnyDeskBackground" Color="#EF443B" />
+    <SolidColorBrush x:Key="AppBrandAnyDeskForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppBrandAnyDeskBorder" Color="#EF443B" />
+    <SolidColorBrush x:Key="AppBrandTeamViewerBackground" Color="#050A52" />
+    <SolidColorBrush x:Key="AppBrandTeamViewerForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppBrandTeamViewerBorder" Color="#050A52" />
+
+    <!-- Platzhalter-Pills in Vorlagen -->
+    <SolidColorBrush x:Key="AppPillBackground" Color="#E1ECF8" />
+    <SolidColorBrush x:Key="AppPillBorder" Color="#9CC3E8" />
+    <SolidColorBrush x:Key="AppPillForeground" Color="#0B3D6E" />
+
     <!-- Fluent Light contrast overrides (replaces faint 6% strokes with crisp visible borders) -->
     <SolidColorBrush x:Key="ApplicationBackgroundBrush" Color="#F2F4F8" />
     <SolidColorBrush x:Key="ControlElevationBorderBrush" Color="#B6C0CE" />

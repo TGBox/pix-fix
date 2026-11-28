@@ -33,6 +33,13 @@ public partial class WorkspacesWindow : Window
         Error.Text = string.Empty;
     }
 
+    private void OnListSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Rand, Rahmen und senkrechte Bildlaufleiste abziehen; der Name bekommt den Rest, mindestens 120 px.
+        var available = Items.ActualWidth - IconColumn.Width - ProtectedColumn.Width - SystemParameters.VerticalScrollBarWidth - 12;
+        NameColumn.Width = Math.Max(120, available);
+    }
+
     private void OnSave(object sender, RoutedEventArgs e) =>
         Apply(w => viewModel.ChangeWorkspaces(r => r.UpdateWorkspace(w.Id, NameBox.Text, IconBox.Text, ProtectedBox.IsChecked == true)), Selected?.Id);
 
